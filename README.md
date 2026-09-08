@@ -1,10 +1,6 @@
-# 01 — Template chung cho tất cả các nhóm
+# Template chung cho tất cả các nhóm
 
-Bộ khung dùng **xuyên suốt môn học**, từ Mốc 2 đến Mốc 4. Mọi nhóm bắt đầu từ đây.
-
-Muốn xem một bản đã hoàn chỉnh trông ra sao → mở **`../02-mau-reloop/`**.
-
-## Bắt đầu (Tuần 4)
+Bộ khung dùng **xuyên suốt môn học**.
 
 ### 1. Tạo repo của nhóm
 
