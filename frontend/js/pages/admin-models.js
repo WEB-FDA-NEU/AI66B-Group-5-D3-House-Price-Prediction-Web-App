@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
-import { listModels } from '../api.js';
-import { showEmpty, showError } from '../ui.js';
+import { listModels, activateModel, archiveModel, ApiError } from '../api.js';
+import { showEmpty, showError, confirmAction, toast } from '../ui.js';
 
 if (!requireAdmin()) throw new Error('blocked');
 
@@ -28,7 +28,7 @@ function render(items) {
   wrap.className = 'table-wrap';
   const table = document.createElement('table');
   table.className = 'table';
-  table.innerHTML = '<thead><tr><th>Version</th><th>Thuật toán</th><th>Dataset</th><th>MAE</th><th>R²</th><th>Ngày upload</th><th>State</th></tr></thead>';
+  table.innerHTML = '<thead><tr><th>Version</th><th>Thuật toán</th><th>Dataset</th><th>MAE</th><th>R²</th><th>Ngày upload</th><th>State</th><th>Hành động</th></tr></thead>';
   const tb = document.createElement('tbody');
   for (const m of items) {
     const tr = document.createElement('tr');
@@ -41,11 +41,67 @@ function render(items) {
     const b = document.createElement('span');
     b.className = 'badge'; b.dataset.state = m.state; b.textContent = m.state;
     st.append(b); tr.append(st);
+    const act = document.createElement('td');
+    if (m.state === 'Validated' || m.state === 'Archived') {
+      const btn = document.createElement('button');
+      btn.className = 'btn btn--primary'; btn.textContent = 'Activate';
+      btn.onclick = () => onActivate(m);
+      act.append(btn);
+    } else if (m.state === 'Active') {
+      const span = document.createElement('span');
+      span.className = 'field__hint'; span.textContent = 'Đang live (BR-2)';
+      act.append(span);
+    } else if (m.state === 'Rejected') {
+      const span = document.createElement('span');
+      span.className = 'field__hint'; span.textContent = 'Không thể activate';
+      act.append(span);
+    }
+    if (m.state === 'Validated' || m.state === 'Active') {
+      const btn = document.createElement('button');
+      btn.className = 'btn'; btn.textContent = 'Archive'; btn.style.marginLeft = '.5rem';
+      btn.onclick = () => onArchive(m);
+      act.append(btn);
+    }
+    tr.append(act);
     tb.append(tr);
   }
   table.append(tb);
   wrap.append(table);
   listEl.append(wrap);
+}
+
+async function onActivate(m) {
+  const ok = await confirmAction({
+    title: `Kích hoạt ${m.version}?`,
+    message: `Version đang live sẽ bị Archive (BR-2). Không thể hoàn tác tự động.`,
+    confirmText: 'Kích hoạt',
+  });
+  if (!ok) return;
+  try {
+    await activateModel(m.id);
+    toast(`Đã kích hoạt ${m.version}`, 'success');
+    load();
+  } catch (err) {
+    // BR-2 conflict: list đã refresh, hiện notice.
+    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Kích hoạt thất bại.'}</p>`;
+    load();
+  }
+}
+
+async function onArchive(m) {
+  const ok = await confirmAction({
+    title: `Archive ${m.version}?`,
+    message: 'Version sẽ rời danh sách active và chỉ dùng để rollback.',
+    confirmText: 'Archive',
+  });
+  if (!ok) return;
+  try {
+    await archiveModel(m.id);
+    toast(`Đã archive ${m.version}`, 'success');
+    load();
+  } catch (err) {
+    toast(err.detail ?? 'Archive thất bại.', 'error');
+  }
 }
 
 load();
