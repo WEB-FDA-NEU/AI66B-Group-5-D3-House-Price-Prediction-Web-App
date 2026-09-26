@@ -93,12 +93,17 @@ export function register(payload) {
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
-// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1 mock, không cần backend ══════════
+// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1..AD-2 mock, không cần backend ══════════
 // Hợp đồng mock trùng FastAPI Mốc 3.
 
 export function getAdminStats() {
   if (USE_MOCK) return request(`${MOCK_BASE}/admin-stats.json`);
   return request(`${API_BASE}/admin/stats`);
+}
+
+export function listModels() {
+  if (USE_MOCK) return request(`${MOCK_BASE}/models.json`);
+  return request(`${API_BASE}/admin/models`);
 }
 
 
