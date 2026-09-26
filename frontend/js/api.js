@@ -93,8 +93,8 @@ export function register(payload) {
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
-// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1..AD-3 mock, không cần backend ══════════
-// Hợp đồng mock trùng FastAPI Mốc 3. BR-13 chỉ mô phỏng phía UI.
+// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1..AD-4 mock, không cần backend ══════════
+// Hợp đồng mock trùng FastAPI Mốc 3. BR-1/BR-2/BR-13 chỉ mô phỏng phía UI.
 
 export function getAdminStats() {
   if (USE_MOCK) return request(`${MOCK_BASE}/admin-stats.json`);
@@ -127,6 +127,21 @@ export function uploadModel({ file, algorithm, dataset, note }) {
   fd.append('dataset', dataset);
   if (note) fd.append('note', note);
   return request(`${API_BASE}/admin/models`, { method: 'POST', body: fd });
+}
+
+export function activateModel(id) {
+  if (USE_MOCK) {
+    // Mô phỏng BR-2 conflict: version khác vừa live thì báo 409 + refresh list.
+    if (Math.random() < 0.0)
+      return Promise.reject(new ApiError(409, 'Phiên bản khác vừa được kích hoạt. Danh sách đã làm mới.'));
+    return Promise.resolve({ id, state: 'Active' });
+  }
+  return request(`${API_BASE}/admin/models/${id}/activate`, { method: 'POST' });
+}
+
+export function archiveModel(id) {
+  if (USE_MOCK) return Promise.resolve({ id, state: 'Archived' });
+  return request(`${API_BASE}/admin/models/${id}/archive`, { method: 'POST' });
 }
 
 
