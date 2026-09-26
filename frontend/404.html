@@ -3,19 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Không tìm thấy trang — TÊN-SẢN-PHẨM</title>
+<title>Không tìm thấy trang — HomeVal</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
+<site-header></site-header>
 <main class="container page">
   <div class="empty">
     <p class="empty__title">Không tìm thấy trang này</p>
-    <p class="empty__hint">Có thể mục đã được gỡ, hoặc đường dẫn bị sai.</p>
-    <a class="btn btn--primary empty__action" href="index.html">Về trang chủ</a>
+    <p class="empty__hint">Địa chỉ sai, mục đã gỡ, hoặc bạn không có quyền xem (BR-10).</p>
+    <p><a class="btn btn--primary empty__action" href="index.html">Về trang chủ</a>
+    <a class="btn" href="admin.html">Về Admin</a></p>
   </div>
 </main>
+<site-footer></site-footer>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
 </body>
 </html>

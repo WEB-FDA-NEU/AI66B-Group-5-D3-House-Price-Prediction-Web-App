@@ -14,15 +14,12 @@ import { initHeader } from '../auth.js';
 const TEMPLATE = /* html */ `
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="logo" href="index.html">TÊN-SẢN-PHẨM</a>
-
-    <form class="site-header__search" action="list.html" method="get" role="search">
-      <label class="visually-hidden" for="hq">Tìm kiếm</label>
-      <input class="input" id="hq" name="q" type="search" placeholder="Tìm kiếm…">
-    </form>
+    <a class="logo" href="index.html">HomeVal</a>
 
     <nav>
-      <a class="site-header__link" href="shop.html" data-nav="shop">Cửa hàng</a>
+      <a class="site-header__link" href="index.html" data-nav="home">Trang chủ</a>
+      <a class="site-header__link" href="admin.html" data-nav="admin" data-auth="admin" hidden>Admin</a>
+      <a class="site-header__link" href="admin-models.html" data-nav="models" data-auth="admin" hidden>Models</a>
       <span data-auth="guest" hidden>
         <a class="btn" href="login.html">Đăng nhập</a>
         <a class="btn btn--primary" href="register.html">Đăng ký</a>

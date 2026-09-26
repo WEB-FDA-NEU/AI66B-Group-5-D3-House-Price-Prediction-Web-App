@@ -69,9 +69,14 @@ export function getItem(id) {
 export function login(email, password) {
   if (USE_MOCK) {
     if (password === 'sai') return Promise.reject(new ApiError(401, 'Email hoặc mật khẩu không đúng.'));
+    // Mock role admin cho Milestone 2: email chứa "admin" → role admin.
+    // Mốc 3 backend sẽ trả role thật từ JWT.
+    const isAdminMail = (email || '').toLowerCase().includes('admin');
     return Promise.resolve({
-      access_token: 'mock-token', token_type: 'bearer',
-      user: { id: 1, display_name: 'Người dùng mẫu', role: 'user' },
+      access_token: isAdminMail ? 'mock-admin-token' : 'mock-token', token_type: 'bearer',
+      user: isAdminMail
+        ? { id: 99, display_name: 'Quản trị viên', role: 'admin', email }
+        : { id: 1, display_name: 'Người dùng mẫu', role: 'user', email },
     });
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
@@ -88,7 +93,13 @@ export function register(payload) {
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
-// ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
+// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1 mock, không cần backend ══════════
+// Hợp đồng mock trùng FastAPI Mốc 3.
+
+export function getAdminStats() {
+  if (USE_MOCK) return request(`${MOCK_BASE}/admin-stats.json`);
+  return request(`${API_BASE}/admin/stats`);
+}
 
 
 // ---------- chỉ dùng ở chế độ mock; backend thật lọc bằng SQL ----------
