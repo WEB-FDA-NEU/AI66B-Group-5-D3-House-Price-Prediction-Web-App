@@ -2,7 +2,8 @@ import { requireAdmin } from '../auth.js';
 import { listModels, activateModel, archiveModel, ApiError } from '../api.js';
 import { showEmpty, showError, confirmAction, toast } from '../ui.js';
 
-if (!requireAdmin()) throw new Error('blocked');
+function initPage() {
+if (!requireAdmin()) return;
 
 const listEl = document.getElementById('list');
 const alertBox = document.getElementById('alert');
@@ -105,3 +106,5 @@ async function onArchive(m) {
 }
 
 load();
+}
+initPage();
