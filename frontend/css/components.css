@@ -182,3 +182,27 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .site-header__link { text-decoration: none; padding: .4rem .6rem; border-radius: var(--radius-s); }
 .site-header__link:hover    { background: var(--c-surface); }
 .site-header__link.is-active { font-weight: 700; color: var(--c-primary); }
+
+/* ============ Admin (Tuệ — AD-1..AD-4, FE-07) ============ */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sp-4); }
+.kpi { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); background: var(--c-bg); }
+.kpi__label { font-size: .8rem; color: var(--c-muted); }
+.kpi__value { font-size: 1.4rem; font-weight: 700; margin-top: var(--sp-1); }
+.kpi__sub { font-size: .8rem; color: var(--c-muted); margin-top: var(--sp-1); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--c-border); border-radius: var(--radius); }
+.table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 720px; }
+.table th, .table td { padding: .6rem .75rem; border-bottom: 1px solid var(--c-border); text-align: left; }
+.table thead th { background: var(--c-surface); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--c-muted); }
+.badge { display: inline-block; padding: .15rem .55rem; border-radius: 999px; font-size: .75rem; font-weight: 600; background: var(--c-muted); color: #fff; }
+.badge[data-state="Active"] { background: var(--c-success); }
+.badge[data-state="Validated"] { background: var(--c-primary); }
+.badge[data-state="Uploaded"] { background: var(--c-warning); }
+.badge[data-state="Archived"] { background: var(--c-muted); }
+.badge[data-state="Rejected"] { background: var(--c-danger); }
+.admin-nav { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-4); }
+.activity { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
+.activity li { border: 1px solid var(--c-border); border-radius: var(--radius-s); padding: var(--sp-3); font-size: .9rem; }
+.activity time { color: var(--c-muted); font-size: .8rem; margin-left: var(--sp-2); }
+.alert { border: 1px solid var(--c-border); border-radius: var(--radius-s); padding: var(--sp-3) var(--sp-4); font-size: .9rem; }
+.alert--error { border-color: var(--c-danger); background: color-mix(in srgb, var(--c-danger) 8%, transparent); }
+.alert--info { border-color: var(--c-primary); background: color-mix(in srgb, var(--c-primary) 8%, transparent); }

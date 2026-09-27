@@ -13,41 +13,41 @@ const TEMPLATE = /* html */ `
   <div class="container site-footer__grid">
 
     <div class="site-footer__brand">
-      <p class="logo">TÊN-SẢN-PHẨM</p>
-      <p class="site-footer__tagline">Một dòng mô tả sản phẩm của nhóm.</p>
+      <p class="logo">HomeVal</p>
+      <p class="site-footer__tagline">Định giá nhà minh bạch: giá + khoảng tin cậy + phiên bản model.</p>
+      <p class="site-footer__tagline"><small>Giá chỉ mang tính tham khảo, không phải thẩm định chuyên nghiệp (BR-9).</small></p>
     </div>
 
-    <nav class="site-footer__col" aria-labelledby="ft-shop">
-      <h3 class="site-footer__title" id="ft-shop">Mua sắm</h3>
+    <nav class="site-footer__col" aria-labelledby="ft-main">
+      <h3 class="site-footer__title" id="ft-main">HomeVal</h3>
       <ul>
-        <li><a href="shop.html">Tất cả sản phẩm</a></li>
-        <li><a href="shop.html?sort=newest">Hàng mới về</a></li>
-        <li><a href="shop.html?sort=price_asc">Giá tốt</a></li>
+        <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="login.html">Đăng nhập</a></li>
+        <li><a href="register.html">Đăng ký</a></li>
+      </ul>
+    </nav>
+
+    <nav class="site-footer__col" aria-labelledby="ft-admin">
+      <h3 class="site-footer__title" id="ft-admin">Quản trị</h3>
+      <ul>
+        <li><a href="admin.html">Dashboard</a></li>
+        <li><a href="admin-models.html">Model Management</a></li>
+        <li><a href="admin-models-new.html">Upload Model</a></li>
       </ul>
     </nav>
 
     <nav class="site-footer__col" aria-labelledby="ft-help">
       <h3 class="site-footer__title" id="ft-help">Hỗ trợ</h3>
       <ul>
-        <li><a href="#">Câu hỏi thường gặp</a></li>
-        <li><a href="#">Chính sách đổi trả</a></li>
-        <li><a href="#">Liên hệ</a></li>
-      </ul>
-    </nav>
-
-    <nav class="site-footer__col" aria-labelledby="ft-about">
-      <h3 class="site-footer__title" id="ft-about">Về chúng tôi</h3>
-      <ul>
-        <li><a href="#">Giới thiệu</a></li>
-        <li><a href="#">Điều khoản</a></li>
-        <li><a href="#">Bảo mật</a></li>
+        <li><a href="404.html">404 mẫu</a></li>
+        <li><a href="500.html">500 mẫu</a></li>
       </ul>
     </nav>
 
   </div>
 
   <div class="container site-footer__bottom">
-    <p>© ${YEAR} TÊN-SẢN-PHẨM — Đồ án môn Web Design &amp; Programming, lớp AI66B.</p>
+    <p>© ${YEAR} HomeVal — Đồ án Web Design &amp; Programming, lớp AI66B, Nhóm 5.</p>
   </div>
 </footer>`;
 

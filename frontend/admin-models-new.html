@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upload Model — HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header active="models"></site-header>
+<main class="container page stack" style="max-width:640px">
+  <nav class="admin-nav" aria-label="Admin">
+    <a class="btn" href="admin.html">Dashboard</a>
+    <a class="btn" href="admin-models.html">Models</a>
+    <a class="btn is-active" href="admin-models-new.html">Upload Model</a>
+  </nav>
+  <h1>Upload Model Version</h1>
+  <p class="field__hint">AD-3 · BR-13: .pkl/.joblib ≤ 100MB + smoke-test. File tên chứa <code>bad</code> sẽ mô phỏng Rejected.</p>
+  <form id="upload-form" class="stack" novalidate>
+    <div class="field">
+      <label class="field__label" for="file">Model file (.pkl / .joblib)</label>
+      <input class="input" id="file" name="file" type="file" accept=".pkl,.joblib" required>
+      <p class="field__hint">Tối đa 100 MB.</p>
+      <p class="field__error"></p>
+    </div>
+    <div class="field">
+      <label class="field__label" for="algorithm">Thuật toán</label>
+      <select class="select" id="algorithm" name="algorithm" required>
+        <option value="">— Chọn —</option>
+        <option>Gradient Boosting</option>
+        <option>Random Forest</option>
+        <option>XGBoost</option>
+      </select>
+      <p class="field__error"></p>
+    </div>
+    <div class="field">
+      <label class="field__label" for="dataset">Training dataset</label>
+      <select class="select" id="dataset" name="dataset" required>
+        <option value="">— Chọn —</option>
+        <option>housing-hcm-2026q2.csv</option>
+        <option>housing-hcm-2026q3.csv</option>
+      </select>
+      <p class="field__error"></p>
+    </div>
+    <div class="field">
+      <label class="field__label" for="note">Release note (không bắt buộc)</label>
+      <textarea class="textarea" id="note" name="note" rows="3" maxlength="500"></textarea>
+      <p class="field__error"></p>
+    </div>
+    <button class="btn btn--primary" type="submit">Upload &amp; Smoke-test</button>
+  </form>
+</main>
+<site-footer></site-footer>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/admin-models-new.js"></script>
+</body>
+</html>
