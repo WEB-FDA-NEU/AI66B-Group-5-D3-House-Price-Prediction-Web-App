@@ -14,7 +14,11 @@ body {
    Phải khai display:block, và min-height để trang không GIẬT khi component
    gắn vào (module JS chạy sau khi HTML parse xong). */
 site-header { display: block; min-height: 64px; }
-@media (max-width: 640px) { site-header { min-height: 108px; } }
+/* 108px cũ đo cho nav 1 dòng + ô tìm kiếm xuống dòng riêng (đã bỏ).
+   Giờ nav có 2 link dài + 2 nút Đăng nhập/Đăng ký, "nav{flex-wrap:wrap}"
+   có thể xuống tới 3 dòng (logo, 2 link, 2 nút) trên điện thoại hẹp —
+   nâng lên 160px để không giật layout khi header gắn vào. */
+@media (max-width: 640px) { site-header { min-height: 160px; } }
 
 .site-header {
   border-bottom: 1px solid var(--c-border);
