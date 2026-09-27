@@ -272,6 +272,8 @@ export function savePrediction(prediction, label = '') {
       area_m2: Number(input.area_m2) || 0,
       estimated_price: prediction.estimated_price,
       currency: prediction.currency ?? 'VND',
+      confidence_interval: prediction.confidence_interval ? { ...prediction.confidence_interval } : null,
+      disclaimer: prediction.disclaimer ?? 'Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp.',
       model_version: prediction.model?.version ?? 'v2.3.0',
       input: { ...input },
       created_at: new Date().toISOString(),

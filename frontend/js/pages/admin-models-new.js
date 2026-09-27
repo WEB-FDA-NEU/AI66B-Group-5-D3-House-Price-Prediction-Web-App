@@ -2,7 +2,8 @@ import { requireAdmin } from '../auth.js';
 import { uploadModel, ApiError } from '../api.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
 
-if (!requireAdmin()) throw new Error('blocked');
+function initPage() {
+if (!requireAdmin()) return;
 
 const form = document.getElementById('upload-form');
 
@@ -32,3 +33,5 @@ form.addEventListener('submit', async e => {
     btn.textContent = 'Upload & Smoke-test';
   }
 });
+}
+initPage();

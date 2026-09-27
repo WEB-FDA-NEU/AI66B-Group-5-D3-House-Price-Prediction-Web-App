@@ -1,6 +1,7 @@
 import { deletePrediction, getPrediction, ApiError } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { confirmAction, toast } from '../ui.js';
+import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
@@ -27,6 +28,8 @@ async function load() {
     document.getElementById('title').textContent = title;
     document.getElementById('estimated-price').textContent = price.format(prediction.estimated_price);
     document.getElementById('model-version').textContent = `Model ${prediction.model_version}`;
+    document.getElementById('confidence-interval').textContent = intervalText(prediction);
+    document.getElementById('prediction-disclaimer').textContent = prediction.disclaimer || predictionDisclaimer;
     const input = prediction.input ?? prediction;
     const facts = document.getElementById('input-summary');
     addFact(facts, 'Quận/huyện', prediction.district);
@@ -58,4 +61,4 @@ document.getElementById('delete-prediction').addEventListener('click', async () 
   }
 });
 
-load();
+if (isLoggedIn()) load();
