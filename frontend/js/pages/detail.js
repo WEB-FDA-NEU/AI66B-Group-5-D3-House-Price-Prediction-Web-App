@@ -1,35 +1,61 @@
-// ============================================================
-//  MẪU CHUẨN cho trang chi tiết một bản ghi.
-//  TODO: đổi tên trường cho khớp đề tài.
-// ============================================================
-import { getItem, ApiError } from '../api.js';
-import { toast } from '../ui.js';
+import { deletePrediction, getPrediction, ApiError } from '../api.js';
+import { isLoggedIn, requireLogin } from '../auth.js';
+import { confirmAction, toast } from '../ui.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
-import { isLoggedIn, requireLogin } from '../auth.js';
 
-const id   = new URLSearchParams(location.search).get('id');
-const main = document.getElementById('detail');
+if (!isLoggedIn()) requireLogin();
+
+const id = new URLSearchParams(location.search).get('id');
+const detail = document.getElementById('detail');
+const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
+
+function addFact(container, label, value) {
+  const term = document.createElement('dt');
+  const definition = document.createElement('dd');
+  term.textContent = label;
+  definition.textContent = value ?? 'Chưa có';
+  container.append(term, definition);
+}
 
 async function load() {
   if (!id) { location.href = '404.html'; return; }
   try {
-    const item = await getItem(id);
-    document.title = `${item.title} — TÊN-SẢN-PHẨM`;
-    document.getElementById('title').textContent = item.title;
-    // TODO: điền các trường còn lại — nhớ dùng textContent, không innerHTML
-    main.hidden = false;
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 404) location.href = '404.html';
-    else toast(err.detail ?? 'Không tải được dữ liệu.', 'error');
+    const prediction = await getPrediction(id);
+    const title = prediction.label || `${prediction.property_type} tại ${prediction.district}`;
+    document.title = `${title} - HomeVal`;
+    document.getElementById('title').textContent = title;
+    document.getElementById('estimated-price').textContent = price.format(prediction.estimated_price);
+    document.getElementById('model-version').textContent = `Model ${prediction.model_version}`;
+    const input = prediction.input ?? prediction;
+    const facts = document.getElementById('input-summary');
+    addFact(facts, 'Quận/huyện', prediction.district);
+    addFact(facts, 'Loại hình', prediction.property_type);
+    addFact(facts, 'Diện tích', `${prediction.area_m2} m²`);
+    if (input.bedrooms != null) addFact(facts, 'Phòng ngủ', input.bedrooms);
+    if (input.bathrooms != null) addFact(facts, 'Phòng tắm', input.bathrooms);
+    if (input.floors != null) addFact(facts, 'Số tầng', input.floors);
+    detail.hidden = false;
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) location.href = '404.html';
+    else toast(error.detail ?? 'Không thể tải dự đoán.', 'error');
   }
 }
 
-// TODO: nếu đề tài có hành động cần đăng nhập (đặt chỗ, mua, lưu, xem SĐT…)
-//       thì đây là chỗ viết "login branch" của Mốc 1:
-// document.getElementById('nut-hanh-dong').addEventListener('click', () => {
-//   if (!isLoggedIn()) return requireLogin();   // lưu trang hiện tại rồi sang Login
-//   ...
-// });
+document.getElementById('delete-prediction').addEventListener('click', async () => {
+  const approved = await confirmAction({
+    title: 'Xóa dự đoán đã lưu?',
+    message: 'Dự đoán sẽ bị xóa khỏi lịch sử tài khoản của bạn.',
+    confirmText: 'Xóa dự đoán',
+  });
+  if (!approved) return;
+  try {
+    await deletePrediction(id);
+    toast('Đã xóa dự đoán.');
+    location.href = 'predictions.html';
+  } catch (error) {
+    toast(error.detail ?? 'Không thể xóa dự đoán.', 'error');
+  }
+});
 
 load();

@@ -3,44 +3,30 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TÊN-SẢN-PHẨM</title>
+<title>HomeVal - Dự đoán giá nhà</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
-
-<site-header></site-header>
-
-<main class="container page stack">
-  <!-- TODO: đổi tiêu đề và nội dung trang chủ theo đề tài -->
-  <h1>Mới nhất</h1>
-  <div class="grid" id="results"></div>
+<site-header active="home"></site-header>
+<main>
+  <section class="home-intro">
+    <div class="container home-intro__content">
+      <p class="home-intro__eyebrow">HomeVal</p>
+      <h1>Dự đoán giá nhà theo dữ liệu thị trường</h1>
+      <p class="home-intro__copy">Nhập thông tin bất động sản để nhận giá ước tính, khoảng tin cậy và phiên bản model đang được sử dụng.</p>
+      <div class="home-intro__actions"><a class="btn btn--primary" href="predict.html">Bắt đầu dự đoán</a><a class="btn" href="predictions.html">Dự đoán đã lưu</a></div>
+    </div>
+  </section>
+  <section class="container page home-overview" aria-label="Thông tin model">
+    <article><p class="field__hint">Model đang hoạt động</p><h2>Gradient Boosting v2.3.0</h2><p>Dữ liệu nhà ở TP. Hồ Chí Minh, cập nhật cho bản demo.</p></article>
+    <article><p class="field__hint">Độ chính xác tham khảo</p><h2>R² 0.87</h2><p>Kết quả cung cấp khoảng giá để bạn dễ đánh giá mức độ tin cậy.</p></article>
+    <article><p class="field__hint">Dành cho tài khoản</p><h2>Lưu và xem lại</h2><p>Đăng nhập để lưu dự đoán, theo dõi model version và xóa khi cần.</p></article>
+  </section>
 </main>
-
 <site-footer></site-footer>
-
-<template id="tpl-card">
-  <article class="card">
-    <a class="card__link">
-      <img class="card__img" src="" alt="" loading="lazy">
-      <div class="card__body">
-        <h3 class="card__title"></h3>
-        <p class="card__price"></p>
-        <p class="card__meta"></p>
-      </div>
-    </a>
-    <span class="card__badge"></span>
-  </article>
-</template>
-
-<template id="tpl-empty-state">
-  <div class="empty">
-    <p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a>
-  </div>
-</template>
-
 <script type="module" src="js/pages/home.js"></script>
 </body>
 </html>

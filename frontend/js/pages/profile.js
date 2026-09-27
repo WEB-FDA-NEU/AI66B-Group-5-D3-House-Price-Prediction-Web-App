@@ -16,7 +16,10 @@ const passwordForm = document.getElementById('password-form');
 
 // Đổ dữ liệu hiện tại lên form
 const me = getUser();
-if (me) profileForm.display_name.value = me.display_name ?? '';
+if (me) {
+  profileForm.display_name.value = me.display_name ?? '';
+  profileForm.phone.value = me.phone ?? '';
+}
 
 // ---------- Sửa thông tin ----------
 profileForm.addEventListener('submit', async e => {
