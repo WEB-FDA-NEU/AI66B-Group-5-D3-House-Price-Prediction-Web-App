@@ -2,16 +2,17 @@ import { savePrediction } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast } from '../ui.js';
 
-const draft = JSON.parse(sessionStorage.getItem('homeval_prediction_draft') || 'null');
+let draft;
+try { draft = JSON.parse(sessionStorage.getItem('homeval_prediction_draft') || 'null'); }
+catch { draft = null; }
 const result = document.getElementById('result');
 const saveForm = document.getElementById('save-form');
 const historyLink = document.getElementById('history-link');
 
-if (!draft) {
+if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
   location.href = 'predict.html';
 } else {
   const loggedIn = isLoggedIn();
-  if (!loggedIn) requireLogin();
 
   const formatPrice = value => new Intl.NumberFormat('vi-VN', {
     style: 'currency', currency: draft.currency ?? 'VND', maximumFractionDigits: 0,
@@ -39,11 +40,10 @@ if (!draft) {
     summary.append(term, detail);
   }
 
-  if (loggedIn) {
-    saveForm.hidden = false;
-    historyLink.hidden = false;
-  }
-  result.hidden = !loggedIn;
+  saveForm.hidden = false;
+  historyLink.hidden = !loggedIn;
+  if (!loggedIn) saveForm.querySelector('button').textContent = 'Đăng nhập để lưu dự đoán';
+  result.hidden = false;
 }
 
 saveForm.addEventListener('submit', async event => {
