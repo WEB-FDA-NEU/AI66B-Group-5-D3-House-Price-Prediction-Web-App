@@ -14,15 +14,11 @@ import { initHeader } from '../auth.js';
 const TEMPLATE = /* html */ `
 <header class="site-header">
   <div class="container site-header__inner">
-    <a class="logo" href="index.html">TÊN-SẢN-PHẨM</a>
-
-    <form class="site-header__search" action="list.html" method="get" role="search">
-      <label class="visually-hidden" for="hq">Tìm kiếm</label>
-      <input class="input" id="hq" name="q" type="search" placeholder="Tìm kiếm…">
-    </form>
+    <a class="logo" href="index.html">HomeVal</a>
 
     <nav>
-      <a class="site-header__link" href="shop.html" data-nav="shop">Cửa hàng</a>
+      <a class="site-header__link" href="index.html" data-nav="home">Trang chủ</a>
+      <a class="site-header__link" href="about-model.html" data-nav="about-model">Giới thiệu mô hình</a>
       <span data-auth="guest" hidden>
         <a class="btn" href="login.html">Đăng nhập</a>
         <a class="btn btn--primary" href="register.html">Đăng ký</a>
@@ -44,8 +40,8 @@ class SiteHeader extends HTMLElement {
     initHeader();          // bật/tắt phần Đăng nhập ↔ Tài khoản
 
     // Truyền dữ liệu VÀO component bằng thuộc tính HTML:
-    //     <site-header active="shop"></site-header>
-    // → mục "Cửa hàng" được tô đậm. Đây là cách làm component "khác nhau
+    //     <site-header active="home"></site-header>
+    // → mục "Trang chủ" được tô đậm. Đây là cách làm component "khác nhau
     //   một chút" ở từng trang mà vẫn chỉ có một file nguồn.
     const active = this.getAttribute('active');
     if (active) this.querySelector(`[data-nav="${active}"]`)?.classList.add('is-active');

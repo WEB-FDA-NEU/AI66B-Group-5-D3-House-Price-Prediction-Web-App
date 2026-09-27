@@ -13,16 +13,15 @@ const TEMPLATE = /* html */ `
   <div class="container site-footer__grid">
 
     <div class="site-footer__brand">
-      <p class="logo">TÊN-SẢN-PHẨM</p>
-      <p class="site-footer__tagline">Một dòng mô tả sản phẩm của nhóm.</p>
+      <p class="logo">HomeVal</p>
+      <p class="site-footer__tagline">Ước tính giá nhà tham khảo bằng máy học — không thay thế thẩm định chuyên nghiệp.</p>
     </div>
 
-    <nav class="site-footer__col" aria-labelledby="ft-shop">
-      <h3 class="site-footer__title" id="ft-shop">Mua sắm</h3>
+    <nav class="site-footer__col" aria-labelledby="ft-product">
+      <h3 class="site-footer__title" id="ft-product">Sản phẩm</h3>
       <ul>
-        <li><a href="shop.html">Tất cả sản phẩm</a></li>
-        <li><a href="shop.html?sort=newest">Hàng mới về</a></li>
-        <li><a href="shop.html?sort=price_asc">Giá tốt</a></li>
+        <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="about-model.html">Giới thiệu mô hình</a></li>
       </ul>
     </nav>
 
@@ -30,24 +29,23 @@ const TEMPLATE = /* html */ `
       <h3 class="site-footer__title" id="ft-help">Hỗ trợ</h3>
       <ul>
         <li><a href="#">Câu hỏi thường gặp</a></li>
-        <li><a href="#">Chính sách đổi trả</a></li>
         <li><a href="#">Liên hệ</a></li>
       </ul>
     </nav>
 
-    <nav class="site-footer__col" aria-labelledby="ft-about">
-      <h3 class="site-footer__title" id="ft-about">Về chúng tôi</h3>
+    <nav class="site-footer__col" aria-labelledby="ft-legal">
+      <h3 class="site-footer__title" id="ft-legal">Pháp lý</h3>
       <ul>
-        <li><a href="#">Giới thiệu</a></li>
-        <li><a href="#">Điều khoản</a></li>
-        <li><a href="#">Bảo mật</a></li>
+        <li><a href="#">Điều khoản sử dụng</a></li>
+        <li><a href="#">Quyền riêng tư</a></li>
       </ul>
     </nav>
 
   </div>
 
   <div class="container site-footer__bottom">
-    <p>© ${YEAR} TÊN-SẢN-PHẨM — Đồ án môn Web Design &amp; Programming, lớp AI66B.</p>
+    <p class="site-footer__disclaimer">HomeVal cung cấp ước tính tham khảo, không phải định giá chuyên nghiệp hay tư vấn tài chính.</p>
+    <p>© ${YEAR} HomeVal — Đồ án môn Web Design &amp; Programming, lớp AI66B.</p>
   </div>
 </footer>`;
 

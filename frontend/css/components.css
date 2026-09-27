@@ -182,3 +182,33 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .site-header__link { text-decoration: none; padding: .4rem .6rem; border-radius: var(--radius-s); }
 .site-header__link:hover    { background: var(--c-surface); }
 .site-header__link.is-active { font-weight: 700; color: var(--c-primary); }
+
+/* ============ Nhãn trạng thái (badge) dùng chung ============ */
+.badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .15rem .6rem; border-radius: 999px;
+  font-size: .75rem; font-weight: 600;
+  background: var(--c-surface); color: var(--c-text); border: 1px solid var(--c-border);
+}
+.badge[data-variant="info"]    { background: #e8f1fb; color: var(--c-primary); border-color: #bcdcfa; }
+.badge[data-variant="success"] { background: #e7f5ec; color: var(--c-success); border-color: #bfe6cd; }
+.badge[data-variant="warning"] { background: #fdf1e0; color: var(--c-warning); border-color: #f6d9a8; }
+.badge[data-variant="danger"]  { background: #fbe9e7; color: var(--c-danger);  border-color: #f2c2ba; }
+
+/* ============ Bảng cuộn ngang trên di động ============ */
+.table-wrap { overflow-x: auto; }
+.table-wrap table { width: 100%; border-collapse: collapse; }
+.table-wrap th, .table-wrap td { padding: var(--sp-3); border-bottom: 1px solid var(--c-border); text-align: left; }
+
+/* ============ Số liệu tóm tắt (trang chủ / giới thiệu mô hình) ============ */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-4); }
+.stat { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); text-align: center; }
+.stat__value { font-size: 1.5rem; font-weight: 700; color: var(--c-primary); }
+.stat__label { font-size: .85rem; color: var(--c-muted); margin-top: var(--sp-1); }
+
+/* ============ Khối khuyến cáo / disclaimer dùng chung ============ */
+.disclaimer {
+  border: 1px solid var(--c-warning); background: #fdf6ea;
+  border-radius: var(--radius); padding: var(--sp-4); font-size: .9rem;
+}
+.disclaimer strong { color: var(--c-warning); }
