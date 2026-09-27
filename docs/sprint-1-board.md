@@ -1,85 +1,82 @@
-# Milestone 2 Frontend Board
+# Milestone 2 - Frontend Sprint Board
 
 Repository: <https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App>
 
-Sprint goal: complete Frontend only this week. Backend implementation is out
-of scope; Frontend uses mock fixtures and a stable API adapter boundary.
+Sprint goal: deliver the reviewable Milestone 2 frontend with mock data, all
+required P0 navigation, an entry page, and an honest README. FastAPI, the
+database, real model inference, rate limiting, and generated API docs are not
+frontend completion criteria for this milestone.
 
-The source of truth is the [GitHub feature backlog](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues).
-The backlog contains **42 feature issues and 154 points**.
+## One naming convention
 
-## GitHub Project field convention
+Use **Sprint** everywhere. Do not use legacy planning terminology in an issue
+title, Project field, Project value, document, or status update.
 
-- Use the GitHub Project **Iteration** field as the official planning field:
-	`Iteration 1`, `Iteration 2`, and `Iteration 3`.
-- Keep the existing `sprint-1`, `sprint-2`, and `sprint-3` labels only as
-	searchable aliases. Do not create a second planning system.
-- Use **Size** for the estimate on the board. The value is the point number in
-	each issue title and body. If the board uses **Estimate** instead of Size,
-	map the same number to Estimate.
-- Use **Status** for `Todo`, `In Progress`, `Review`, and `Done`. Labels are
-	only a fallback view until the Project board is connected.
+| Where | Required convention |
+| --- | --- |
+| GitHub Project planning field | `Sprint` |
+| Project values | `Sprint 1`, `Sprint 2`, `Sprint 3` |
+| Search labels | `sprint-1`, `sprint-2`, `sprint-3` |
+| Issue titles | `- Sprint 1`, `- Sprint 2`, or `- Sprint 3` |
+| Workflow field | `Todo`, `In Progress`, `Review`, `Done` |
 
-The Project board uses the same fields for the nine FE packages below. The
-42 feature issues remain the detailed acceptance backlog underneath them.
+`Status` on the GitHub Project is the workflow source of truth. The matching
+`status:*` label is retained only to make the Issues page searchable. A closed
+Issue must be `Done`; an open Issue must never be labelled `status:done`.
 
-## Frontend packages
+## Board scope and points
 
-- [ ] [FE-01 Home, About and shared layout/CSS (8 pts) - Iteration 1](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/1) - `hai291`
-- [ ] [FE-02 Frontend routing, mock data and API adapter (5 pts) - Iteration 1](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/51) - `bianh13`
-- [ ] [FE-03 Login and Register (5 pts) - Iteration 1](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/6) - `pham-ha-gif`
-- [ ] [FE-04 Prediction form, validation and result (8 pts) - Iteration 1](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/2) - `VuSiSi`
-- [ ] [FE-05 Profile and My Predictions (8 pts) - Iteration 2](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/4) - `pham-ha-gif`
-- [ ] [FE-06 Charts, Compare and Market Insights (5 pts) - Iteration 2](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/3) - `bianh13`
-- [ ] [FE-07 Admin screens and error pages (13 pts) - Iteration 2](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/5) - `nguyentue110`
-- [ ] [FE-08 Frontend integration and mock API boundary (5 pts) - Iteration 3](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/7) - `bianh13`
-- [ ] [FE-09 Responsive QA and release checklist (5 pts) - Iteration 3](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/8) - `bianh13`
+The Project retains the larger FE package Issues as planning epics and also
+shows detailed GU/US/AD/SY feature Issues. Individual workload and completion
+evidence are calculated from the detailed feature Issues only; package points
+must never be counted a second time.
 
-Package estimate: **62 points**.
+- **Sprint 1 - P0 Milestone 2 frontend:** Issues `#9`--`#30`, plus `#51` for
+  the mock adapter/foundation, `#7` for final integration, and `#8` for
+  release QA before submission.
+- **Sprint 2 - P1 backlog:** Issues `#32`--`#47` after all Sprint 1 P0 work
+  and QA are complete.
+- **Sprint 3 - P2 backlog:** Issues `#48`--`#50`; export and FAQ are cut first
+  if the schedule slips.
+- **Outside the M2 frontend board:** `#31` (FastAPI `/docs`) and all backend
+  implementation work.
 
-The detailed GU/US/AD/SY issues are acceptance subtasks. Backend-only items
-such as rate limiting and `/docs` are excluded from this week's FE completion
-target and remain Todo.
+Point estimates communicate relative effort only. Do not inflate, duplicate,
+or change them simply to make a workload chart look even. Each completed Issue
+needs a link to the changed files and a second-member verification note.
 
-## Iteration allocation
+## Current verified progress
 
-- **Iteration 1**: foundation, routing, auth, prediction form/result - 26 pts.
-- **Iteration 2**: account area, charts/comparison, admin/error screens - 26 pts.
-- **Iteration 3**: integration, responsive QA, release checklist - 10 pts.
+The four admin P0 Issues below are closed in GitHub and should be displayed as
+**Done** on the Project, not `In Progress`:
 
-Filter the board with labels: `sprint-1`, `sprint-2`, `sprint-3`, `status:in-progress`,
-`status:todo`, `P0`, `P1`, and `P2`.
+- `#22` AD-1 Admin Dashboard - 3 pts - `nguyentue110`
+- `#23` AD-2 Model Management - 3 pts - `nguyentue110`
+- `#24` AD-3 Upload Model Version - 5 pts - `nguyentue110`
+- `#25` AD-4 Activate / rollback model - 5 pts - `nguyentue110`
 
-## In Progress
+All remaining Sprint 1 Issues stay **In Progress** or **Todo** until their
+acceptance criteria and changed files are verified. `#29` (404/500) belongs to
+`nguyentue110` because error pages are part of the admin/error-page slice.
 
-All nine FE packages are Frontend work. Their detailed Frontend subtasks use
-`status:in-progress`; this means implementation may proceed with mock data, not
-that Backend is complete.
+## Sprint 1 ownership
 
-## Todo
+| Owner | P0 scope |
+| --- | --- |
+| `hai291` | Home, About the Model, shared layout, responsive presentation, empty-state component. |
+| `VuSiSi` | Prediction input/result, guest quota state, and browser validation. |
+| `pham-ha-gif` | Login/Register, profile, history, detail, deletion, password, and protected user states. |
+| `bianh13` | Routing/mock adapter, integration, and final release QA. |
+| `nguyentue110` | Admin Dashboard, Model Management, Upload Model, activate/rollback, and 404/500. |
 
-Backend-only issues, including SY-6 rate limiting and SY-7 API documentation,
-are excluded from the weekly FE board and remain `Todo`.
+## Definition of done for Milestone 2
 
-## Assignment
-
-- `hai291`: Home, About, About the Model, shared layout, CSS, responsive and empty states.
-- `VuSiSi`: prediction form, validation, prediction result, 404/500, quota and wrong-estimate flow.
-- `pham-ha-gif`: Login, Register, Profile, My Predictions, account settings and password flows.
-- `bianh13`: charts, Market Insights, Compare, export and release verification.
-- `nguyentue110`: admin Dashboard, Models, Datasets, Users, reports and API docs.
-
-## Definition of done
-
-- Acceptance criteria in the issue are checked.
-- Changed files, routes, or API contracts are linked.
-- Loading, empty, validation, error, responsive, and accessibility states are reviewed.
-- A second team member verifies the result before the issue is closed.
-
-## Coordination checkpoints
-
-- Freeze the mock `POST /api/predict` request and response shape before UI integration.
-- Confirm the thirteen prediction fields and BR-6/BR-7 validation rules.
-- Use one shared disclaimer and ensure no screen displays a bare price.
-- Review all P0 routes and failure states before starting P1 work.
-- Backend implementation starts only after FE-08 records the agreed mock boundary.
+- A reviewer can open root `index.html` directly and reach every implemented
+  screen without a broken link or missing asset.
+- The screen has its documented loading, empty, validation, error, and mobile
+  state where applicable.
+- The Issue links its changed files or merged pull request and has a reviewer
+  note from another member.
+- `README.md` lists the actual screen status and each member's real work.
+- The final `team5.zip` contains the root entry page, README, HTML, CSS,
+  JavaScript, mock data, and assets only as used by the interface.

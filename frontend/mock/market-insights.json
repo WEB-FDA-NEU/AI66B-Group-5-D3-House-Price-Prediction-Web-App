@@ -1,0 +1,19 @@
+{
+  "district_averages": [
+    { "district": "Thủ Đức", "average_price": 4680000000 },
+    { "district": "Bình Thạnh", "average_price": 5130000000 },
+    { "district": "Quận 7", "average_price": 5720000000 }
+  ],
+  "price_per_m2": [
+    { "range": "< 50 triệu", "count": 12 },
+    { "range": "50–80 triệu", "count": 44 },
+    { "range": "80–120 triệu", "count": 37 },
+    { "range": "> 120 triệu", "count": 18 }
+  ],
+  "property_types": [
+    { "type": "Nhà phố", "count": 61 },
+    { "type": "Căn hộ", "count": 39 },
+    { "type": "Biệt thự", "count": 11 }
+  ],
+  "updated_at": "2026-09-27T00:00:00Z"
+}

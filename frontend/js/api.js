@@ -47,6 +47,26 @@ function normalizeDetail(detail) {
   return null;
 }
 
+/**
+ * Shared mock boundary for every HomeVal screen. Page modules must call one
+ * of the exported functions below instead of fetching a JSON fixture directly.
+ * This keeps the Mock 2 -> API migration in this file.
+ */
+function getMock(name) {
+  return request(`${MOCK_BASE}/${name}.json`);
+}
+
+function normalisePage(page, pageSize, total) {
+  const safePage = Math.max(1, Number(page) || 1);
+  const safeSize = Math.max(1, Number(pageSize) || 10);
+  return {
+    page: safePage,
+    page_size: safeSize,
+    total,
+    start: (safePage - 1) * safeSize,
+  };
+}
+
 // ══════════ NGƯỜI 1 — danh sách & chi tiết ══════════
 // TODO: đổi getItems/getItem thành tên hợp đề tài
 //       (getListings / getConcerts / getHomestays / getRecipes …)
@@ -95,6 +115,85 @@ export function getModelInfo() {
   if (USE_MOCK) return request(`${MOCK_BASE}/model.json`);
   return request(`${API_BASE}/model`);
 }
+
+// HomeVal prediction, history and market-insight contract.
+
+export function createPrediction(input) {
+  if (USE_MOCK) {
+    return getMock('prediction-result').then(result => ({
+      ...result,
+      input: { ...result.input, ...input },
+      is_mock: true,
+    }));
+  }
+  return request(`${API_BASE}/predictions`, { method: 'POST', body: input });
+}
+
+export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    return getMock('prediction-history').then(data => {
+      const keyword = q.trim().toLowerCase();
+      const items = keyword
+        ? data.items.filter(item => Object.values(item).some(value =>
+            String(value).toLowerCase().includes(keyword)))
+        : data.items;
+      const paging = normalisePage(page, pageSize, items.length);
+      return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
+    });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  if (q) qs.set('q', q);
+  return request(`${API_BASE}/me/predictions?${qs}`);
+}
+
+export function getPrediction(id) {
+  if (USE_MOCK) {
+    return getMock('prediction-history').then(data => {
+      const item = data.items.find(entry => String(entry.id) === String(id));
+      if (!item) throw new ApiError(404, 'Không tìm thấy dự báo này.');
+      return item;
+    });
+  }
+  return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}`);
+}
+
+export function getMarketInsights() {
+  if (USE_MOCK) return getMock('market-insights');
+  return request(`${API_BASE}/insights`);
+}
+
+// Existing admin screens use the model functions below. These two functions
+// reserve the same adapter boundary for Dataset and User screens.
+export function listDatasets() {
+  if (USE_MOCK) return getMock('datasets');
+  return request(`${API_BASE}/admin/datasets`);
+}
+
+export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    return getMock('users').then(data => {
+      const keyword = q.trim().toLowerCase();
+      const items = keyword
+        ? data.items.filter(user => [user.display_name, user.email, user.role]
+            .some(value => value.toLowerCase().includes(keyword)))
+        : data.items;
+      const paging = normalisePage(page, pageSize, items.length);
+      return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
+    });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  if (q) qs.set('q', q);
+  return request(`${API_BASE}/admin/users?${qs}`);
+}
+
+export const MOCK_UI_STATES = Object.freeze({
+  loading: 'Đang tải dữ liệu…',
+  empty: 'Chưa có dữ liệu để hiển thị.',
+  validation: 'Thông tin nhập chưa hợp lệ.',
+  unauthorized: 'Bạn cần đăng nhập để tiếp tục.',
+  network: 'Không thể kết nối máy chủ. Hãy thử lại.',
+  notFound: 'Không tìm thấy nội dung bạn yêu cầu.',
+});
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
