@@ -9,6 +9,8 @@ const USER_KEY  = 'app_user';
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const getUser  = () => JSON.parse(localStorage.getItem(USER_KEY) || 'null');
 export const isLoggedIn = () => !!getToken();
+export const getRole = () => getUser()?.role ?? 'guest';
+export const isAdmin = () => getRole() === 'admin';
 
 export function saveSession({ access_token, user }) {
   localStorage.setItem(TOKEN_KEY, access_token);
@@ -34,15 +36,33 @@ export function returnAfterLogin() {
   location.href = back;
 }
 
+/** Chặn trang /admin/* khi không phải admin — dùng cho SY-3/BR-10.
+ *  Chưa đăng nhập → login.html. Đăng nhập nhưng role != admin → 404.html
+ *  để không lộ sự tồn tại của trang (đúng BR-10: 404 chứ không phải 403). */
+export function requireAdmin() {
+  if (!isLoggedIn()) {
+    sessionStorage.setItem('app_return_to', location.pathname.split('/').pop() + location.search);
+    location.href = 'login.html?next=admin';
+    return false;
+  }
+  if (!isAdmin()) {
+    location.href = '404.html';
+    return false;
+  }
+  return true;
+}
+
 /** Đổi phần bên phải của header theo trạng thái đăng nhập. */
 export function initHeader() {
   const guest = document.querySelector('[data-auth="guest"]');
   const user  = document.querySelector('[data-auth="user"]');
+  const adminNav = document.querySelector('[data-auth="admin"]');
   if (!guest || !user) return;              // trang này không có header → bỏ qua
 
   const logged = isLoggedIn();
   guest.hidden = logged;
   user.hidden  = !logged;
+  if (adminNav) adminNav.hidden = !isAdmin();
 
   const nameEl = document.querySelector('[data-user-name]');
   if (nameEl && logged) nameEl.textContent = getUser()?.display_name ?? '';

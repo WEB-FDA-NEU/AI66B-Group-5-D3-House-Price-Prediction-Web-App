@@ -69,9 +69,14 @@ export function getItem(id) {
 export function login(email, password) {
   if (USE_MOCK) {
     if (password === 'sai') return Promise.reject(new ApiError(401, 'Email hoặc mật khẩu không đúng.'));
+    // Mock role admin cho Milestone 2: email chứa "admin" → role admin.
+    // Mốc 3 backend sẽ trả role thật từ JWT.
+    const isAdminMail = (email || '').toLowerCase().includes('admin');
     return Promise.resolve({
-      access_token: 'mock-token', token_type: 'bearer',
-      user: { id: 1, display_name: 'Người dùng mẫu', role: 'user' },
+      access_token: isAdminMail ? 'mock-admin-token' : 'mock-token', token_type: 'bearer',
+      user: isAdminMail
+        ? { id: 99, display_name: 'Quản trị viên', role: 'admin', email }
+        : { id: 1, display_name: 'Người dùng mẫu', role: 'user', email },
     });
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
@@ -88,7 +93,56 @@ export function register(payload) {
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
-// ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
+// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1..AD-4 mock, không cần backend ══════════
+// Hợp đồng mock trùng FastAPI Mốc 3. BR-1/BR-2/BR-13 chỉ mô phỏng phía UI.
+
+export function getAdminStats() {
+  if (USE_MOCK) return request(`${MOCK_BASE}/admin-stats.json`);
+  return request(`${API_BASE}/admin/stats`);
+}
+
+export function listModels() {
+  if (USE_MOCK) return request(`${MOCK_BASE}/models.json`);
+  return request(`${API_BASE}/admin/models`);
+}
+
+export function uploadModel({ file, algorithm, dataset, note }) {
+  if (USE_MOCK) {
+    // Mô phỏng BR-13 phía browser: sai loại file / quá 100MB / smoke-test fail.
+    const name = file?.name ?? '';
+    if (!/\.pkl$|\.joblib$/i.test(name))
+      return Promise.reject(new ApiError(422, 'file: Chỉ chấp nhận .pkl hoặc .joblib'));
+    if ((file?.size ?? 0) > 100 * 1024 * 1024)
+      return Promise.reject(new ApiError(422, 'file: File vượt quá 100 MB'));
+    if (/bad/i.test(name))
+      return Promise.reject(new ApiError(422, 'file: Smoke-test thất bại, version ở trạng thái Rejected'));
+    return Promise.resolve({
+      id: 'm-new', version: 'v2.4.0-rc2', algorithm, dataset,
+      state: 'Uploaded', note: note ?? '',
+    });
+  }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('algorithm', algorithm);
+  fd.append('dataset', dataset);
+  if (note) fd.append('note', note);
+  return request(`${API_BASE}/admin/models`, { method: 'POST', body: fd });
+}
+
+export function activateModel(id) {
+  if (USE_MOCK) {
+    // Mô phỏng BR-2 conflict: version khác vừa live thì báo 409 + refresh list.
+    if (Math.random() < 0.0)
+      return Promise.reject(new ApiError(409, 'Phiên bản khác vừa được kích hoạt. Danh sách đã làm mới.'));
+    return Promise.resolve({ id, state: 'Active' });
+  }
+  return request(`${API_BASE}/admin/models/${id}/activate`, { method: 'POST' });
+}
+
+export function archiveModel(id) {
+  if (USE_MOCK) return Promise.resolve({ id, state: 'Archived' });
+  return request(`${API_BASE}/admin/models/${id}/archive`, { method: 'POST' });
+}
 
 
 // ---------- chỉ dùng ở chế độ mock; backend thật lọc bằng SQL ----------

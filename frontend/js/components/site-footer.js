@@ -14,7 +14,8 @@ const TEMPLATE = /* html */ `
 
     <div class="site-footer__brand">
       <p class="logo">HomeVal</p>
-      <p class="site-footer__tagline">Ước tính giá nhà tham khảo bằng máy học — không thay thế thẩm định chuyên nghiệp.</p>
+      <p class="site-footer__tagline">Định giá nhà minh bạch: giá + khoảng tin cậy + phiên bản model.</p>
+      <p class="site-footer__tagline"><small>Giá chỉ mang tính tham khảo, không phải thẩm định chuyên nghiệp (BR-9).</small></p>
     </div>
 
     <nav class="site-footer__col" aria-labelledby="ft-product">
@@ -22,6 +23,17 @@ const TEMPLATE = /* html */ `
       <ul>
         <li><a href="index.html">Trang chủ</a></li>
         <li><a href="about-model.html">Giới thiệu mô hình</a></li>
+        <li><a href="login.html">Đăng nhập</a></li>
+        <li><a href="register.html">Đăng ký</a></li>
+      </ul>
+    </nav>
+
+    <nav class="site-footer__col" aria-labelledby="ft-admin">
+      <h3 class="site-footer__title" id="ft-admin">Quản trị</h3>
+      <ul>
+        <li><a href="admin.html">Dashboard</a></li>
+        <li><a href="admin-models.html">Model Management</a></li>
+        <li><a href="admin-models-new.html">Upload Model</a></li>
       </ul>
     </nav>
 
@@ -30,14 +42,8 @@ const TEMPLATE = /* html */ `
       <ul>
         <li><a href="#">Câu hỏi thường gặp</a></li>
         <li><a href="#">Liên hệ</a></li>
-      </ul>
-    </nav>
-
-    <nav class="site-footer__col" aria-labelledby="ft-legal">
-      <h3 class="site-footer__title" id="ft-legal">Pháp lý</h3>
-      <ul>
-        <li><a href="#">Điều khoản sử dụng</a></li>
-        <li><a href="#">Quyền riêng tư</a></li>
+        <li><a href="404.html">404 mẫu</a></li>
+        <li><a href="500.html">500 mẫu</a></li>
       </ul>
     </nav>
 
@@ -45,7 +51,7 @@ const TEMPLATE = /* html */ `
 
   <div class="container site-footer__bottom">
     <p class="site-footer__disclaimer">HomeVal cung cấp ước tính tham khảo, không phải định giá chuyên nghiệp hay tư vấn tài chính.</p>
-    <p>© ${YEAR} HomeVal — Đồ án môn Web Design &amp; Programming, lớp AI66B.</p>
+    <p>© ${YEAR} HomeVal — Đồ án Web Design &amp; Programming, lớp AI66B, Nhóm 5.</p>
   </div>
 </footer>`;
 
