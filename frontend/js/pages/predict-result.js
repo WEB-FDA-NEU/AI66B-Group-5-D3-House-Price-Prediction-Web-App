@@ -10,6 +10,9 @@ const historyLink = document.getElementById('history-link');
 if (!draft) {
   location.href = 'predict.html';
 } else {
+  const loggedIn = isLoggedIn();
+  if (!loggedIn) requireLogin();
+
   const formatPrice = value => new Intl.NumberFormat('vi-VN', {
     style: 'currency', currency: draft.currency ?? 'VND', maximumFractionDigits: 0,
   }).format(value);
@@ -36,11 +39,11 @@ if (!draft) {
     summary.append(term, detail);
   }
 
-  if (isLoggedIn()) {
+  if (loggedIn) {
     saveForm.hidden = false;
     historyLink.hidden = false;
   }
-  result.hidden = false;
+  result.hidden = !loggedIn;
 }
 
 saveForm.addEventListener('submit', async event => {
