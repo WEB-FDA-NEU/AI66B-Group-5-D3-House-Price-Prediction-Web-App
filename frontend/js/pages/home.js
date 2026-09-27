@@ -34,6 +34,8 @@ function renderStats(info) {
   statsBody.appendChild(grid);
 }
 
+// Không có "empty state" riêng: đây là 1 object (thông tin mô hình),
+// không phải danh sách, nên chỉ có 2 nhánh sau khi tải xong: có dữ liệu / lỗi.
 function renderStatsError(err) {
   statsBody.textContent = '';
   const msg = document.createElement('p');

@@ -45,6 +45,8 @@ function renderDetail(info) {
   detail.appendChild(node);
 }
 
+// Cùng lý do như home.js: 1 object mô hình, không phải danh sách,
+// nên không có "empty state" riêng — chỉ có dữ liệu / lỗi.
 function renderDetailError(err) {
   detail.textContent = '';
   const msg = document.createElement('p');
