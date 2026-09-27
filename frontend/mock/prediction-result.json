@@ -1,0 +1,34 @@
+{
+  "id": "pred-20260927-001",
+  "estimated_price": 4850000000,
+  "currency": "VND",
+  "confidence_interval": {
+    "lower": 4460000000,
+    "upper": 5240000000,
+    "confidence_level": 0.9
+  },
+  "confidence": 0.86,
+  "model": {
+    "version": "v2.3.0",
+    "algorithm": "Gradient Boosting",
+    "trained_at": "2026-09-18T09:00:00Z"
+  },
+  "input": {
+    "city": "Hồ Chí Minh",
+    "district": "Thủ Đức",
+    "property_type": "Nhà phố",
+    "area_m2": 72,
+    "bedrooms": 3,
+    "bathrooms": 2,
+    "floors": 2,
+    "frontage_m": 4,
+    "legal_status": "Sổ hồng"
+  },
+  "feature_importance": [
+    { "name": "Diện tích", "impact": 0.29 },
+    { "name": "Quận/huyện", "impact": 0.23 },
+    { "name": "Loại hình", "impact": 0.17 },
+    { "name": "Số phòng ngủ", "impact": 0.08 }
+  ],
+  "created_at": "2026-09-27T09:30:00Z"
+}
