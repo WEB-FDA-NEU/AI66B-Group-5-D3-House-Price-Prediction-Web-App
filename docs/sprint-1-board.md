@@ -9,8 +9,8 @@ frontend completion criteria for this milestone.
 
 ## One naming convention
 
-Use **Sprint** everywhere. Do not use `Iteration` in an issue title, Project
-field, Project value, document, or status update.
+Use **Sprint** everywhere. Do not use legacy planning terminology in an issue
+title, Project field, Project value, document, or status update.
 
 | Where | Required convention |
 | --- | --- |
@@ -26,12 +26,14 @@ Issue must be `Done`; an open Issue must never be labelled `status:done`.
 
 ## Board scope and points
 
-The board tracks the detailed GU/US/AD/SY feature Issues, not the larger FE
-package Issues. The package Issues (`FE-01` to `FE-09`) are planning epics and
-must not be counted a second time in individual workload totals.
+The Project retains the larger FE package Issues as planning epics and also
+shows detailed GU/US/AD/SY feature Issues. Individual workload and completion
+evidence are calculated from the detailed feature Issues only; package points
+must never be counted a second time.
 
 - **Sprint 1 - P0 Milestone 2 frontend:** Issues `#9`--`#30`, plus `#51` for
-  the mock adapter/foundation and `#8` for release QA.
+  the mock adapter/foundation, `#7` for final integration, and `#8` for
+  release QA before submission.
 - **Sprint 2 - P1 backlog:** Issues `#32`--`#47` after all Sprint 1 P0 work
   and QA are complete.
 - **Sprint 3 - P2 backlog:** Issues `#48`--`#50`; export and FAQ are cut first
