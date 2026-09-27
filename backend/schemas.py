@@ -77,7 +77,7 @@ class TokenOut(BaseModel):
 
 class ProfileUpdateIn(BaseModel):
     display_name: str = Field(min_length=2, max_length=80)
-    phone: str = ""
+    phone: str = Field(default="", max_length=20)
 
 
 class ChangePasswordIn(BaseModel):
