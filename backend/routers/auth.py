@@ -44,3 +44,28 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
 @router.get("/me", response_model=schemas.UserOut)
 def me(user: User = Depends(get_current_user)):
     return user
+
+@router.patch("/me", response_model=schemas.UserOut)
+def update_profile(
+    payload: schemas.ProfileUpdateIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    user.display_name = payload.display_name
+    user.phone = payload.phone
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@router.post("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: schemas.ChangePasswordIn,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if not verify_password(payload.current_password, user.password_hash):
+        # KHÔNG tiết lộ thêm gì khác — cùng logic với login()
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mật khẩu hiện tại không đúng.")
+    user.password_hash = hash_password(payload.new_password)
+    db.commit()

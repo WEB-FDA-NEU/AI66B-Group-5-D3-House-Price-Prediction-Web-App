@@ -62,9 +62,10 @@ export function confirmAction({ title, message, confirmText = 'Xoá' }) {
     const ok = dlg.querySelector('[data-confirm]');
     ok.textContent = confirmText;
 
-    const done = value => { dlg.close(); resolve(value); };
+    const done = value => { if (dlg.open) dlg.close(); resolve(value); };
     ok.onclick = () => done(true);
     dlg.querySelector('[data-cancel]').onclick = () => done(false);
+    dlg.addEventListener('cancel', () => done(false), { once: true });
     dlg.showModal();
   });
 }

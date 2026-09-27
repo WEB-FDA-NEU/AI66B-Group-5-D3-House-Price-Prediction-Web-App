@@ -18,6 +18,7 @@ const TEMPLATE = /* html */ `
 
     <nav>
       <a class="site-header__link" href="index.html" data-nav="home">Trang chủ</a>
+      <a class="site-header__link" href="predict.html" data-nav="predict">Dự đoán</a>
       <a class="site-header__link" href="about-model.html" data-nav="about-model">Giới thiệu mô hình</a>
       <a class="site-header__link" href="admin.html" data-nav="admin" data-auth="admin" hidden>Admin</a>
       <a class="site-header__link" href="admin-models.html" data-nav="models" data-auth="admin" hidden>Models</a>
@@ -26,7 +27,8 @@ const TEMPLATE = /* html */ `
         <a class="btn btn--primary" href="register.html">Đăng ký</a>
       </span>
       <span data-auth="user" hidden>
-        <span data-user-name></span>
+        <a class="site-header__link" href="predictions.html" data-nav="predictions">Lịch sử</a>
+        <a class="site-header__link" href="profile.html" data-nav="profile" data-user-name></a>
         <a class="btn" href="#" data-action="logout">Thoát</a>
       </span>
     </nav>

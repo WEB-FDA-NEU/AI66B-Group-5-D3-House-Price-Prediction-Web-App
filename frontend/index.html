@@ -1,58 +1,102 @@
+```html
 <!doctype html>
 <html lang="vi">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HomeVal — Ước tính giá nhà</title>
+
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
 </head>
+
 <body>
 
 <site-header active="home"></site-header>
 
-<main class="container page stack">
+<main>
 
-  <section class="hero">
-    <h1>Ước tính giá nhà nhanh, có căn cứ</h1>
-    <p>HomeVal dùng mô hình máy học đã huấn luyện trên dữ liệu giao dịch thật để đưa
-       ra mức giá tham khảo cho căn nhà của bạn, kèm khoảng tin cậy và phiên bản
-       mô hình — không cần đăng ký tài khoản.</p>
-    <a class="btn btn--primary" href="predict.html">Ước tính giá nhà</a>
-  </section>
+  <section class="home-intro">
+    <div class="container home-intro__content">
+      <p class="home-intro__eyebrow">HomeVal</p>
 
-  <section aria-labelledby="model-stats-title">
-    <h2 id="model-stats-title">Độ chính xác mô hình hiện tại</h2>
-    <div id="model-stats-body">
-      <p>Đang tải số liệu mô hình…</p>
-    </div>
-  </section>
+      <h1>Dự đoán giá nhà theo dữ liệu thị trường</h1>
 
-  <section class="stack">
-    <h2>HomeVal trong con số</h2>
-    <div class="stat-grid">
-      <div class="stat">
-        <p class="stat__value">8.600+</p>
-        <p class="stat__label">Giao dịch trong tập dữ liệu huấn luyện</p>
-      </div>
-      <div class="stat">
-        <p class="stat__value">14</p>
-        <p class="stat__label">Đặc trưng đầu vào (diện tích, vị trí, số phòng…)</p>
-      </div>
-      <div class="stat">
-        <p class="stat__value">Định kỳ</p>
-        <p class="stat__label">Mô hình được huấn luyện lại và kiểm định lại</p>
+      <p class="home-intro__copy">
+        Nhập thông tin bất động sản để nhận giá ước tính,
+        khoảng tin cậy và phiên bản model đang được sử dụng.
+      </p>
+
+      <div class="home-intro__actions">
+        <a class="btn btn--primary" href="predict.html">
+          Bắt đầu dự đoán
+        </a>
+
+        <a class="btn" href="predictions.html">
+          Dự đoán đã lưu
+        </a>
       </div>
     </div>
   </section>
 
-  <aside class="disclaimer" role="note">
-    <strong>Lưu ý:</strong> HomeVal chỉ cung cấp ước tính tham khảo, không phải
-    định giá chuyên nghiệp hay tư vấn tài chính. Vui lòng tham khảo chuyên gia
-    trước khi ra quyết định. Xem chi tiết ở
-    <a href="about-model.html">Giới thiệu mô hình</a>.
+
+  <section
+    class="container page home-overview"
+    aria-label="Thông tin model"
+  >
+
+    <article>
+      <p class="field__hint">Model đang hoạt động</p>
+
+      <h2>Gradient Boosting v2.3.0</h2>
+
+      <p>
+        Dữ liệu nhà ở TP. Hồ Chí Minh,
+        cập nhật cho bản demo.
+      </p>
+    </article>
+
+
+    <article>
+      <p class="field__hint">Độ chính xác tham khảo</p>
+
+      <h2>R² 0.87</h2>
+
+      <p>
+        Kết quả cung cấp khoảng giá để bạn dễ
+        đánh giá mức độ tin cậy.
+      </p>
+    </article>
+
+
+    <article>
+      <p class="field__hint">Dành cho tài khoản</p>
+
+      <h2>Lưu và xem lại</h2>
+
+      <p>
+        Đăng nhập để lưu dự đoán,
+        theo dõi model version và xóa khi cần.
+      </p>
+    </article>
+
+  </section>
+
+
+  <aside class="container page disclaimer" role="note">
+
+    <strong>Lưu ý:</strong>
+    HomeVal chỉ cung cấp ước tính tham khảo,
+    không phải định giá chuyên nghiệp hay tư vấn tài chính.
+    Vui lòng tham khảo chuyên gia trước khi ra quyết định.
+
+    Xem chi tiết ở
+    <a href="about-model.html">
+      Giới thiệu mô hình
+    </a>.
+
   </aside>
 
 </main>
@@ -60,5 +104,7 @@
 <site-footer></site-footer>
 
 <script type="module" src="js/pages/home.js"></script>
+
 </body>
 </html>
+```
