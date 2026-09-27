@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hồ sơ của tôi — TÊN-SẢN-PHẨM</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<site-header></site-header>
+
+<main class="container page stack" style="max-width:480px">
+  <h1>Hồ sơ của tôi</h1>
+
+  <!-- ══════════════ Sửa thông tin ══════════════ -->
+  <section class="stack">
+    <h2>Thông tin cá nhân</h2>
+    <form id="profile-form" class="stack" novalidate>
+      <div class="field">
+        <label class="field__label" for="display_name">Tên hiển thị</label>
+        <input class="input" id="display_name" name="display_name" required>
+        <p class="field__error"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="phone">Số điện thoại</label>
+        <input class="input" id="phone" name="phone" type="tel">
+        <p class="field__error"></p>
+      </div>
+      <button class="btn btn--primary" type="submit">Lưu thay đổi</button>
+    </form>
+  </section>
+
+  <!-- ══════════════ Đổi mật khẩu ══════════════ -->
+  <section class="stack">
+    <h2>Đổi mật khẩu</h2>
+    <form id="password-form" class="stack" novalidate>
+      <div class="field">
+        <label class="field__label" for="current_password">Mật khẩu hiện tại</label>
+        <input class="input" id="current_password" name="current_password" type="password" required autocomplete="current-password">
+        <p class="field__error"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="new_password">Mật khẩu mới</label>
+        <input class="input" id="new_password" name="new_password" type="password" required minlength="8" autocomplete="new-password">
+        <p class="field__error"></p>
+      </div>
+      <div class="field">
+        <label class="field__label" for="confirm_password">Nhập lại mật khẩu mới</label>
+        <input class="input" id="confirm_password" name="confirm_password" type="password" required autocomplete="new-password">
+        <p class="field__error"></p>
+      </div>
+      <button class="btn btn--primary" type="submit">Đổi mật khẩu</button>
+    </form>
+  </section>
+</main>
+
+<site-footer></site-footer>
+
+<script type="module" src="js/pages/profile.js"></script>
+</body>
+</html>
