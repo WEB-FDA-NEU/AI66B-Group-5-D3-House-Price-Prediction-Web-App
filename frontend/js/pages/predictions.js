@@ -1,6 +1,7 @@
 import { deletePrediction, getPredictionHistory } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { confirmAction, showEmpty, showError, toast } from '../ui.js';
+import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
 
 if (!isLoggedIn()) requireLogin();
 
@@ -24,7 +25,13 @@ function createRow(item) {
   details.textContent = `${item.property_type} · ${item.district} · ${item.area_m2} m² · ${formatDate(item.created_at)}`;
   model.className = 'field__hint';
   model.textContent = `Model ${item.model_version}`;
-  meta.append(title, details, model);
+  const interval = document.createElement('p');
+  interval.className = 'field__hint';
+  interval.textContent = intervalText(item);
+  const disclaimer = document.createElement('p');
+  disclaimer.className = 'field__hint';
+  disclaimer.textContent = item.disclaimer || predictionDisclaimer;
+  meta.append(title, details, model, interval, disclaimer);
 
   const value = document.createElement('strong');
   value.className = 'prediction-row__price';
@@ -86,4 +93,4 @@ form.addEventListener('submit', event => {
   load();
 });
 
-load();
+if (isLoggedIn()) load();

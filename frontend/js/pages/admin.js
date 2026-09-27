@@ -2,7 +2,8 @@ import { requireAdmin } from '../auth.js';
 import { getAdminStats, ApiError } from '../api.js';
 import { showEmpty, showError, showSkeleton } from '../ui.js';
 
-if (!requireAdmin()) throw new Error('blocked');
+async function initPage() {
+if (!requireAdmin()) return;
 
 const kpis = document.getElementById('kpis');
 const chart = document.getElementById('chart');
@@ -19,7 +20,7 @@ try {
     ['Người dùng', fmt(s.users_total), 'tổng tài khoản'],
     ['Dự báo hôm nay', fmt(s.predictions_today), `${fmt(s.predictions_week)} / tuần`],
     ['Model đang live', s.active_model.version, `${s.active_model.algorithm} · R² ${s.active_model.r2}`],
-    ['Lỗi API 24h', fmt(s.api_errors_24h), 'xem /docs khi có backend'],
+    ['Lỗi API 24h', fmt(s.api_errors_24h), 'thống kê minh họa'],
   ];
   for (const [label, value, sub] of cards) {
     const d = document.createElement('div');
@@ -64,3 +65,5 @@ try {
   alertBox.innerHTML = `<p class="alert alert--error">${msg} <a href="500.html">Chi tiết lỗi</a></p>`;
   showError(kpis, err, () => location.reload());
 }
+}
+initPage();

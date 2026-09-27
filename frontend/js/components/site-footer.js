@@ -40,8 +40,8 @@ const TEMPLATE = /* html */ `
     <nav class="site-footer__col" aria-labelledby="ft-help">
       <h3 class="site-footer__title" id="ft-help">Hỗ trợ</h3>
       <ul>
-        <li><a href="#">Câu hỏi thường gặp</a></li>
-        <li><a href="#">Liên hệ</a></li>
+        <li><a href="about-model.html">Thông tin mô hình</a></li>
+        <li><a href="predict.html">Dự đoán giá nhà</a></li>
         <li><a href="404.html">404 mẫu</a></li>
         <li><a href="500.html">500 mẫu</a></li>
       </ul>
