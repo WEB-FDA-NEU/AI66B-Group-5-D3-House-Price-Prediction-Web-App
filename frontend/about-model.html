@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giới thiệu mô hình — HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<site-header active="about-model"></site-header>
+
+<main class="container page stack">
+
+  <section class="stack">
+    <h1>Giới thiệu mô hình</h1>
+    <p>HomeVal ước tính giá nhà bằng một mô hình máy học được huấn luyện trên dữ
+       liệu giao dịch thật. Trang này giải thích dữ liệu, thuật toán, độ chính
+       xác và giới hạn của mô hình đang hoạt động.</p>
+  </section>
+
+  <div id="model-detail" class="stack">
+    <p>Đang tải chi tiết mô hình…</p>
+  </div>
+
+  <aside class="disclaimer" role="note">
+    <strong>Lưu ý:</strong> HomeVal chỉ cung cấp ước tính tham khảo, không phải
+    định giá chuyên nghiệp hay tư vấn tài chính. Vui lòng tham khảo chuyên gia
+    trước khi ra quyết định.
+  </aside>
+
+  <template id="tpl-model-detail">
+    <section class="stack" aria-labelledby="dataset-title">
+      <h2 id="dataset-title">Dữ liệu huấn luyện</h2>
+      <p><strong data-field="dataset-name"></strong></p>
+      <p data-field="dataset-source"></p>
+      <p data-field="dataset-coverage"></p>
+      <p><span data-field="dataset-size"></span> giao dịch ·
+         <span data-field="dataset-features"></span> đặc trưng đầu vào</p>
+    </section>
+
+    <section class="stack" aria-labelledby="algorithm-title">
+      <h2 id="algorithm-title">Thuật toán</h2>
+      <p data-field="algorithm"></p>
+      <p>Phiên bản mô hình: <strong data-field="model-version"></strong> ·
+         cập nhật lần cuối <span data-field="last-updated"></span></p>
+    </section>
+
+    <section class="stack" aria-labelledby="metrics-title">
+      <h2 id="metrics-title">Độ chính xác</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>Chỉ số</th><th>Giá trị</th><th>Ý nghĩa</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>R²</td>
+              <td data-field="metric-r2"></td>
+              <td>Mức độ mô hình giải thích được biến động giá</td>
+            </tr>
+            <tr>
+              <td>MAE</td>
+              <td data-field="metric-mae"></td>
+              <td>Sai số tuyệt đối trung bình</td>
+            </tr>
+            <tr>
+              <td>RMSE</td>
+              <td data-field="metric-rmse"></td>
+              <td>Sai số bình phương gốc trung bình</td>
+            </tr>
+            <tr>
+              <td>MAPE</td>
+              <td data-field="metric-mape"></td>
+              <td>Sai số phần trăm trung bình</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="stack" aria-labelledby="limitations-title">
+      <h2 id="limitations-title">Giới hạn của mô hình</h2>
+      <ul data-field="limitations-list"></ul>
+    </section>
+  </template>
+
+</main>
+
+<site-footer></site-footer>
+
+<script type="module" src="js/pages/about-model.js"></script>
+</body>
+</html>
