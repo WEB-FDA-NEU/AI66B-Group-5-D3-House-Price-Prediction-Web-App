@@ -1,0 +1,26 @@
+{
+  "_ghi_chu": "TODO(mốc 4): backend GET /api/model phải trả đúng hình dạng này.",
+  "model_version": "v1.4.0",
+  "algorithm": "Gradient Boosting Regressor (scikit-learn)",
+  "last_updated": "2026-09-20T10:00:00Z",
+  "dataset": {
+    "name": "HomeVal Housing Dataset — Đà Nẵng",
+    "size": 8600,
+    "features_count": 14,
+    "source": "Dữ liệu rao bán công khai đã làm sạch và ẩn danh",
+    "coverage": "Các quận trung tâm TP. Đà Nẵng, giao dịch 2022–2026"
+  },
+  "metrics": {
+    "r2": 0.87,
+    "mae_vnd": 185000000,
+    "rmse_vnd": 240000000,
+    "mape_percent": 9.4
+  },
+  "limitations": [
+    "Chỉ áp dụng cho khu vực đã huấn luyện; ngoài khu vực này độ chính xác giảm mạnh.",
+    "Không tính đến yếu tố pháp lý (tranh chấp, quy hoạch) hay tình trạng nội thất.",
+    "Bất động sản hiếm gặp (biệt thự lớn, nhà mặt tiền đặc biệt) có khoảng tin cậy rộng hơn.",
+    "Mô hình huấn luyện định kỳ, không phản ánh biến động thị trường theo thời gian thực."
+  ],
+  "disclaimer": "HomeVal chỉ cung cấp ước tính tham khảo, không phải định giá chuyên nghiệp hay tư vấn tài chính. Vui lòng tham khảo chuyên gia trước khi ra quyết định."
+}
