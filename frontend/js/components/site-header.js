@@ -18,6 +18,7 @@ const TEMPLATE = /* html */ `
 
     <nav>
       <a class="site-header__link" href="index.html" data-nav="home">Trang chủ</a>
+      <a class="site-header__link" href="about-model.html" data-nav="about-model">Giới thiệu mô hình</a>
       <a class="site-header__link" href="admin.html" data-nav="admin" data-auth="admin" hidden>Admin</a>
       <a class="site-header__link" href="admin-models.html" data-nav="models" data-auth="admin" hidden>Models</a>
       <span data-auth="guest" hidden>
@@ -41,8 +42,8 @@ class SiteHeader extends HTMLElement {
     initHeader();          // bật/tắt phần Đăng nhập ↔ Tài khoản
 
     // Truyền dữ liệu VÀO component bằng thuộc tính HTML:
-    //     <site-header active="shop"></site-header>
-    // → mục "Cửa hàng" được tô đậm. Đây là cách làm component "khác nhau
+    //     <site-header active="home"></site-header>
+    // → mục "Trang chủ" được tô đậm. Đây là cách làm component "khác nhau
     //   một chút" ở từng trang mà vẫn chỉ có một file nguồn.
     const active = this.getAttribute('active');
     if (active) this.querySelector(`[data-nav="${active}"]`)?.classList.add('is-active');
