@@ -2,8 +2,8 @@
 //  ĐÂY LÀ FILE DUY NHẤT THAY ĐỔI GIỮA MỐC 2 VÀ MỐC 4.
 //  Mốc 2:  USE_MOCK = true   → đọc dữ liệu từ frontend/mock/*.json
 //  Mốc 4:  USE_MOCK = false  → gọi API thật
-//  Nếu phải sửa file nào khác, nghĩa là mock của em không đúng
-//  hợp đồng trong docs/api-contract.md.
+//  Các endpoint HomeVal là hợp đồng dự kiến; cần kiểm thử tích hợp backend.
+//  Xem docs/frontend-routing-and-mock-contract.md.
 // ============================================================
 
 export const USE_MOCK = true;

@@ -56,13 +56,13 @@ export function requireAdmin() {
 export function initHeader() {
   const guest = document.querySelector('[data-auth="guest"]');
   const user  = document.querySelector('[data-auth="user"]');
-  const adminNav = document.querySelector('[data-auth="admin"]');
+  const adminNav = document.querySelectorAll('[data-auth="admin"]');
   if (!guest || !user) return;              // trang này không có header → bỏ qua
 
   const logged = isLoggedIn();
   guest.hidden = logged;
   user.hidden  = !logged;
-  if (adminNav) adminNav.hidden = !isAdmin();
+  adminNav.forEach(link => { link.hidden = !isAdmin(); });
 
   const nameEl = document.querySelector('[data-user-name]');
   if (nameEl && logged) nameEl.textContent = getUser()?.display_name ?? '';

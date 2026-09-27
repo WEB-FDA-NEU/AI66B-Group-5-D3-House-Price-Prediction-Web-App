@@ -7,16 +7,24 @@
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
 import { getToken } from './auth.js';
-
-export class ApiError extends Error {
-  constructor(status, detail) {
-    super(detail || 'Đã có lỗi xảy ra.');
-    this.status = status;
-    this.detail = detail;
-  }
-}
+import { ApiError, mockOperation, mockLogin, mockRegister, validatePrediction } from './mock-runtime.js';
+export { ApiError, setMockScenario } from './mock-runtime.js';
 
 async function request(url, options = {}) {
+  if (USE_MOCK && url.startsWith(`${MOCK_BASE}/`)) {
+    const name = url.slice(MOCK_BASE.length + 1, -5);
+    return mockOperation(name, async () => {
+      if (globalThis.__HOMEVAL_FIXTURES__) {
+        if (!(name in globalThis.__HOMEVAL_FIXTURES__)) throw new ApiError(404, 'Không tìm thấy dữ liệu mẫu.');
+        return structuredClone(globalThis.__HOMEVAL_FIXTURES__[name]);
+      }
+      return fetchJSON(url, options);
+    }, { items: [], total: 0 });
+  }
+  return fetchJSON(url, options);
+}
+
+async function fetchJSON(url, options = {}) {
   const headers = { ...(options.headers || {}) };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -57,8 +65,9 @@ function getMock(name) {
 }
 
 function normalisePage(page, pageSize, total) {
-  const safePage = Math.max(1, Number(page) || 1);
-  const safeSize = Math.max(1, Number(pageSize) || 10);
+  const integer = (value, fallback) => Number.isFinite(Number(value)) ? Math.max(1, Math.floor(Number(value))) : fallback;
+  const safePage = integer(page, 1);
+  const safeSize = Math.min(100, integer(pageSize, 10));
   return {
     page: safePage,
     page_size: safeSize,
@@ -88,24 +97,14 @@ export function getItem(id) {
 
 export function login(email, password) {
   if (USE_MOCK) {
-    if (password === 'sai') return Promise.reject(new ApiError(401, 'Email hoặc mật khẩu không đúng.'));
-    // Mock role admin cho Milestone 2: email chứa "admin" → role admin.
-    // Mốc 3 backend sẽ trả role thật từ JWT.
-    const isAdminMail = (email || '').toLowerCase().includes('admin');
-    return Promise.resolve({
-      access_token: isAdminMail ? 'mock-admin-token' : 'mock-token', token_type: 'bearer',
-      user: isAdminMail
-        ? { id: 99, display_name: 'Quản trị viên', role: 'admin', email }
-        : { id: 1, display_name: 'Người dùng mẫu', role: 'user', email },
-    });
+    return mockOperation('login', () => mockLogin(email, password));
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
 }
 
 export function register(payload) {
   if (USE_MOCK)
-    return Promise.resolve({ access_token: 'mock-token',
-                             user: { id: 2, display_name: payload.display_name, role: 'user' } });
+    return mockOperation('register', () => mockRegister(payload));
   return request(`${API_BASE}/auth/register`, { method: 'POST', body: payload });
 }
 
@@ -120,11 +119,12 @@ export function getModelInfo() {
 
 export function createPrediction(input) {
   if (USE_MOCK) {
-    return getMock('prediction-result').then(result => ({
-      ...result,
-      input: { ...result.input, ...input },
-      is_mock: true,
-    }));
+    return mockOperation('createPrediction', async () => {
+      validatePrediction(input);
+      const result = await getMock('prediction-result');
+      return { ...result, id: `preview-${crypto.randomUUID()}`,
+        input: structuredClone(input), created_at: new Date().toISOString(), is_mock: true };
+    });
   }
   return request(`${API_BASE}/predictions`, { method: 'POST', body: input });
 }
@@ -132,10 +132,10 @@ export function createPrediction(input) {
 export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
     return getMock('prediction-history').then(data => {
-      const keyword = q.trim().toLowerCase();
+      const keyword = String(q || '').trim().toLowerCase();
       const items = keyword
         ? data.items.filter(item => Object.values(item).some(value =>
-            String(value).toLowerCase().includes(keyword)))
+            JSON.stringify(value).toLowerCase().includes(keyword)))
         : data.items;
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
@@ -172,7 +172,7 @@ export function listDatasets() {
 export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
     return getMock('users').then(data => {
-      const keyword = q.trim().toLowerCase();
+      const keyword = String(q || '').trim().toLowerCase();
       const items = keyword
         ? data.items.filter(user => [user.display_name, user.email, user.role]
             .some(value => value.toLowerCase().includes(keyword)))

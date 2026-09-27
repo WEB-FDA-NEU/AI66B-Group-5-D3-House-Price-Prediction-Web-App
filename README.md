@@ -24,29 +24,40 @@ or database implementation is complete.
 | Upload Model Version (AD-3) | `frontend/admin-models-new.html` | Completed | Browser validation for `.pkl`/`.joblib`, 100 MB limit, and mock smoke-test result. |
 | Activate / rollback model (AD-4) | `frontend/admin-models.html` | Completed | Mock activation, confirmation, rejected-state restriction, and conflict notice path. |
 | Error pages (SY-4) | `frontend/404.html`, `frontend/500.html` | Partially completed | Pages exist; the final recovery-flow verification is still open. |
-| Home, About the Model, prediction form/result | Planned HomeVal routes | Not implemented | Existing generic template must be replaced with HomeVal screens. |
+| Home | `frontend/index.html` | Partially completed | HomeVal content and mock model metrics exist; links to pending pages still need integration. |
+| About the Model, prediction form/result | Planned HomeVal routes | Not implemented | Pending implementation/merge on this branch. |
 | Login, Register, Profile, My Predictions, Prediction Detail | Planned account routes | Not implemented | Existing template is not yet the specified HomeVal user area. |
 | Charts, comparison, datasets, users, reports, FAQ, CSV export | Planned P1/P2 routes | Not implemented | Deferred until all P0 screens and the submission checklist are complete. |
 
 ## How to open and run
 
-1. From the repository root, open the `frontend/` folder in a static web server.
-   For example, use VS Code Live Server or run `python -m http.server` and open
-   `frontend/index.html` through that server.
-2. Use an email containing `admin` and any password except `sai` to enter the
-   Milestone 2 mock admin flow.
-3. The frontend runs with mock data by default (`frontend/js/config.js`). No
-   FastAPI server is required for the completed admin screens.
+1. For a submitted ZIP: extract `team5.zip`, then open its root `index.html`
+   directly in a modern browser. No server or backend is required.
+2. To build that ZIP from source: install Node 22+, run `npm ci`, then
+   `npm run package`. The output is `dist/team5.zip`. Rebuild after code changes.
+3. To develop against the source files: run `python -m http.server` at the
+   repository root and visit `http://localhost:8000/frontend/index.html`.
+4. Demo admin: `admin@homeval.vn` / `Admin123!`; demo user:
+   `anh@example.com` / `HomeVal123!`. Use only throwaway credentials when trying
+   mock registration. Incorrect credentials are rejected.
+5. `npm test` checks the adapter. `npm run package` followed by
+   `npm run test:browser` checks the offline build (install Chromium first with
+   `npx playwright install chromium`). To use installed Chrome instead, set
+   `PLAYWRIGHT_CHANNEL=chrome` in your shell.
 
-> Current limitation: the submission-root `index.html` now redirects into the
-> frontend, but the remaining HomeVal P0 navigation must still be finished and
-> the final ZIP must be tested by opening it directly before submission.
+> The build enables direct-file execution of existing pages. Remaining P0
+> screens and links still need completion; generating a ZIP is not evidence
+> that the full milestone is complete. Source module HTML requires a static
+> server; use the generated ZIP for direct-file review.
+
+Shared adapter details, proposed endpoints, mock error scenarios and known
+integration gaps: [frontend contract](docs/frontend-routing-and-mock-contract.md).
 
 ## Team members and individual contributions
 
 | No. | Student ID | Full name | Assigned screens/pages | Main contributions | Status |
 | ---: | --- | --- | --- | --- | --- |
-| 1 | 11247351 | Phạm Huy Thành | Routing, mock API boundary, charts/comparison, release QA | Coordinates the repository, API mock contract, integration, and release verification. | Partially completed |
+| 1 | 11247351 | Phạm Huy Thành | Routing, mock API boundary, charts/comparison, release QA | Implemented the shared mock adapter, demo authentication, prediction fixtures, offline ZIP build and regression tests; full screen integration remains pending. | Partially completed |
 | 2 | 11247372 | Phạm Quang Vũ | Predict input/result and validation | Owns the 13-field prediction flow, result contract, quota states, and browser validation. | Partially completed |
 | 3 | 11247282 | Nguyễn Sơn Hải | Home, About the Model, shared layout/CSS | Owns HomeVal public pages, responsive shared components, and reusable empty-state presentation. | Partially completed |
 | 4 | 11247345 | Lê Duy Quyền | Login, Register, Profile, My Predictions, Prediction Detail | Owns account screens, mock authentication states, saved-prediction history, and account settings. | Partially completed |

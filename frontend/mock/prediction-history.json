@@ -2,6 +2,11 @@
   "items": [
     {
       "id": "pred-20260927-001",
+      "is_mock": true,
+      "input": { "city": "Hồ Chí Minh", "district": "Thủ Đức", "property_type": "Nhà phố", "area_m2": 72, "land_area_m2": 60, "bedrooms": 3, "bathrooms": 2, "floors": 2, "frontage_m": 4, "year_built": 2018, "legal_status": "Sổ hồng" },
+      "confidence_interval": { "lower": 4460000000, "upper": 5240000000, "confidence_level": 0.9 },
+      "disclaimer": "Dữ liệu minh họa. Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp.",
+      "warnings": [],
       "district": "Thủ Đức",
       "property_type": "Nhà phố",
       "area_m2": 72,
@@ -12,6 +17,11 @@
     },
     {
       "id": "pred-20260922-002",
+      "is_mock": true,
+      "input": { "city": "Hồ Chí Minh", "district": "Bình Thạnh", "property_type": "Căn hộ", "area_m2": 58, "land_area_m2": 58, "bedrooms": 2, "bathrooms": 2, "floors": 1, "frontage_m": 5, "year_built": 2020, "legal_status": "Sổ hồng" },
+      "confidence_interval": { "lower": 2800000000, "upper": 3600000000, "confidence_level": 0.9 },
+      "disclaimer": "Dữ liệu minh họa. Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp.",
+      "warnings": [],
       "district": "Bình Thạnh",
       "property_type": "Căn hộ",
       "area_m2": 58,
@@ -22,6 +32,11 @@
     },
     {
       "id": "pred-20260918-003",
+      "is_mock": true,
+      "input": { "city": "Hồ Chí Minh", "district": "Quận 7", "property_type": "Nhà phố", "area_m2": 95, "land_area_m2": 80, "bedrooms": 4, "bathrooms": 3, "floors": 2, "frontage_m": 5, "year_built": 2015, "legal_status": "Sổ hồng" },
+      "confidence_interval": { "lower": 5800000000, "upper": 8100000000, "confidence_level": 0.9 },
+      "disclaimer": "Dữ liệu minh họa. Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp.",
+      "warnings": ["low_confidence"],
       "district": "Quận 7",
       "property_type": "Nhà phố",
       "area_m2": 95,

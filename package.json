@@ -1,0 +1,17 @@
+{
+  "name": "homeval-frontend",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test tests/mock-api.test.mjs",
+    "build": "node scripts/build-submission.mjs",
+    "test:browser": "playwright test",
+    "package": "node scripts/build-submission.mjs --zip"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "esbuild": "0.28.2",
+    "fflate": "0.8.2"
+  }
+}
