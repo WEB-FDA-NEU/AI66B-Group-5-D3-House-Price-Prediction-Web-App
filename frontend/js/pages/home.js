@@ -1,35 +1,64 @@
 // ============================================================
-//  Trang chủ — danh sách đơn giản, KHÔNG có bộ lọc.
-//
-//  Vì sao tách khỏi list.js: list.js đọc #filter-form và #result-summary.
-//  Trang chủ không có hai phần tử đó → getElementById trả null →
-//  chết toàn bộ JS của trang. Hai màn hình khác nhau thì hai file khác nhau.
+//  Trang chủ — ô "Độ chính xác mô hình hiện tại" tự tải dữ liệu.
+//  Đây không phải màn hình danh sách nên không dùng showSkeleton/showEmpty
+//  (những hàm đó dành cho lưới thẻ), thay vào đó tự vẽ đơn giản:
+//  đang tải → có dữ liệu / lỗi.
 // ============================================================
-import { getItems } from '../api.js';
-import { renderCard, renderList } from '../render.js';
-import { showSkeleton, showEmpty, showError } from '../ui.js';
+import { getModelInfo } from '../api.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
-const grid = document.getElementById('results');
+const statsBody = document.getElementById('model-stats-body');
 
-async function load() {
-  showSkeleton(grid, 4);                                  // 1. ĐANG TẢI
+function makeStat(label, value) {
+  const el = document.createElement('div');
+  el.className = 'stat';
+  const v = document.createElement('p');
+  v.className = 'stat__value';
+  v.textContent = value;
+  const l = document.createElement('p');
+  l.className = 'stat__label';
+  l.textContent = label;
+  el.appendChild(v);
+  el.appendChild(l);
+  return el;
+}
+
+function renderStats(info) {
+  statsBody.textContent = '';
+  const grid = document.createElement('div');
+  grid.className = 'stat-grid';
+  grid.appendChild(makeStat('Phiên bản mô hình', info.model_version));
+  grid.appendChild(makeStat('Độ chính xác (R²)', `${Math.round(info.metrics.r2 * 100)}%`));
+  grid.appendChild(makeStat('Sai số trung bình', `±${Math.round(info.metrics.mape_percent)}%`));
+  statsBody.appendChild(grid);
+}
+
+function renderStatsError(err) {
+  statsBody.textContent = '';
+  const msg = document.createElement('p');
+  msg.textContent = err && err.detail ? err.detail : 'Không tải được số liệu mô hình.';
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.className = 'btn';
+  retry.textContent = 'Thử lại';
+  retry.addEventListener('click', loadModelStats);
+  statsBody.appendChild(msg);
+  statsBody.appendChild(retry);
+}
+
+async function loadModelStats() {
+  statsBody.textContent = '';
+  const loading = document.createElement('p');
+  loading.textContent = 'Đang tải số liệu mô hình…';
+  statsBody.appendChild(loading);
+
   try {
-    // TODO: đổi tham số cho hợp đề tài (nổi bật / mới nhất / sắp diễn ra…)
-    const { items } = await getItems({ sort: 'newest' });
-
-    if (items.length === 0) {                             // 2. RỖNG
-      return showEmpty(grid, {
-        title: 'Chưa có dữ liệu',
-        hint : 'Hãy quay lại sau.',
-        actionText: 'Xem tất cả', actionHref: 'list.html',
-      });
-    }
-    renderList(grid, items.slice(0, 8), renderCard);      // 3. CÓ DỮ LIỆU
+    const info = await getModelInfo();
+    renderStats(info);
   } catch (err) {
-    showError(grid, err, load);                           // 4. LỖI
+    renderStatsError(err);
   }
 }
 
-load();
+loadModelStats();

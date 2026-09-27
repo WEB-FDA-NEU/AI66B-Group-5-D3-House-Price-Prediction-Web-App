@@ -89,7 +89,12 @@ export function register(payload) {
   return request(`${API_BASE}/auth/register`, { method: 'POST', body: payload });
 }
 
-// ══════════ NGƯỜI 3 — TODO: thêm vùng của em ở đây ══════════
+// ══════════ NGƯỜI 3 — Trang chủ & Giới thiệu mô hình (Hải): GU-1/GU-5 mock ══════════
+
+export function getModelInfo() {
+  if (USE_MOCK) return request(`${MOCK_BASE}/model.json`);
+  return request(`${API_BASE}/model`);
+}
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
