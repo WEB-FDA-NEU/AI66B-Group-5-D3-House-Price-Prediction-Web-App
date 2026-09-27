@@ -6,7 +6,7 @@
 //  thêm hàm vào vùng của mình.
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
-import { getToken } from './auth.js';
+import { getToken, getUser } from './auth.js';
 
 export class ApiError extends Error {
   constructor(status, detail) {
@@ -53,7 +53,74 @@ function normalizeDetail(detail) {
  * This keeps the Mock 2 -> API migration in this file.
  */
 function getMock(name) {
-  return request(`${MOCK_BASE}/${name}.json`);
+  return request(`${MOCK_BASE}/${name}.json`).catch(error => {
+    const fixture = INLINE_MOCKS[name];
+    if (!fixture) throw error;
+    return JSON.parse(JSON.stringify(fixture));
+  });
+}
+
+const MOCK_USERS_KEY = 'homeval_mock_registered_users';
+const MOCK_USER_OVERRIDES_KEY = 'homeval_mock_user_overrides';
+const MOCK_CREDENTIALS_KEY = 'homeval_mock_credentials';
+const MOCK_PREDICTIONS_KEY = 'homeval_mock_predictions';
+const MOCK_DEFAULT_CREDENTIALS = Object.freeze({
+  'anh@example.com': 'password123',
+  'admin@homeval.vn': 'admin123',
+});
+const INLINE_MOCKS = Object.freeze({
+  users: {
+    items: [
+      { id: 'u-001', display_name: 'Nguyễn Minh Anh', email: 'anh@example.com', phone: '', role: 'user', status: 'Active', prediction_count: 7, created_at: '2026-09-03T10:00:00Z' },
+      { id: 'u-002', display_name: 'Quản trị viên', email: 'admin@homeval.vn', phone: '', role: 'admin', status: 'Active', prediction_count: 0, created_at: '2026-08-18T08:30:00Z' },
+    ], total: 2,
+  },
+  'prediction-result': {
+    estimated_price: 4850000000, currency: 'VND',
+    confidence_interval: { lower: 4460000000, upper: 5240000000, confidence_level: 0.9 },
+    confidence: 0.86, model: { version: 'v2.3.0', algorithm: 'Gradient Boosting' },
+    input: { district: 'Thủ Đức', property_type: 'Nhà phố', area_m2: 72, bedrooms: 3, bathrooms: 2, floors: 2 },
+  },
+  'prediction-history': {
+    items: [
+      { id: 'pred-20260927-001', owner_id: 'u-001', label: 'Nhà ở gần metro', district: 'Thủ Đức', property_type: 'Nhà phố', area_m2: 72, estimated_price: 4850000000, currency: 'VND', model_version: 'v2.3.0', input: { district: 'Thủ Đức', property_type: 'Nhà phố', area_m2: 72, bedrooms: 3, bathrooms: 2, floors: 2 }, created_at: '2026-09-27T09:30:00Z' },
+      { id: 'pred-20260922-002', owner_id: 'u-001', label: 'Căn hộ đầu tư', district: 'Bình Thạnh', property_type: 'Căn hộ', area_m2: 58, estimated_price: 3180000000, currency: 'VND', model_version: 'v2.3.0', input: { district: 'Bình Thạnh', property_type: 'Căn hộ', area_m2: 58, bedrooms: 2, bathrooms: 2, floors: 1 }, created_at: '2026-09-22T14:15:00Z' },
+      { id: 'pred-20260918-003', owner_id: 'u-001', label: 'Nhà phố Quận 7', district: 'Quận 7', property_type: 'Nhà phố', area_m2: 95, estimated_price: 6920000000, currency: 'VND', model_version: 'v2.2.0', input: { district: 'Quận 7', property_type: 'Nhà phố', area_m2: 95, bedrooms: 4, bathrooms: 3, floors: 3 }, created_at: '2026-09-18T08:45:00Z' },
+    ],
+  },
+  models: {
+    items: [
+      { id: 'm-v230', version: 'v2.3.0', algorithm: 'Gradient Boosting', dataset: 'housing-hcm-2026q2.csv', mae: 145000000, r2: 0.87, upload_date: '2026-09-18T09:00:00Z', state: 'Active' },
+      { id: 'm-v240rc1', version: 'v2.4.0-rc1', algorithm: 'Gradient Boosting', dataset: 'housing-hcm-2026q3.csv', mae: 138000000, r2: 0.89, upload_date: '2026-09-25T10:05:00Z', state: 'Validated' },
+      { id: 'm-v220', version: 'v2.2.0', algorithm: 'Random Forest', dataset: 'housing-hcm-2026q1.csv', mae: 162000000, r2: 0.84, upload_date: '2026-07-30T09:00:00Z', state: 'Archived' },
+    ], total: 3,
+  },
+  'admin-stats': {
+    users_total: 128, predictions_today: 34, predictions_week: 210,
+    active_model: { version: 'v2.3.0', algorithm: 'Gradient Boosting', r2: 0.87 }, api_errors_24h: 0,
+    predictions_per_day: [{ date: '09-24', count: 34 }, { date: '09-25', count: 29 }, { date: '09-26', count: 34 }],
+    recent_activity: [{ id: 1, text: 'admin@homeval.vn đã kích hoạt v2.3.0', created_at: '2026-09-26T08:10:00Z' }],
+  },
+});
+
+function readMockStorage(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null') ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function getMockUsers() {
+  return getMock('users').then(data => {
+    const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+    const registered = readMockStorage(MOCK_USERS_KEY, []);
+    const items = [
+      ...data.items.map(user => ({ ...user, ...overrides[user.id] })),
+      ...registered.map(user => ({ ...user, ...overrides[user.id] })),
+    ];
+    return { ...data, items, total: items.length };
+  });
 }
 
 function normalisePage(page, pageSize, total) {
@@ -88,24 +155,51 @@ export function getItem(id) {
 
 export function login(email, password) {
   if (USE_MOCK) {
-    if (password === 'sai') return Promise.reject(new ApiError(401, 'Email hoặc mật khẩu không đúng.'));
-    // Mock role admin cho Milestone 2: email chứa "admin" → role admin.
-    // Mốc 3 backend sẽ trả role thật từ JWT.
-    const isAdminMail = (email || '').toLowerCase().includes('admin');
-    return Promise.resolve({
-      access_token: isAdminMail ? 'mock-admin-token' : 'mock-token', token_type: 'bearer',
-      user: isAdminMail
-        ? { id: 99, display_name: 'Quản trị viên', role: 'admin', email }
-        : { id: 1, display_name: 'Người dùng mẫu', role: 'user', email },
+    const normalizedEmail = email.trim().toLowerCase();
+    return Promise.all([
+      getMockUsers(),
+      Promise.resolve(getMockCredentials()),
+    ]).then(([data, credentials]) => {
+      const user = data.items.find(entry => entry.email.toLowerCase() === normalizedEmail);
+      if (!user || credentials[normalizedEmail] !== password)
+        throw new ApiError(401, 'Email hoặc mật khẩu không đúng.');
+      return { access_token: 'mock-token', token_type: 'bearer', user };
     });
   }
   return request(`${API_BASE}/auth/login`, { method: 'POST', body: { email, password } });
 }
 
 export function register(payload) {
-  if (USE_MOCK)
-    return Promise.resolve({ access_token: 'mock-token',
-                             user: { id: 2, display_name: payload.display_name, role: 'user' } });
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const email = payload.email.trim().toLowerCase();
+      if (data.items.some(user => user.email.toLowerCase() === email))
+        throw new ApiError(409, 'Email này đã được đăng ký.');
+
+      const nextId = data.items.reduce((maxId, user) => {
+        const match = String(user.id).match(/(\d+)$/);
+        return Math.max(maxId, match ? Number(match[1]) : 0);
+      }, 0) + 1;
+      const user = {
+        id: `u-${String(nextId).padStart(3, '0')}`,
+        display_name: payload.display_name.trim(),
+        email,
+        phone: payload.phone?.trim() ?? '',
+        role: 'user',
+        status: 'Active',
+        prediction_count: 0,
+        created_at: new Date().toISOString(),
+      };
+      const registered = readMockStorage(MOCK_USERS_KEY, []);
+      registered.push(user);
+      localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(registered));
+
+      const credentials = readMockStorage(MOCK_CREDENTIALS_KEY, {});
+      credentials[email] = payload.password;
+      localStorage.setItem(MOCK_CREDENTIALS_KEY, JSON.stringify(credentials));
+      return { access_token: 'mock-token', token_type: 'bearer', user };
+    });
+  }
   return request(`${API_BASE}/auth/register`, { method: 'POST', body: payload });
 }
 
@@ -122,7 +216,9 @@ export function createPrediction(input) {
   if (USE_MOCK) {
     return getMock('prediction-result').then(result => ({
       ...result,
+      id: `draft-${Date.now()}`,
       input: { ...result.input, ...input },
+      created_at: new Date().toISOString(),
       is_mock: true,
     }));
   }
@@ -132,11 +228,14 @@ export function createPrediction(input) {
 export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
     return getMock('prediction-history').then(data => {
+      const user = requireMockUser();
       const keyword = q.trim().toLowerCase();
-      const items = keyword
-        ? data.items.filter(item => Object.values(item).some(value =>
-            String(value).toLowerCase().includes(keyword)))
-        : data.items;
+      const items = [...new Map([...data.items, ...getMockPredictionStore()]
+        .map(item => [item.id, item])).values()]
+        .filter(item => item.owner_id === user.id && !item.deleted_at)
+        .filter(item => !keyword || Object.values(item).some(value =>
+          String(value).toLowerCase().includes(keyword)))
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
     });
@@ -149,12 +248,61 @@ export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
 export function getPrediction(id) {
   if (USE_MOCK) {
     return getMock('prediction-history').then(data => {
-      const item = data.items.find(entry => String(entry.id) === String(id));
+      const user = requireMockUser();
+      const item = [...new Map([...data.items, ...getMockPredictionStore()]
+        .map(entry => [entry.id, entry])).values()].find(entry =>
+        String(entry.id) === String(id) && entry.owner_id === user.id && !entry.deleted_at);
       if (!item) throw new ApiError(404, 'Không tìm thấy dự báo này.');
       return item;
     });
   }
   return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}`);
+}
+
+export function savePrediction(prediction, label = '') {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const input = prediction.input ?? {};
+    const item = {
+      id: `pred-${Date.now()}`,
+      owner_id: user.id,
+      label: label.trim(),
+      district: input.district ?? 'Chưa xác định',
+      property_type: input.property_type ?? 'Nhà ở',
+      area_m2: Number(input.area_m2) || 0,
+      estimated_price: prediction.estimated_price,
+      currency: prediction.currency ?? 'VND',
+      model_version: prediction.model?.version ?? 'v2.3.0',
+      input: { ...input },
+      created_at: new Date().toISOString(),
+    };
+    const predictions = getMockPredictionStore();
+    predictions.push(item);
+    localStorage.setItem(MOCK_PREDICTIONS_KEY, JSON.stringify(predictions));
+    return Promise.resolve(item);
+  }
+  return request(`${API_BASE}/me/predictions`, { method: 'POST', body: { prediction, label } });
+}
+
+export function deletePrediction(id) {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const predictions = getMockPredictionStore();
+    const stored = predictions.find(item => String(item.id) === String(id) && item.owner_id === user.id);
+    if (stored) {
+      stored.deleted_at = new Date().toISOString();
+      localStorage.setItem(MOCK_PREDICTIONS_KEY, JSON.stringify(predictions));
+      return Promise.resolve(null);
+    }
+    return getMock('prediction-history').then(data => {
+      const seeded = data.items.find(item => String(item.id) === String(id) && item.owner_id === user.id);
+      if (!seeded) throw new ApiError(404, 'Không tìm thấy dự báo này.');
+      predictions.push({ ...seeded, deleted_at: new Date().toISOString() });
+      localStorage.setItem(MOCK_PREDICTIONS_KEY, JSON.stringify(predictions));
+      return null;
+    });
+  }
+  return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
 export function getMarketInsights() {
@@ -171,11 +319,11 @@ export function listDatasets() {
 
 export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
-    return getMock('users').then(data => {
+    return getMockUsers().then(data => {
       const keyword = q.trim().toLowerCase();
       const items = keyword
         ? data.items.filter(user => [user.display_name, user.email, user.role]
-            .some(value => value.toLowerCase().includes(keyword)))
+            .some(value => String(value ?? '').toLowerCase().includes(keyword)))
         : data.items;
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
@@ -197,22 +345,20 @@ export const MOCK_UI_STATES = Object.freeze({
 
 // ══════════ NGƯỜI 4 — TODO: thêm vùng của em ở đây ══════════
 
-// ══════════ NGƯỜI 5 — Admin (Tuệ): AD-1..AD-4 mock, không cần backend ══════════
-// Hợp đồng mock trùng FastAPI Mốc 3. BR-1/BR-2/BR-13 chỉ mô phỏng phía UI.
+// ══════════ NGƯỜI 5 — TODO: thêm vùng của em ở đây ══════════
 
 export function getAdminStats() {
-  if (USE_MOCK) return request(`${MOCK_BASE}/admin-stats.json`);
+  if (USE_MOCK) return getMock('admin-stats');
   return request(`${API_BASE}/admin/stats`);
 }
 
 export function listModels() {
-  if (USE_MOCK) return request(`${MOCK_BASE}/models.json`);
+  if (USE_MOCK) return getMock('models');
   return request(`${API_BASE}/admin/models`);
 }
 
 export function uploadModel({ file, algorithm, dataset, note }) {
   if (USE_MOCK) {
-    // Mô phỏng BR-13 phía browser: sai loại file / quá 100MB / smoke-test fail.
     const name = file?.name ?? '';
     if (!/\.pkl$|\.joblib$/i.test(name))
       return Promise.reject(new ApiError(422, 'file: Chỉ chấp nhận .pkl hoặc .joblib'));
@@ -220,26 +366,18 @@ export function uploadModel({ file, algorithm, dataset, note }) {
       return Promise.reject(new ApiError(422, 'file: File vượt quá 100 MB'));
     if (/bad/i.test(name))
       return Promise.reject(new ApiError(422, 'file: Smoke-test thất bại, version ở trạng thái Rejected'));
-    return Promise.resolve({
-      id: 'm-new', version: 'v2.4.0-rc2', algorithm, dataset,
-      state: 'Uploaded', note: note ?? '',
-    });
+    return Promise.resolve({ id: 'm-new', version: 'v2.4.0-rc2', algorithm, dataset, state: 'Uploaded', note: note ?? '' });
   }
-  const fd = new FormData();
-  fd.append('file', file);
-  fd.append('algorithm', algorithm);
-  fd.append('dataset', dataset);
-  if (note) fd.append('note', note);
-  return request(`${API_BASE}/admin/models`, { method: 'POST', body: fd });
+  const form = new FormData();
+  form.append('file', file);
+  form.append('algorithm', algorithm);
+  form.append('dataset', dataset);
+  if (note) form.append('note', note);
+  return request(`${API_BASE}/admin/models`, { method: 'POST', body: form });
 }
 
 export function activateModel(id) {
-  if (USE_MOCK) {
-    // Mô phỏng BR-2 conflict: version khác vừa live thì báo 409 + refresh list.
-    if (Math.random() < 0.0)
-      return Promise.reject(new ApiError(409, 'Phiên bản khác vừa được kích hoạt. Danh sách đã làm mới.'));
-    return Promise.resolve({ id, state: 'Active' });
-  }
+  if (USE_MOCK) return Promise.resolve({ id, state: 'Active' });
   return request(`${API_BASE}/admin/models/${id}/activate`, { method: 'POST' });
 }
 
@@ -266,4 +404,45 @@ function filterMock(data, { q = '', sort = 'newest', category = '',
   const size  = Number(page_size) || data.page_size || 20;
   const start = (Number(page) - 1) * size;
   return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
+}
+
+export function updateProfile(payload) {
+  if (USE_MOCK) {
+    const user = getUser();
+    if (!user) return Promise.reject(new ApiError(401, 'Bạn cần đăng nhập để tiếp tục.'));
+    const updated = { ...user, ...payload };
+    const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+    overrides[user.id] = { ...overrides[user.id], ...payload };
+    localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+    return Promise.resolve(updated);
+  }
+  return request(`${API_BASE}/me`, { method: 'PATCH', body: payload });
+}
+
+export function changePassword(payload) {
+  if (USE_MOCK) {
+    const user = getUser();
+    const credentials = getMockCredentials();
+    const email = user?.email?.toLowerCase();
+    if (!email || credentials[email] !== payload.current_password)
+      return Promise.reject(new ApiError(401, 'Mật khẩu hiện tại không đúng.'));
+    credentials[email] = payload.new_password;
+    localStorage.setItem(MOCK_CREDENTIALS_KEY, JSON.stringify(credentials));
+    return Promise.resolve(null);
+  }
+  return request(`${API_BASE}/me/password`, { method: 'POST', body: payload });
+}
+
+function getMockCredentials() {
+  return { ...MOCK_DEFAULT_CREDENTIALS, ...readMockStorage(MOCK_CREDENTIALS_KEY, {}) };
+}
+
+function getMockPredictionStore() {
+  return readMockStorage(MOCK_PREDICTIONS_KEY, []);
+}
+
+function requireMockUser() {
+  const user = getUser();
+  if (!user) throw new ApiError(401, 'Bạn cần đăng nhập để tiếp tục.');
+  return user;
 }

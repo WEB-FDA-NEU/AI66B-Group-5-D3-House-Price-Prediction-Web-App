@@ -54,6 +54,7 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     display_name: str
+    phone: str
     role: str
 
 
@@ -73,3 +74,14 @@ class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserOut
+
+class ProfileUpdateIn(BaseModel):
+    display_name: str = Field(min_length=2, max_length=80)
+    phone: str = Field(default="", max_length=20)
+
+
+class ChangePasswordIn(BaseModel):
+    current_password: str
+    # TODO BR-12: nếu muốn ép "có chữ và số", thêm validator ở đây,
+    # đồng thời sửa RegisterIn cho khớp — không được lệch giữa 2 nơi.
+    new_password: str = Field(min_length=8)

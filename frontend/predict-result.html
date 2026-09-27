@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kết quả dự đoán - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+<site-header active="predict"></site-header>
+<main class="container page" style="max-width:760px">
+  <div id="result" class="stack" hidden>
+    <div>
+      <h1>Giá nhà ước tính</h1>
+      <p class="field__hint">Kết quả chỉ có tính chất tham khảo, không phải định giá chính thức.</p>
+    </div>
+    <section class="result-summary">
+      <p class="result-summary__price" id="estimated-price"></p>
+      <p id="confidence-interval"></p>
+      <p class="field__hint" id="model-version"></p>
+    </section>
+    <section>
+      <h2>Thông tin đã dùng</h2>
+      <dl class="facts" id="input-summary"></dl>
+    </section>
+    <form id="save-form" class="save-prediction" hidden>
+      <label class="field__label" for="label">Tên gợi nhớ (không bắt buộc)</label>
+      <div class="save-prediction__controls">
+        <input class="input" id="label" name="label" maxlength="80" placeholder="Ví dụ: Nhà ở gần metro">
+        <button class="btn btn--primary" type="submit">Lưu dự đoán</button>
+      </div>
+    </form>
+    <div class="row__actions">
+      <a class="btn" href="predict.html">Dự đoán khác</a>
+      <a class="btn" id="history-link" href="predictions.html" hidden>Xem lịch sử</a>
+    </div>
+  </div>
+</main>
+<site-footer></site-footer>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/predict-result.js"></script>
+</body>
+</html>
