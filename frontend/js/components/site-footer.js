@@ -18,10 +18,11 @@ const TEMPLATE = /* html */ `
       <p class="site-footer__tagline"><small>Giá chỉ mang tính tham khảo, không phải thẩm định chuyên nghiệp (BR-9).</small></p>
     </div>
 
-    <nav class="site-footer__col" aria-labelledby="ft-main">
-      <h3 class="site-footer__title" id="ft-main">HomeVal</h3>
+    <nav class="site-footer__col" aria-labelledby="ft-product">
+      <h3 class="site-footer__title" id="ft-product">Sản phẩm</h3>
       <ul>
         <li><a href="index.html">Trang chủ</a></li>
+        <li><a href="about-model.html">Giới thiệu mô hình</a></li>
         <li><a href="login.html">Đăng nhập</a></li>
         <li><a href="register.html">Đăng ký</a></li>
       </ul>
@@ -39,6 +40,8 @@ const TEMPLATE = /* html */ `
     <nav class="site-footer__col" aria-labelledby="ft-help">
       <h3 class="site-footer__title" id="ft-help">Hỗ trợ</h3>
       <ul>
+        <li><a href="#">Câu hỏi thường gặp</a></li>
+        <li><a href="#">Liên hệ</a></li>
         <li><a href="404.html">404 mẫu</a></li>
         <li><a href="500.html">500 mẫu</a></li>
       </ul>
@@ -47,6 +50,7 @@ const TEMPLATE = /* html */ `
   </div>
 
   <div class="container site-footer__bottom">
+    <p class="site-footer__disclaimer">HomeVal cung cấp ước tính tham khảo, không phải định giá chuyên nghiệp hay tư vấn tài chính.</p>
     <p>© ${YEAR} HomeVal — Đồ án Web Design &amp; Programming, lớp AI66B, Nhóm 5.</p>
   </div>
 </footer>`;
