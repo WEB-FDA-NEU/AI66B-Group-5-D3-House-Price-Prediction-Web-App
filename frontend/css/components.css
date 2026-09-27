@@ -199,6 +199,11 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .badge[data-state="Uploaded"] { background: var(--c-warning); }
 .badge[data-state="Archived"] { background: var(--c-muted); }
 .badge[data-state="Rejected"] { background: var(--c-danger); }
+/* Biến thể ngữ nghĩa dùng cho badge ngoài phạm vi Admin (Hải — FE-01/GU-1/GU-5) */
+.badge[data-variant="info"]    { background: #e8f1fb; color: var(--c-primary); }
+.badge[data-variant="success"] { background: #e7f5ec; color: var(--c-success); }
+.badge[data-variant="warning"] { background: #fdf1e0; color: var(--c-warning); }
+.badge[data-variant="danger"]  { background: #fbe9e7; color: var(--c-danger); }
 .admin-nav { display: flex; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-4); }
 .activity { list-style: none; padding: 0; display: grid; gap: var(--sp-2); }
 .activity li { border: 1px solid var(--c-border); border-radius: var(--radius-s); padding: var(--sp-3); font-size: .9rem; }
@@ -246,3 +251,14 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
   .home-intro h1 { font-size: 1.8rem; }
   .home-overview { grid-template-columns: 1fr; }
 }
+/* ============ Số liệu tóm tắt & disclaimer (Hải — FE-01/GU-1/GU-5) ============ */
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-4); }
+.stat { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); text-align: center; }
+.stat__value { font-size: 1.5rem; font-weight: 700; color: var(--c-primary); }
+.stat__label { font-size: .85rem; color: var(--c-muted); margin-top: var(--sp-1); }
+
+.disclaimer {
+  border: 1px solid var(--c-warning); background: #fdf6ea;
+  border-radius: var(--radius); padding: var(--sp-4); font-size: .9rem;
+}
+.disclaimer strong { color: var(--c-warning); }
