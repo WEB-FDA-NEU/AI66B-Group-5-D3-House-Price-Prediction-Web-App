@@ -1,0 +1,21 @@
+{
+  "items": [
+    {
+      "id": "ds-hcm-2026q3",
+      "name": "housing-hcm-2026q3.csv",
+      "rows": 18420,
+      "columns": 13,
+      "status": "Validated",
+      "uploaded_at": "2026-09-24T09:15:00Z"
+    },
+    {
+      "id": "ds-hcm-2026q2",
+      "name": "housing-hcm-2026q2.csv",
+      "rows": 17608,
+      "columns": 13,
+      "status": "Active",
+      "uploaded_at": "2026-07-03T10:00:00Z"
+    }
+  ],
+  "total": 2
+}
