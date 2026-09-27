@@ -1,69 +1,113 @@
-# HomeVal - House Price Prediction Web App
+# HomeVal - Group 5 - Milestone 2
 
-## Project overview
+## 1. Project Overview
 
-HomeVal is a responsive web application that helps visitors estimate a house
-price from property information. A result must show the estimate, confidence
-interval, model version, and an informational disclaimer. Registered users can
-save and review estimates; administrators manage model versions.
+HomeVal is a house-price estimation frontend. Users enter property details,
+view an illustrative price range and model information, and save predictions
+to their account history. Administrators can explore model-management screens.
 
-This repository currently contains the Milestone 2 frontend mock and a FastAPI
-backend scaffold. The detailed product specification, business rules, screen
-map, and team plan are in [docs/milestone-1-revised.md](docs/milestone-1-revised.md).
+This submission demonstrates HTML, CSS and JavaScript interfaces using JSON
+fixtures and browser storage. It does not perform real house-price inference.
+No backend, database, model training or production authentication is required
+to review this milestone.
 
-## Implemented screens and features
+## 2. Implemented Screens and Features
 
-The table records the actual state of the `main` branch. “Completed” means the
-screen is implemented with Milestone 2 mock data; it does not mean the FastAPI
-or database implementation is complete.
+Statuses describe the delivered frontend against the planned project scope.
+"Completed" refers to the indicated mock UI, not a production backend.
 
-| Screen / feature | Route or file | Status | Current scope |
+| Screen / feature | Submission file | Status | Implemented scope / remaining limitation |
 | --- | --- | --- | --- |
-| Admin Dashboard (AD-1) | `frontend/admin.html` | Completed | Mock KPI cards, daily activity chart, empty/error states, and mocked admin guard. |
-| Model Management (AD-2) | `frontend/admin-models.html` | Completed | Mock model list, metrics, state badges, and confirmation flow. |
-| Upload Model Version (AD-3) | `frontend/admin-models-new.html` | Completed | Browser validation for `.pkl`/`.joblib`, 100 MB limit, and mock smoke-test result. |
-| Activate / rollback model (AD-4) | `frontend/admin-models.html` | Completed | Mock activation, confirmation, rejected-state restriction, and conflict notice path. |
-| Error pages (SY-4) | `frontend/404.html`, `frontend/500.html` | Partially completed | Pages exist; the final recovery-flow verification is still open. |
-| Home, About the Model, prediction form/result | Planned HomeVal routes | Not implemented | Existing generic template must be replaced with HomeVal screens. |
-| Login, Register, Profile, My Predictions, Prediction Detail | Planned account routes | Not implemented | Existing template is not yet the specified HomeVal user area. |
-| Charts, comparison, datasets, users, reports, FAQ, CSV export | Planned P1/P2 routes | Not implemented | Deferred until all P0 screens and the submission checklist are complete. |
+| Home | `index.html` | Completed | Product introduction, prediction/history links, static model overview and disclaimer. |
+| About the Model | `about-model.html` | Completed | Mock dataset, algorithm, metrics, limitations and disclaimer with loading/error handling. |
+| Login | `login.html` | Completed | Demo credentials, validation, invalid-login feedback and return navigation. |
+| Register | `register.html` | Completed | Account form, password confirmation, duplicate-email feedback and local mock account persistence. |
+| Prediction form | `predict.html` | Partially Completed | Six property fields and browser validation; the full planned form and quota states are incomplete. |
+| Prediction result | `predict-result.html` | Partially Completed | Price, interval, model version, input summary and disclaimer; current implementation requires login to see results. |
+| Save prediction | `predict-result.html` | Completed | Optional label and local saved-history entry for the signed-in user. |
+| My Predictions | `predictions.html` | Completed | User-specific history, search, empty state, detail links and delete confirmation in the demo. |
+| Saved prediction detail | `detail.html?id=...` | Partially Completed | Saved inputs, price/model version and delete action; confidence interval is not displayed. |
+| Profile / Settings | `profile.html` | Partially Completed | Edit display name/phone and change mock password; email editing is not implemented. |
+| Admin dashboard | `admin.html` | Completed | Mock KPIs, activity/chart and admin access guard. |
+| Model management | `admin-models.html` | Completed | Mock model list, metrics, state badges and activation/archive confirmation UI. Changes are not persisted. |
+| Upload model | `admin-models-new.html` | Completed | File/type/size validation and simulated upload feedback; no model is processed or stored. |
+| Error pages | `404.html`, `500.html` | Completed | Error messages and recovery links. |
+| Legacy history entry | `list.html` | Completed | Redirects into the current history experience. |
+| Shared layout | `css/`, `js/components/` | Partially Completed | Shared header/footer, responsive styles and UI helpers; minor template text remains. |
+| Quota displays; advanced validation | No completed dedicated UI | Not Implemented | Remaining work is tracked for follow-up, not presented as finished M2 functionality. |
+| Insights/charts, comparison, datasets/users/reports management, FAQ, CSV export, password reset | No implemented screens | Not Implemented | Planned later work; the presence of mock data or adapters does not mean these screens exist. |
 
-## How to open and run
+## 3. Instructions to Open / Run
 
-1. From the repository root, open the `frontend/` folder in a static web server.
-   For example, use VS Code Live Server or run `python -m http.server` and open
-   `frontend/index.html` through that server.
-2. Use an email containing `admin` and any password except `sai` to enter the
-   Milestone 2 mock admin flow.
-3. The frontend runs with mock data by default (`frontend/js/config.js`). No
-   FastAPI server is required for the completed admin screens.
+### Submitted ZIP (recommended for review)
 
-> Current limitation: the submission-root `index.html` now redirects into the
-> frontend, but the remaining HomeVal P0 navigation must still be finished and
-> the final ZIP must be tested by opening it directly before submission.
+1. Extract **team5.zip** completely into a folder. Do not open HTML from inside
+   the ZIP preview.
+2. Open **index.html at the extracted folder's root** in Chrome or Edge.
+3. Use the navigation and the demo accounts below. No installation, server,
+   API key or backend is needed for the packaged copy.
 
-## Team members and individual contributions
+| Role | Email | Password |
+| --- | --- | --- |
+| User | `anh@example.com` | `password123` |
+| Administrator | `admin@homeval.vn` | `admin123` |
 
-| No. | Student ID | Full name | Assigned screens/pages | Main contributions | Status |
-| ---: | --- | --- | --- | --- | --- |
-| 1 | 11247351 | Phạm Huy Thành | Routing, mock API boundary, charts/comparison, release QA | Coordinates the repository, API mock contract, integration, and release verification. | Partially completed |
-| 2 | 11247372 | Phạm Quang Vũ | Predict input/result and validation | Owns the 13-field prediction flow, result contract, quota states, and browser validation. | Partially completed |
-| 3 | 11247282 | Nguyễn Sơn Hải | Home, About the Model, shared layout/CSS | Owns HomeVal public pages, responsive shared components, and reusable empty-state presentation. | Partially completed |
-| 4 | 11247345 | Lê Duy Quyền | Login, Register, Profile, My Predictions, Prediction Detail | Owns account screens, mock authentication states, saved-prediction history, and account settings. | Partially completed |
-| 5 | 11247366 | Nguyễn Văn Tuệ | Admin Dashboard, Model Management, Upload Model, activation/rollback | Completed the four verified admin mock tasks AD-1 through AD-4, including validation and confirmation states. | Completed for AD-1--AD-4 |
+All accounts/data are fictional. Registration, profile changes, passwords and
+saved predictions use browser storage for demonstration only. Do not enter
+real passwords or personal information. Use a fresh browser profile or clear
+this demo's site data if an earlier test changed the demo password.
 
-## Incomplete screens and delivery requirements
+Suggested walkthrough: Home -> Predict -> Result (login when requested) ->
+Save -> My Predictions -> Detail -> delete confirmation. For admin review,
+log out, sign in as the administrator, then open Admin -> Models -> Upload.
+The model-management page is also available directly as `admin-models.html`
+after admin login.
 
-- Replace generic/template screens with the HomeVal P0 home, prediction,
-  account, and shared navigation flows.
-- Verify every root-entry route and asset when the final ZIP is opened directly.
-- Finish and verify SY-4 recovery navigation, responsive/mobile QA, and the
-  release checklist.
-- Update this README after each merge so its statuses and contributions match
-  the final source files and GitHub Issues.
+### Source development copy
 
-## Sprint board
+The ZIP retains original source under `source/frontend/`. Those original HTML
+files use ES modules and require a static server, for example
+`python -m http.server 8000` from `source/frontend/`, followed by
+`http://localhost:8000/index.html`. The repository equivalent is `frontend/`.
+Python is only an optional development server; it is not needed to view the ZIP.
 
-The current Milestone 2 plan is in [docs/sprint-1-board.md](docs/sprint-1-board.md).
-The GitHub Project is the operational board; it uses **Sprint 1**, **Sprint 2**,
-and **Sprint 3** consistently.
+The review copy bundles the existing page modules and embeds the shipped JSON
+fixtures so it can run over `file://`. Application behavior is unchanged.
+Use the root HTML pages, not `source/frontend/index.html`, for direct-file review.
+
+## 4. Team Members and Individual Contributions
+
+The table separates implementation evidence from initial assignments. Merged
+PRs and source files support the contributions listed below. Unmerged PR #64
+is not counted as delivered application work.
+
+| No. | Student ID | Full Name | Assigned Screens/Pages | Main Contributions | Status |
+| ---: | --- | --- | --- | --- | --- | --- |
+| 1 | 11247351 | Phạm Huy Thành (`bianh13`) | Shared routing/mock-data/API foundation; integration and handoff | Implemented initial prediction/history/insights/dataset/user fixtures and adapter functions in #60; prepared documentation, offline packaging and handoff checks. Later adapter changes are shared with Quyền through #66. | Shared foundation completed; integration/QA partially completed pending known gaps and peer sign-off. |
+| 2 | 11247372 | Phạm Quang Vũ (`VuSiSi`) | Prediction input/result, quota and validation (#2/#10/#11/#14/#27) | Assigned prediction work. Current merged form/result implementation was delivered in Quyền's PR #66; Vũ's individual implementation contribution needs team confirmation before final submission. | Prediction screens partially completed; individual contribution confirmation pending. |
+| 3 | 11247282 | Nguyễn Sơn Hải (`hai291`) | Home, About the Model, shared header/footer/CSS | Implemented public pages, reusable layout, model-information rendering and responsive work in #56/#57/#59/#62. Home was subsequently revised during #66/#67 integration. | Public pages completed; shared layout has minor remaining polish. |
+| 4 | 11247345 | Lê Duy Quyền (`pham-ha-gif`) | Login/Register, Profile, History/Detail; prediction integration | Delivered local-storage authentication/profile/password/history/save/delete behavior and integrated prediction form/result in #66; revised Home and removed the duplicate root entry in #67. | Login/Register/History completed; Profile/Detail and guest prediction flow partially completed as noted above. |
+| 5 | 11247366 | Nguyễn Văn Tuệ (`nguyentue110`) | Admin dashboard, model management/upload, error pages | Implemented admin UI, fixtures, validation, confirmations and error/recovery screens in #52-#55; helped merge the team's final changes. | Admin/error mock UI completed; persistent model operations are outside this demonstration. |
+
+Workload is evidenced by files and merged changes, not by story-point totals.
+Where multiple members touched a screen, the initial implementation and later
+integration are identified above. The team must confirm Vũ's actual work;
+PR authorship alone is not conclusive proof of who wrote shared code.
+
+## 5. Incomplete Features and Screens
+
+- Guest users are redirected to Login before seeing a prediction result.
+- The prediction form implements six fields; the full planned form, complete
+  cross-field validation, low-confidence UI and 5/100-per-day quota displays
+  are not complete.
+- Saved detail/history do not show confidence intervals; Profile does not edit
+  email. Some titles still contain template text and Home has a stray code fence.
+- Admin upload/activation/archive are UI simulations without persistence.
+- Insights/comparison, dataset/user/report management, FAQ, export and password
+  reset screens are not implemented; fixtures are not finished screens.
+- Full production API/model/database behavior is outside Milestone 2.
+- Final peer review, remaining integration/QA acceptance items and upload to
+  the course submission page remain the team's responsibility.
+
+These limitations are disclosed rather than marking all planned work complete.
+See [verification notes](docs/m2-verification.md) for the handoff checks.
