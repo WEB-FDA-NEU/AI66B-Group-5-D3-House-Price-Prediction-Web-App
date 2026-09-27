@@ -1,0 +1,46 @@
+{
+  "_ghi_chu": "Mock cho AD-2/AD-4/AD-5. Shape trùng FastAPI GET /api/admin/models ở Mốc 3. BR-1 states: Uploaded/Validated/Active/Archived/Rejected. BR-2: đúng 1 Active.",
+  "items": [
+    {
+      "id": "m-v230",
+      "version": "v2.3.0",
+      "algorithm": "Gradient Boosting",
+      "dataset": "housing-hcm-2026q2.csv",
+      "mae": 145000000,
+      "r2": 0.87,
+      "upload_date": "2026-09-18T09:00:00Z",
+      "state": "Active"
+    },
+    {
+      "id": "m-v240rc1",
+      "version": "v2.4.0-rc1",
+      "algorithm": "Gradient Boosting",
+      "dataset": "housing-hcm-2026q3.csv",
+      "mae": 138000000,
+      "r2": 0.89,
+      "upload_date": "2026-09-25T10:05:00Z",
+      "state": "Validated"
+    },
+    {
+      "id": "m-v220",
+      "version": "v2.2.0",
+      "algorithm": "Random Forest",
+      "dataset": "housing-hcm-2026q1.csv",
+      "mae": 162000000,
+      "r2": 0.84,
+      "upload_date": "2026-07-30T09:00:00Z",
+      "state": "Archived"
+    },
+    {
+      "id": "m-v240bad",
+      "version": "v2.4.0-bad",
+      "algorithm": "XGBoost",
+      "dataset": "housing-hcm-2026q3.csv",
+      "mae": null,
+      "r2": null,
+      "upload_date": "2026-09-24T15:20:00Z",
+      "state": "Rejected"
+    }
+  ],
+  "total": 4
+}
