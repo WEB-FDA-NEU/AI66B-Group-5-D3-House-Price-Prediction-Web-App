@@ -1,5 +1,5 @@
 // ============================================================
-//  Trang cửa hàng — layout đầy đủ: header · breadcrumb · sidebar
+//  Trang cửa hàng - layout đầy đủ: header · breadcrumb · sidebar
 //  · toolbar · lưới sản phẩm · phân trang · footer.
 //
 //  Đây là MẪU cho mọi màn hình "danh sách có lọc" của các đề tài:

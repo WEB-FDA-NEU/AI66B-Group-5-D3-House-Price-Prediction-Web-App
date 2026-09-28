@@ -1,6 +1,6 @@
 // ============================================================
 //  Trang hồ sơ: sửa thông tin + đổi mật khẩu.
-//  Yêu cầu đăng nhập — chưa đăng nhập thì đẩy sang Login,
+//  Yêu cầu đăng nhập - chưa đăng nhập thì đẩy sang Login,
 //  quay lại đúng trang này sau khi đăng nhập xong (F10, F12).
 // ============================================================
 import { updateProfile, changePassword, ApiError } from '../api.js';

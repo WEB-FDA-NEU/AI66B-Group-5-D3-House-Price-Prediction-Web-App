@@ -23,7 +23,7 @@ export function logout() {
   location.href = 'index.html';
 }
 
-/** Lưu trang hiện tại rồi chuyển sang Login — dùng cho "login branch" ở Mốc 1. */
+/** Lưu trang hiện tại rồi chuyển sang Login - dùng cho "login branch" ở Mốc 1. */
 export function requireLogin() {
   sessionStorage.setItem('app_return_to', location.pathname + location.search);
   location.href = 'login.html';
@@ -36,7 +36,7 @@ export function returnAfterLogin() {
   location.href = back;
 }
 
-/** Chặn trang /admin/* khi không phải admin — dùng cho SY-3/BR-10.
+/** Chặn trang /admin/* khi không phải admin - dùng cho SY-3/BR-10.
  *  Chưa đăng nhập → login.html. Đăng nhập nhưng role != admin → 404.html
  *  để không lộ sự tồn tại của trang (đúng BR-10: 404 chứ không phải 403). */
 export function requireAdmin() {
