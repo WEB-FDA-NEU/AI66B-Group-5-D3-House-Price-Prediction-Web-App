@@ -52,7 +52,7 @@ class Item(Base):
     owner: Mapped["User"] = relationship(back_populates="items")
 
     # ─────────────────────────────────────────────────────────────────
-    #  TODO — NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
+    #  TODO - NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
     #  ghế · phòng · khung giờ · tồn kho · slot duy nhất
     #
     #  Ràng buộc chống trùng PHẢI đặt ở database, không phải câu if trong Python:

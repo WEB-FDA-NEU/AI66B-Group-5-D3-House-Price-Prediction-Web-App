@@ -1,9 +1,9 @@
 // ============================================================
-//  <site-footer>  —  cùng cơ chế với <site-header>.
+//  <site-footer>  -  cùng cơ chế với <site-header>.
 //  Đây là bằng chứng pattern nhân rộng được: cần thêm khối dùng chung nào
 //  (footer, breadcrumb, banner khuyến mãi…) thì tạo thêm một file như file này.
 //
-//  TODO: sửa nội dung footer ở đây — sửa một lần, mọi trang đổi theo.
+//  TODO: sửa nội dung footer ở đây - sửa một lần, mọi trang đổi theo.
 // ============================================================
 
 const YEAR = new Date().getFullYear();
@@ -51,7 +51,7 @@ const TEMPLATE = /* html */ `
 
   <div class="container site-footer__bottom">
     <p class="site-footer__disclaimer">HomeVal cung cấp ước tính tham khảo, không phải định giá chuyên nghiệp hay tư vấn tài chính.</p>
-    <p>© ${YEAR} HomeVal — Đồ án Web Design &amp; Programming, lớp AI66B, Nhóm 5.</p>
+    <p>© ${YEAR} HomeVal - Đồ án Web Design &amp; Programming, lớp AI66B, Nhóm 5.</p>
   </div>
 </footer>`;
 

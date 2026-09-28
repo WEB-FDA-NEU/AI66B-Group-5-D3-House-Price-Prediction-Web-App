@@ -1,5 +1,5 @@
 // ============================================================
-//  Giới thiệu mô hình — tải chi tiết mô hình từ mock/model.json
+//  Giới thiệu mô hình - tải chi tiết mô hình từ mock/model.json
 //  và đổ vào <template id="tpl-model-detail">.
 //  Cùng cách làm với home.js: đang tải → có dữ liệu / lỗi, không
 //  dùng showSkeleton/showEmpty vì đây không phải danh sách.
@@ -46,7 +46,7 @@ function renderDetail(info) {
 }
 
 // Cùng lý do như home.js: 1 object mô hình, không phải danh sách,
-// nên không có "empty state" riêng — chỉ có dữ liệu / lỗi.
+// nên không có "empty state" riêng - chỉ có dữ liệu / lỗi.
 function renderDetailError(err) {
   detail.textContent = '';
   const msg = document.createElement('p');

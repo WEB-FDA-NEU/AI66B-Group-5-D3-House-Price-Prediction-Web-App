@@ -1,5 +1,5 @@
 // ============================================================
-//  Giới thiệu mô hình — tải chi tiết mô hình từ mock/model.json
+//  Giới thiệu mô hình - tải chi tiết mô hình từ mock/model.json
 //  và đổ vào <template id="tpl-model-detail">.
 //  Cùng cách làm với home.js: đang tải → có dữ liệu / lỗi, không
 //  dùng showSkeleton/showEmpty vì đây không phải danh sách.
