@@ -1,5 +1,5 @@
 {
-  "_ghi_chu": "TODO: đổi các trường cho khớp đề tài. File này PHẢI trùng hình dạng với JSON mà FastAPI trả ở Mốc 3 — xem docs/api-contract.md",
+  "_ghi_chu": "TODO: đổi các trường cho khớp đề tài. File này PHẢI trùng hình dạng với JSON mà FastAPI trả ở Mốc 3 - xem docs/api-contract.md",
   "items": [
     {
       "id": 1,

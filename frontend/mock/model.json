@@ -4,7 +4,7 @@
   "algorithm": "Gradient Boosting Regressor (scikit-learn)",
   "last_updated": "2026-09-20T10:00:00Z",
   "dataset": {
-    "name": "HomeVal Housing Dataset — Đà Nẵng",
+    "name": "HomeVal Housing Dataset - Đà Nẵng",
     "size": 8600,
     "features_count": 14,
     "source": "Dữ liệu rao bán công khai đã làm sạch và ẩn danh",

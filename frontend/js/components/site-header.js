@@ -1,5 +1,5 @@
 // ============================================================
-//  <site-header>  —  Custom Element (Web Components, chuẩn của trình duyệt)
+//  <site-header>  -  Custom Element (Web Components, chuẩn của trình duyệt)
 //
 //  Viết header MỘT LẦN ở đây. Mỗi trang chỉ cần một dòng:
 //      <site-header></site-header>
@@ -7,7 +7,7 @@
 //  Không build step, không thư viện. `customElements` là API có sẵn
 //  của trình duyệt từ 2018, giống hệt <template> mà ta đang dùng.
 //
-//  TODO: sửa nội dung header ở đây — sửa một lần, mọi trang đổi theo.
+//  TODO: sửa nội dung header ở đây - sửa một lần, mọi trang đổi theo.
 // ============================================================
 import { initHeader } from '../auth.js';
 

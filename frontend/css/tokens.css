@@ -1,4 +1,4 @@
-/* Design tokens — sửa màu/khoảng cách ở ĐÂY, không sửa rải rác trong components.
+/* Design tokens - sửa màu/khoảng cách ở ĐÂY, không sửa rải rác trong components.
    Đây là lý do 5 người code 5 màn hình mà giao diện vẫn giống nhau. */
 :root {
   --c-bg:        #ffffff;
