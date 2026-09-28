@@ -355,8 +355,32 @@ export function getAdminStats() {
 }
 
 export function listModels() {
-  if (USE_MOCK) return getMock('models');
+  if (USE_MOCK) return getMockModels();
   return request(`${API_BASE}/admin/models`);
+}
+
+// Trạng thái mock của model (BR-1) được giữ trong localStorage để
+// Activate/Archive/Upload phản ánh ngay trên list — cùng cách làm
+// với getMockUsers (MOCK_USER_OVERRIDES_KEY).
+const MOCK_MODEL_OVERRIDES_KEY = 'homeval_mock_model_overrides';
+const MOCK_NEW_MODELS_KEY = 'homeval_mock_new_models';
+
+function getMockModels() {
+  return getMock('models').then(data => {
+    const overrides = readMockStorage(MOCK_MODEL_OVERRIDES_KEY, {});
+    const added = readMockStorage(MOCK_NEW_MODELS_KEY, []);
+    const items = [
+      ...data.items.map(m => ({ ...m, ...overrides[m.id] })),
+      ...added.map(m => ({ ...m, ...overrides[m.id] })),
+    ];
+    return { ...data, items, total: items.length };
+  });
+}
+
+function saveMockModelState(id, state) {
+  const overrides = readMockStorage(MOCK_MODEL_OVERRIDES_KEY, {});
+  overrides[id] = { ...overrides[id], state };
+  localStorage.setItem(MOCK_MODEL_OVERRIDES_KEY, JSON.stringify(overrides));
 }
 
 export function uploadModel({ file, algorithm, dataset, note }) {
@@ -368,7 +392,13 @@ export function uploadModel({ file, algorithm, dataset, note }) {
       return Promise.reject(new ApiError(422, 'file: File vượt quá 100 MB'));
     if (/bad/i.test(name))
       return Promise.reject(new ApiError(422, 'file: Smoke-test thất bại, version ở trạng thái Rejected'));
-    return Promise.resolve({ id: 'm-new', version: 'v2.4.0-rc2', algorithm, dataset, state: 'Uploaded', note: note ?? '' });
+    const item = { id: `m-${Date.now()}`, version: 'v2.4.0-rc2', algorithm, dataset,
+      mae: null, r2: null, upload_date: new Date().toISOString(),
+      state: 'Uploaded', note: note ?? '' };
+    const added = readMockStorage(MOCK_NEW_MODELS_KEY, []);
+    added.push(item);
+    localStorage.setItem(MOCK_NEW_MODELS_KEY, JSON.stringify(added));
+    return Promise.resolve(item);
   }
   const form = new FormData();
   form.append('file', file);
@@ -379,12 +409,36 @@ export function uploadModel({ file, algorithm, dataset, note }) {
 }
 
 export function activateModel(id) {
-  if (USE_MOCK) return Promise.resolve({ id, state: 'Active' });
+  if (USE_MOCK) {
+    return getMockModels().then(data => {
+      const target = data.items.find(m => String(m.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy phiên bản model.');
+      // BR-1: Rejected không bao giờ được activate.
+      if (target.state === 'Rejected')
+        throw new ApiError(422, 'state: Phiên bản Rejected không thể kích hoạt.');
+      // BR-2: đúng 1 Active — hạ bản đang live xuống Archived.
+      for (const m of data.items) {
+        if (m.state === 'Active' && String(m.id) !== String(id)) saveMockModelState(m.id, 'Archived');
+      }
+      saveMockModelState(target.id, 'Active');
+      return { id: target.id, state: 'Active' };
+    });
+  }
   return request(`${API_BASE}/admin/models/${id}/activate`, { method: 'POST' });
 }
 
 export function archiveModel(id) {
-  if (USE_MOCK) return Promise.resolve({ id, state: 'Archived' });
+  if (USE_MOCK) {
+    return getMockModels().then(data => {
+      const target = data.items.find(m => String(m.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy phiên bản model.');
+      if (target.state === 'Rejected')
+        throw new ApiError(422, 'state: Phiên bản Rejected không thể archive.');
+      if (target.state === 'Archived') return { id: target.id, state: 'Archived' };
+      saveMockModelState(target.id, 'Archived');
+      return { id: target.id, state: 'Archived' };
+    });
+  }
   return request(`${API_BASE}/admin/models/${id}/archive`, { method: 'POST' });
 }
 
