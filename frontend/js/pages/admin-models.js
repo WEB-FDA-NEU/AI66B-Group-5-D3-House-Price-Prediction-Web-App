@@ -35,8 +35,8 @@ function render(items) {
     const tr = document.createElement('tr');
     const td = (t) => { const c = document.createElement('td'); c.textContent = t; return c; };
     tr.append(td(m.version), td(m.algorithm), td(m.dataset));
-    tr.append(td(m.mae == null ? '—' : Number(m.mae).toLocaleString('vi-VN')));
-    tr.append(td(m.r2 == null ? '—' : m.r2));
+    tr.append(td(m.mae == null ? '-' : Number(m.mae).toLocaleString('vi-VN')));
+    tr.append(td(m.r2 == null ? '-' : m.r2));
     tr.append(td(new Date(m.upload_date).toLocaleDateString('vi-VN')));
     const st = document.createElement('td');
     const b = document.createElement('span');

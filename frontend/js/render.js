@@ -39,7 +39,7 @@ export function renderCard(item) {
   node.querySelector('.card__title').textContent = item.title;
   const priceEl = node.querySelector('.card__price');
   priceEl.textContent = formatVND(item.price);
-  // Giá gốc gạch ngang — chỉ hiện khi bản ghi CÓ trường price_old.
+  // Giá gốc gạch ngang - chỉ hiện khi bản ghi CÓ trường price_old.
   // Dùng createElement + textContent, không nối chuỗi HTML.
   if (item.price_old && item.price_old > item.price) {
     const old = document.createElement('span');

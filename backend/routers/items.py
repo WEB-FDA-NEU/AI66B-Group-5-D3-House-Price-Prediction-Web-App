@@ -74,7 +74,7 @@ def my_items(
     """Chỉ trả bản ghi của CHÍNH người đang đăng nhập.
 
     LƯU Ý BẢO MẬT: lọc bằng user.id lấy TỪ TOKEN, không bao giờ lấy từ query param.
-    Nếu nhận owner_id từ query param thì ai cũng xem được dữ liệu của người khác —
+    Nếu nhận owner_id từ query param thì ai cũng xem được dữ liệu của người khác -
     đây là lỗi phổ biến nhất trong đồ án sinh viên.
     """
     stmt = select(Item).where(Item.owner_id == user.id, Item.status != "removed")

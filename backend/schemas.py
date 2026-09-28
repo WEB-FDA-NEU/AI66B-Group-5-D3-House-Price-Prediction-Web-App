@@ -14,7 +14,7 @@ from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
 
-# ══════════ Thực thể chính — TODO: đổi theo đề tài ══════════
+# ══════════ Thực thể chính - TODO: đổi theo đề tài ══════════
 
 class ItemCard(BaseModel):
     """Dữ liệu hiển thị trên một thẻ trong danh sách."""
@@ -48,7 +48,7 @@ class ItemCreate(BaseModel):
     price: int = Field(ge=0)
 
 
-# ══════════ Tài khoản — dùng chung mọi đề tài, ít khi phải sửa ══════════
+# ══════════ Tài khoản - dùng chung mọi đề tài, ít khi phải sửa ══════════
 
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -83,5 +83,5 @@ class ProfileUpdateIn(BaseModel):
 class ChangePasswordIn(BaseModel):
     current_password: str
     # TODO BR-12: nếu muốn ép "có chữ và số", thêm validator ở đây,
-    # đồng thời sửa RegisterIn cho khớp — không được lệch giữa 2 nơi.
+    # đồng thời sửa RegisterIn cho khớp - không được lệch giữa 2 nơi.
     new_password: str = Field(min_length=8)
