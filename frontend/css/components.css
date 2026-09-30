@@ -183,7 +183,7 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .site-header__link:hover    { background: var(--c-surface); }
 .site-header__link.is-active { font-weight: 700; color: var(--c-primary); }
 
-/* ============ Admin (Tuệ — AD-1..AD-4, FE-07) ============ */
+/* ============ Admin (Tuệ - AD-1..AD-4, FE-07) ============ */
 .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: var(--sp-4); }
 .kpi { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); background: var(--c-bg); }
 .kpi__label { font-size: .8rem; color: var(--c-muted); }
@@ -199,7 +199,7 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .badge[data-state="Uploaded"] { background: var(--c-warning); }
 .badge[data-state="Archived"] { background: var(--c-muted); }
 .badge[data-state="Rejected"] { background: var(--c-danger); }
-/* Biến thể ngữ nghĩa dùng cho badge ngoài phạm vi Admin (Hải — FE-01/GU-1/GU-5) */
+/* Biến thể ngữ nghĩa dùng cho badge ngoài phạm vi Admin (Hải - FE-01/GU-1/GU-5) */
 .badge[data-variant="info"]    { background: #e8f1fb; color: var(--c-primary); }
 .badge[data-variant="success"] { background: #e7f5ec; color: var(--c-success); }
 .badge[data-variant="warning"] { background: #fdf1e0; color: var(--c-warning); }
@@ -251,7 +251,7 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
   .home-intro h1 { font-size: 1.8rem; }
   .home-overview { grid-template-columns: 1fr; }
 }
-/* ============ Số liệu tóm tắt & disclaimer (Hải — FE-01/GU-1/GU-5) ============ */
+/* ============ Số liệu tóm tắt & disclaimer (Hải - FE-01/GU-1/GU-5) ============ */
 .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-4); }
 .stat { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); text-align: center; }
 .stat__value { font-size: 1.5rem; font-weight: 700; color: var(--c-primary); }

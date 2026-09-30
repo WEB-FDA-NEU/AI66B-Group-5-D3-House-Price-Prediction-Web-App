@@ -36,7 +36,7 @@ def register(payload: schemas.RegisterIn, db: Session = Depends(get_db)):
 def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     if user is None or not verify_password(payload.password, user.password_hash):
-        # Cùng một thông điệp cho cả hai trường hợp — không tiết lộ email nào tồn tại.
+        # Cùng một thông điệp cho cả hai trường hợp - không tiết lộ email nào tồn tại.
         raise HTTPException(401, "Email hoặc mật khẩu không đúng.")
     return {"access_token": create_token(user.id), "user": user}
 
@@ -65,7 +65,7 @@ def change_password(
     user: User = Depends(get_current_user),
 ):
     if not verify_password(payload.current_password, user.password_hash):
-        # KHÔNG tiết lộ thêm gì khác — cùng logic với login()
+        # KHÔNG tiết lộ thêm gì khác - cùng logic với login()
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Mật khẩu hiện tại không đúng.")
     user.password_hash = hash_password(payload.new_password)
     db.commit()

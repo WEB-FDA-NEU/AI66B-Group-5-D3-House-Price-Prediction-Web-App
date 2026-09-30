@@ -8,13 +8,13 @@ form.addEventListener('submit', async e => {
   e.preventDefault();
   clearFieldErrors(form);
 
-  // 1. Validate phía trình duyệt — để phản hồi nhanh
+  // 1. Validate phía trình duyệt - để phản hồi nhanh
   let ok = true;
   if (!form.email.validity.valid)      { setFieldError(form.email, 'Email không hợp lệ.'); ok = false; }
   if (form.password.value.length < 8)  { setFieldError(form.password, 'Mật khẩu tối thiểu 8 ký tự.'); ok = false; }
   if (!ok) return;
 
-  // 2. Server mới là thẩm quyền — validate lần hai ở backend
+  // 2. Server mới là thẩm quyền - validate lần hai ở backend
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
