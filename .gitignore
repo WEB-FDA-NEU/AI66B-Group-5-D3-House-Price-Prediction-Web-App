@@ -7,3 +7,11 @@ venv/
 .DS_Store
 .vscode/
 uploads/
+backend/artifacts/
+backend/data/*.csv
+backend/data/*.zip
+backend/.jwt-secret
+backend/test-data/
+node_modules/
+test-results/
+.pytest_cache/

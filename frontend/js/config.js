@@ -1,23 +1,7 @@
-// ============================================================
-//  ĐÂY LÀ FILE DUY NHẤT THAY ĐỔI GIỮA MỐC 2 VÀ MỐC 4.
-//  Mốc 2:  USE_MOCK = true   → đọc dữ liệu từ frontend/mock/*.json
-//  Mốc 4:  USE_MOCK = false  → gọi API thật
-//  Nếu phải sửa file nào khác, nghĩa là mock của em không đúng
-//  hợp đồng trong docs/api-contract.md.
-// ============================================================
-
-export const USE_MOCK = true;
-
-export const API_BASE = location.hostname === 'localhost'
-  ? 'http://localhost:8000/api'
-  : 'api';                        // production: FastAPI serve luôn frontend → cùng origin
-
+﻿// Live API. Serve with `python backend/run.py` at http://127.0.0.1:8000.
+// Local static previews (4173 / Live Server 5500) connect to the same backend.
+export const USE_MOCK = false;
+export const API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname) && location.port !== '8000'
+  ? `${location.protocol}//${location.hostname}:8000/api` : '/api';
 export const MOCK_BASE = 'mock';
-
-// Vì sao đường dẫn TƯƠNG ĐỐI ('mock', 'api') chứ không phải tuyệt đối ('/mock'):
-// đường dẫn bắt đầu bằng "/" tính từ GỐC máy chủ. Nếu ai đó chạy server ở thư mục
-// cha rồi mở http://localhost:5500/frontend/shop.html thì "/css/..." trỏ sai chỗ
-// và trang mất sạch CSS. Đường dẫn tương đối tính từ chính trang đang mở nên
-// chạy đúng ở mọi cách đặt thư mục gốc.
-
 export const PAGE_SIZE = 20;

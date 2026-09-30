@@ -1,37 +1,45 @@
-import { requireAdmin } from '../auth.js';
-import { uploadModel, ApiError } from '../api.js';
-import { setFieldError, clearFieldErrors, toast } from '../ui.js';
-
-function initPage() {
-if (!requireAdmin()) return;
-
-const form = document.getElementById('upload-form');
-
-form.addEventListener('submit', async e => {
-  e.preventDefault();
-  clearFieldErrors(form);
-  let ok = true;
-  const file = form.file.files[0];
-  if (!file) { setFieldError(form.file, 'Hãy chọn file model.'); ok = false; }
-  else if (!/\.pkl$|\.joblib$/i.test(file.name)) { setFieldError(form.file, 'Chỉ chấp nhận .pkl hoặc .joblib (BR-13).'); ok = false; }
-  else if (file.size > 100 * 1024 * 1024) { setFieldError(form.file, 'File vượt quá 100 MB (BR-13).'); ok = false; }
-  if (!form.algorithm.value) { setFieldError(form.algorithm, 'Hãy chọn thuật toán.'); ok = false; }
-  if (!form.dataset.value) { setFieldError(form.dataset, 'Hãy chọn dataset.'); ok = false; }
-  if (!ok) return;
-
-  const btn = form.querySelector('button[type=submit]');
-  btn.disabled = true;
-  btn.textContent = 'Đang smoke-test…';
+﻿import { requireAdmin } from '../auth.js';
+import { listDatasets, startTraining, getTrainingJob } from '../api.js';
+import { el } from '../model-catalog.js';
+if (requireAdmin()) {
+  const form = document.getElementById('training-form');
+  const status = document.getElementById('training-status');
+  const submit = form.querySelector('button[type=submit]');
+  form.algorithm.addEventListener('change', () => {
+    form.querySelectorAll('[data-config]').forEach(wrapper => { wrapper.hidden = wrapper.dataset.config !== form.algorithm.value; wrapper.querySelector('input').disabled = wrapper.hidden; });
+  });
   try {
-    const res = await uploadModel({ file, algorithm: form.algorithm.value, dataset: form.dataset.value, note: form.note.value });
-    toast(`Upload thành công, state: ${res.state}`, 'success');
-    location.href = 'admin-models.html';
-  } catch (err) {
-    if (err instanceof ApiError && err.status === 422) setFieldError(form.file, err.detail);
-    else toast(err.detail ?? 'Upload thất bại.', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Upload & Smoke-test';
+    const { items } = await listDatasets(); const d = items[0];
+    const target = document.getElementById('dataset-info'); target.replaceChildren();
+    [['Bản ghi nguồn', d.original_rows], ['Sau làm sạch', d.cleaned_rows], ['Đã loại', d.removed_rows], ['Huấn luyện / hiệu chỉnh / kiểm tra', `${d.train_rows} / ${d.calibration_rows} / ${d.test_rows}`]].forEach(([name, value]) => target.append(el('p', `${name}: ${value}`)));
+    target.append(el('p', d.target, 'field__hint'));
+    const details = el('details'); details.append(el('summary', 'Tỷ lệ thiếu dữ liệu theo đặc trưng'));
+    const labels = {area_m2:'Diện tích', bedrooms:'Phòng ngủ', bathrooms:'Phòng tắm', floors:'Số tầng', frontage_m:'Mặt tiền', road_width_m:'Đường tiếp cận'};
+    Object.entries(d.missing).forEach(([key, value]) => details.append(el('p', `${labels[key] || key}: ${(value * 100).toFixed(1)}%`))); target.append(details);
+  } catch (error) { document.getElementById('dataset-info').textContent = error.detail || 'Không đọc được dataset.'; submit.disabled = true; }
+  let timer;
+  async function watch(id) {
+    status.hidden = false; submit.disabled = true;
+    try {
+      const job = await getTrainingJob(id); status.dataset.status = job.status;
+      if (job.status === 'completed') {
+        status.replaceChildren(el('strong', 'Huấn luyện hoàn tất. Phiên bản mới chưa được phát hành.'), el('p', job.result.model_id));
+        const link = el('a', 'Xem chỉ số & phát hành ↗', 'btn'); link.href = 'admin-models.html'; status.append(link);
+        sessionStorage.removeItem('homeval_training_job'); submit.disabled = false;
+      } else if (job.status === 'failed') {
+        status.textContent = 'Huấn luyện thất bại: ' + job.error; sessionStorage.removeItem('homeval_training_job'); submit.disabled = false;
+      } else { status.textContent = 'Đang huấn luyện và đánh giá. Bạn có thể rời trang rồi quay lại; phiên bản hiện tại vẫn hoạt động.'; timer = setTimeout(() => watch(id), 2500); }
+    } catch (error) { status.replaceChildren(el('p', error.detail || 'Mất kết nối tới tác vụ.'));
+      const retry = el('button', 'Kiểm tra lại', 'btn'); retry.onclick = () => watch(id); status.append(retry);
+    }
   }
-});
+  const pending = sessionStorage.getItem('homeval_training_job'); if (pending) watch(pending);
+  form.addEventListener('submit', async event => {
+    event.preventDefault(); if (!form.reportValidity()) return;
+    submit.disabled = true; status.hidden = false; status.textContent = 'Đang tạo tác vụ…';
+    const config = Object.fromEntries(new FormData(form)); for (const key of Object.keys(config)) if (key !== 'algorithm') config[key] = Number(config[key]);
+    try { const job = await startTraining(config); sessionStorage.setItem('homeval_training_job', job.id); watch(job.id); }
+    catch (error) { status.textContent = error.detail || 'Không tạo được tác vụ.'; submit.disabled = false; }
+  });
+  window.addEventListener('pagehide', () => clearTimeout(timer));
 }
-initPage();

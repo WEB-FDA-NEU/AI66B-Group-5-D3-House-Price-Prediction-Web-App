@@ -20,7 +20,7 @@ try {
     ['Người dùng', fmt(s.users_total), 'tổng tài khoản'],
     ['Dự báo hôm nay', fmt(s.predictions_today), `${fmt(s.predictions_week)} / tuần`],
     ['Model đang live', s.active_model.version, `${s.active_model.algorithm} · R² ${s.active_model.r2}`],
-    ['Lỗi API 24h', fmt(s.api_errors_24h), 'thống kê minh họa'],
+    ['Mô hình đã phát hành', fmt(s.published_models), 'Sẵn sàng cho dự đoán'],
   ];
   for (const [label, value, sub] of cards) {
     const d = document.createElement('div');
@@ -31,7 +31,7 @@ try {
     d.append(l, v, t);
     kpis.append(d);
   }
-  const max = Math.max(...s.predictions_per_day.map(x => x.count));
+  const max = Math.max(1, ...s.predictions_per_day.map(x => x.count));
   chart.innerHTML = '';
   for (const p of s.predictions_per_day) {
     const row = document.createElement('div');

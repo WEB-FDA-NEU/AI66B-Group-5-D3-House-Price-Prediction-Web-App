@@ -8,34 +8,37 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
-<body>
-<main class="container page" style="max-width:380px">
-  <h1>Đăng nhập</h1>
-  <p><a href="index.html">Về trang chủ</a></p>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css"></head>
+<body class="auth-page">
+<main class="auth-shell" id="main-content"><aside class="auth-story"><a class="logo" href="index.html"><span class="logo-mark" aria-hidden="true">⌂</span>Home<span class="logo-accent">Val</span></a><div><p class="eyebrow">MỘT GÓC NHÌN RÕ RÀNG HƠN</p><h2>Ngôi nhà của bạn.<br>Giá trị bạn thấu hiểu.</h2><p>Một không gian để khám phá, lưu lại và hiểu hơn về giá trị bất động sản.</p></div><p>HomeVal · Hiểu giá trị, vững quyết định.</p></aside><div class="auth-content">
+  <a class="auth-back" href="index.html">← Về trang chủ</a><h1>Chào mừng trở lại.</h1><p>Đăng nhập để tiếp tục khám phá giá trị ngôi nhà.</p>
+
 
   <!-- novalidate: tự kiểm tra bằng JS để hiện thông báo tiếng Việt,
        thay vì để trình duyệt hiện bong bóng mặc định. -->
   <form id="login-form" class="stack" novalidate>
     <div class="field">
       <label class="field__label" for="email">Email</label>
-      <input class="input" id="email" name="email" type="email" required autocomplete="email">
+      <input class="input" id="email" name="email" type="email" placeholder="ban@example.com" required autocomplete="email">
       <p class="field__error"></p>
     </div>
     <div class="field">
       <label class="field__label" for="password">Mật khẩu</label>
-      <input class="input" id="password" name="password" type="password" required minlength="8" autocomplete="current-password">
+      <input class="input" id="password" name="password" type="password" placeholder="Tối thiểu 8 ký tự" required minlength="8" autocomplete="current-password">
       <p class="field__error"></p>
     </div>
     <button class="btn btn--primary" type="submit">Đăng nhập</button>
     <p class="field__hint">Chưa có tài khoản? <a href="register.html">Đăng ký</a></p>
-    <aside class="alert alert--info" aria-label="Tài khoản mock để kiểm thử">
-      <strong>Tài khoản mock</strong><br>
-      User: <code>anh@example.com</code> / <code>password123</code><br>
-      Admin: <code>admin@homeval.vn</code> / <code>admin123</code>
-    </aside>
+    <aside class="alert alert--info" aria-label="Tài khoản trải nghiệm">
+      <strong>Dùng thử với tài khoản demo</strong><br>
+      Người dùng: <code>anh@example.com</code> / <code>password123</code><br>
+      Quản trị: <code>admin@homeval.vn</code> / <code>admin123</code>
+    <p>Chỉ dùng dữ liệu thử nghiệm; không nhập mật khẩu thật.</p></aside>
   </form>
-</main>
+</div></main>
 <script type="module" src="js/pages/login.js"></script>
 </body>
 </html>

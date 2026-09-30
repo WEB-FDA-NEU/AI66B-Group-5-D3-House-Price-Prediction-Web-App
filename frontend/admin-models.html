@@ -8,17 +8,20 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
 <body>
 <site-header active="models"></site-header>
 <main class="container page stack">
   <nav class="admin-nav" aria-label="Admin">
-    <a class="btn" href="admin.html">Dashboard</a>
-    <a class="btn is-active" href="admin-models.html">Models</a>
-    <a class="btn" href="admin-models-new.html">Upload Model</a>
+    <a class="btn" href="admin.html">Tổng quan</a>
+    <a class="btn is-active" href="admin-models.html">Mô hình</a>
+    <a class="btn" href="admin-models-new.html">Huấn luyện</a>
   </nav>
-  <h1>Model Management</h1>
-  <p class="field__hint">AD-2 / AD-4 / AD-5 · BR-1 state machine · BR-2 đúng 1 Active. Rejected không được activate.</p>
+  <h1>Quản lý mô hình</h1>
+  <p class="field__hint">Xem chỉ số đo trên tập kiểm tra trước khi phát hành. Mỗi thuật toán có một phiên bản đang phục vụ; lịch sử và cấu hình được lưu trên máy chủ.</p>
   <div id="alert"></div>
   <div id="list"></div>
   <dialog id="confirm-dialog">

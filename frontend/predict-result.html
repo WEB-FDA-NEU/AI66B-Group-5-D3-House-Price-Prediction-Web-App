@@ -8,22 +8,25 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
 <body>
 <site-header active="predict"></site-header>
-<main class="container page" style="max-width:760px">
+<main class="container page" style="max-width:1100px">
   <div id="result" class="stack" hidden>
     <div>
-      <h1>Giá nhà ước tính</h1>
+      <p class="eyebrow">THÊM MỘT GÓC NHÌN CHO QUYẾT ĐỊNH CỦA BẠN</p><h1>Giá nhà ước tính</h1>
       <p class="field__hint">Kết quả chỉ có tính chất tham khảo, không phải định giá chính thức.</p>
     </div>
-    <section class="result-summary">
+    <section class="result-summary"><p class="eyebrow">GIÁ TRỊ THAM KHẢO · GIÁ RAO 2024</p>
       <p class="result-summary__price" id="estimated-price"></p>
       <p id="confidence-interval"></p>
       <p class="field__hint" id="model-version"></p>
     </section>
     <section>
-      <h2>Thông tin đã dùng</h2>
+      <h2>Thông tin bất động sản</h2>
       <dl class="facts" id="input-summary"></dl>
     </section>
     <form id="save-form" class="save-prediction" hidden>
@@ -38,7 +41,7 @@
       <a class="btn" id="history-link" href="predictions.html" hidden>Xem lịch sử</a>
     </div>
   </div>
-</main>
+<section class="model-section"><h2>Đối chiếu cùng một tài sản</h2><p class="section-intro">Premium cho phép so sánh các góc nhìn trên cùng thông tin đầu vào. Chênh lệch giữa các mô hình cần được xem xét cùng khoảng ước tính.</p><button class="btn" id="compare-models">So sánh các mô hình ↗</button><div id="model-comparison" class="comparison-results" aria-live="polite"></div></section></main>
 <site-footer></site-footer>
 <script type="module" src="js/components/site-header.js"></script>
 <script type="module" src="js/components/site-footer.js"></script>

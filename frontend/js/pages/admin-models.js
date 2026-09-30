@@ -21,7 +21,7 @@ async function load() {
 function render(items) {
   alertBox.innerHTML = '';
   if (!items.length) {
-    showEmpty(listEl, { title: 'Chưa có model nào', hint: 'Upload version đầu tiên để bắt đầu.', actionText: 'Upload model', actionHref: 'admin-models-new.html' });
+    showEmpty(listEl, { title: 'Chưa có model nào', hint: 'Huấn luyện phiên bản đầu tiên để bắt đầu.', actionText: 'Huấn luyện mô hình', actionHref: 'admin-models-new.html' });
     return;
   }
   listEl.innerHTML = '';
@@ -29,14 +29,18 @@ function render(items) {
   wrap.className = 'table-wrap';
   const table = document.createElement('table');
   table.className = 'table';
-  table.innerHTML = '<thead><tr><th>Version</th><th>Thuật toán</th><th>Dataset</th><th>MAE</th><th>R²</th><th>Ngày upload</th><th>State</th><th>Hành động</th></tr></thead>';
+  table.innerHTML = '<thead><tr><th>Version</th><th>Thuật toán</th><th>Dataset</th><th>MAE</th><th>R²</th><th>Ngày huấn luyện</th><th>State</th><th>Hành động</th></tr></thead>';
   const tb = document.createElement('tbody');
   for (const m of items) {
     const tr = document.createElement('tr');
     const td = (t) => { const c = document.createElement('td'); c.textContent = t; return c; };
-    tr.append(td(m.version), td(m.algorithm), td(m.dataset));
+    tr.append(td(m.version), td(m.algorithm));
+    const datasetCell = document.createElement('td');
+    const datasetLink = document.createElement('a'); datasetLink.href = 'admin-models-new.html#dataset-info'; datasetLink.textContent = m.dataset;
+    const hash = document.createElement('small'); hash.style.display = 'block'; hash.textContent = 'SHA-256: ' + m.dataset_info.sha256.slice(0, 12) + '…';
+    datasetCell.append(datasetLink, hash); tr.append(datasetCell);
     tr.append(td(m.mae == null ? '—' : Number(m.mae).toLocaleString('vi-VN')));
-    tr.append(td(m.r2 == null ? '—' : m.r2));
+    tr.append(td(m.r2 == null ? '—' : Number(m.r2).toFixed(3)));
     tr.append(td(new Date(m.upload_date).toLocaleDateString('vi-VN')));
     const st = document.createElement('td');
     const b = document.createElement('span');
@@ -45,12 +49,12 @@ function render(items) {
     const act = document.createElement('td');
     if (m.state === 'Validated' || m.state === 'Archived') {
       const btn = document.createElement('button');
-      btn.className = 'btn btn--primary'; btn.textContent = 'Activate';
+      btn.className = 'btn btn--primary'; btn.textContent = 'Phát hành';
       btn.onclick = () => onActivate(m);
       act.append(btn);
     } else if (m.state === 'Active') {
       const span = document.createElement('span');
-      span.className = 'field__hint'; span.textContent = 'Đang live (BR-2)';
+      span.className = 'field__hint'; span.textContent = 'Đang phục vụ';
       act.append(span);
     } else if (m.state === 'Rejected') {
       const span = document.createElement('span');
@@ -59,7 +63,7 @@ function render(items) {
     }
     if (m.state === 'Validated' || m.state === 'Active') {
       const btn = document.createElement('button');
-      btn.className = 'btn'; btn.textContent = 'Archive'; btn.style.marginLeft = '.5rem';
+      btn.className = 'btn'; btn.textContent = 'Lưu trữ'; btn.style.marginLeft = '.5rem';
       btn.onclick = () => onArchive(m);
       act.append(btn);
     }
@@ -74,7 +78,7 @@ function render(items) {
 async function onActivate(m) {
   const ok = await confirmAction({
     title: `Kích hoạt ${m.version}?`,
-    message: `Version đang live sẽ bị Archive (BR-2). Không thể hoàn tác tự động.`,
+    message: `Phiên bản đang phục vụ của cùng thuật toán sẽ được lưu trữ. Các thuật toán khác không thay đổi.`,
     confirmText: 'Kích hoạt',
   });
   if (!ok) return;

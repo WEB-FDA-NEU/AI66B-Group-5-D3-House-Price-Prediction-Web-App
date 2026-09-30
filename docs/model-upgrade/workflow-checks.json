@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "Register and authenticated session",
+    "Free user has two locked models",
+    "Land prediction explicitly unavailable",
+    "Failed payment leaves Free",
+    "Cancelled payment leaves Free",
+    "Successful payment persists after reload",
+    "Browser validation and Premium inference",
+    "Three-model comparison",
+    "Save, history and owner detail",
+    "Premium user cannot open admin trainer",
+    "Admin real training completes without auto-publishing",
+    "Archive trained version persists",
+    "Admin mobile layouts",
+    "Catalog API failure visible"
+  ],
+  "errors": []
+}

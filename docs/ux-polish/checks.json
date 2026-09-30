@@ -1,0 +1,15 @@
+{
+  "checks": [
+    "Hero slides and keyboard navigation",
+    "Vietnamese heading uses consistent font",
+    "City and district dependent dropdowns",
+    "Contextual Premium drawer, Escape and form preservation",
+    "Login returns to the same filled form and upgrade intent",
+    "Expired session recovers to real guest prediction",
+    "Offline location fallback and retry preserve inputs",
+    "Inline failed and successful checkout; model unlock without navigation",
+    "Mobile sheet and form have no horizontal overflow",
+    "Reduced motion preference respected"
+  ],
+  "errors": []
+}

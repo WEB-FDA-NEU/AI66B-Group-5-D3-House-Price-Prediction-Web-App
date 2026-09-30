@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "results": [
+    "home: layout checked at 360, 390, 768, 1024, 1440px",
+    "premium: layout checked at 360, 390, 768, 1024, 1440px",
+    "Premium local interest saves, survives reload, and can be removed; no checkout",
+    "map: layout checked at 360, 390, 768, 1024, 1440px",
+    "Map zoom, drag, keyboard pan, district/type filtering, empty state and reset work",
+    "land-form: layout checked at 360, 390, 768, 1024, 1440px",
+    "land-result: layout checked at 360, 390, 768, 1024, 1440px",
+    "Map → land form → validation → result → login/save → detail preserves land fields and provenance",
+    "Thửa đất supports larger areas and optional parcel identifiers",
+    "Map API failure and retry recover correctly"
+  ]
+}

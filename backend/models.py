@@ -10,7 +10,7 @@ Mọi router đều import từ đây.
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -50,6 +50,54 @@ class Item(Base):
     owner_id:    Mapped[int]  = mapped_column(ForeignKey("users.id"))
 
     owner: Mapped["User"] = relationship(back_populates="items")
+
+
+class ModelVersion(Base):
+    __tablename__ = "model_versions"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    algorithm: Mapped[str] = mapped_column(String(40))
+    tier: Mapped[str] = mapped_column(String(20))
+    state: Mapped[str] = mapped_column(String(20), default="Validated")
+    artifact: Mapped[str] = mapped_column(String(160))
+    report: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class TrainingJob(Base):
+    __tablename__ = "training_jobs"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    status: Mapped[str] = mapped_column(String(20), default="queued")
+    config: Mapped[dict] = mapped_column(JSON)
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    error: Mapped[str] = mapped_column(Text, default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Prediction(Base):
+    __tablename__ = "predictions"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    payload: Mapped[dict] = mapped_column(JSON)
+    label: Mapped[str] = mapped_column(String(80), default="")
+    saved: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Checkout(Base):
+    __tablename__ = "checkouts"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    amount: Mapped[int] = mapped_column(Integer, default=199000)
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source: Mapped[str] = mapped_column(String(30), default="sandbox")
 
     # ─────────────────────────────────────────────────────────────────
     #  TODO — NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
