@@ -1,0 +1,66 @@
+{
+  "results": [
+    {
+      "file": "index.html",
+      "overflow": false,
+      "h1": "Nhìn sâu dữ liệu.Hiểu đúng giá trị."
+    },
+    {
+      "file": "about-model.html",
+      "overflow": false,
+      "h1": "Một tài sản.Nhiều cách nhìn giá trị."
+    },
+    {
+      "file": "premium.html",
+      "overflow": false,
+      "h1": "Thêm góc nhìn.Rõ hơn trước khi đầu tư."
+    },
+    {
+      "file": "predict.html",
+      "overflow": false,
+      "h1": "Thêm dữ liệu. Rõ giá trị."
+    },
+    {
+      "file": "data-sources.html",
+      "overflow": false,
+      "h1": "Biết dữ liệu đến từ đâu.Biết mình có thể tin điều gì."
+    },
+    {
+      "file": "explore.html",
+      "overflow": false,
+      "h1": "Một bản đồ. Nhiều góc nhìn."
+    },
+    {
+      "guestPrediction": "5.801.860.941 ₫"
+    },
+    {
+      "file": "index.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "about-model.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "premium.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "predict.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "data-sources.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "predict-result.html",
+      "mobileOverflow": false
+    },
+    {
+      "file": "explore.html",
+      "mobileOverflow": false
+    }
+  ],
+  "errors": []
+}

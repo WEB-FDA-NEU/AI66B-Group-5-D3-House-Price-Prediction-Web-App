@@ -1,75 +1,15 @@
-// ============================================================
-//  Giới thiệu mô hình — tải chi tiết mô hình từ mock/model.json
-//  và đổ vào <template id="tpl-model-detail">.
-//  Cùng cách làm với home.js: đang tải → có dữ liệu / lỗi, không
-//  dùng showSkeleton/showEmpty vì đây không phải danh sách.
-// ============================================================
-import { getModelInfo } from '../api.js';
-import { formatVND } from '../render.js';
-import '../components/site-header.js';
-import '../components/site-footer.js';
-
-const detail = document.getElementById('model-detail');
-
-function fillField(root, name, value) {
-  const el = root.querySelector(`[data-field="${name}"]`);
-  if (el) el.textContent = value;
-}
-
-function renderDetail(info) {
-  const node = document.getElementById('tpl-model-detail').content.cloneNode(true);
-
-  fillField(node, 'dataset-name', info.dataset.name);
-  fillField(node, 'dataset-source', info.dataset.source);
-  fillField(node, 'dataset-coverage', info.dataset.coverage);
-  fillField(node, 'dataset-size', info.dataset.size.toLocaleString('vi-VN'));
-  fillField(node, 'dataset-features', info.dataset.features_count);
-
-  fillField(node, 'algorithm', info.algorithm);
-  fillField(node, 'model-version', info.model_version);
-  fillField(node, 'last-updated', new Date(info.last_updated).toLocaleDateString('vi-VN'));
-
-  fillField(node, 'metric-r2', `${Math.round(info.metrics.r2 * 100)}%`);
-  fillField(node, 'metric-mae', formatVND(info.metrics.mae_vnd));
-  fillField(node, 'metric-rmse', formatVND(info.metrics.rmse_vnd));
-  fillField(node, 'metric-mape', `${info.metrics.mape_percent}%`);
-
-  const list = node.querySelector('[data-field="limitations-list"]');
-  info.limitations.forEach(text => {
-    const li = document.createElement('li');
-    li.textContent = text;
-    list.appendChild(li);
-  });
-
-  detail.textContent = '';
-  detail.appendChild(node);
-}
-
-function renderDetailError(err) {
-  detail.textContent = '';
-  const msg = document.createElement('p');
-  msg.textContent = err && err.detail ? err.detail : 'Không tải được chi tiết mô hình.';
-  const retry = document.createElement('button');
-  retry.type = 'button';
-  retry.className = 'btn';
-  retry.textContent = 'Thử lại';
-  retry.addEventListener('click', loadDetail);
-  detail.appendChild(msg);
-  detail.appendChild(retry);
-}
-
-async function loadDetail() {
-  detail.textContent = '';
-  const loading = document.createElement('p');
-  loading.textContent = 'Đang tải chi tiết mô hình…';
-  detail.appendChild(loading);
-
-  try {
-    const info = await getModelInfo();
-    renderDetail(info);
-  } catch (err) {
-    renderDetailError(err);
+﻿import { loadCatalog, el, money, percent } from '../model-catalog.js';
+try {
+  const { items, dataset } = await loadCatalog(document.getElementById('model-catalog'));
+  const strip = document.getElementById('dataset-strip'); strip.replaceChildren();
+  for (const [value, label] of [[dataset.original_rows.toLocaleString('vi-VN'), 'bản ghi nguồn'], [dataset.cleaned_rows.toLocaleString('vi-VN'), 'bản ghi sau làm sạch'], [dataset.test_rows.toLocaleString('vi-VN'), 'mẫu kiểm tra độc lập'], ['2024', 'năm của dữ liệu rao bán']]) {
+    const stat = el('div'); stat.append(el('strong', value), el('span', label)); strip.append(stat);
   }
-}
-
-loadDetail();
+  const table = el('table', null, 'model-table'); table.append(el('caption', 'Kết quả trên cùng tập kiểm tra. MAE / RMSE càng thấp càng tốt.'));
+  const head = el('thead'); const row = el('tr'); ['Mô hình', 'MAE', 'RMSE', 'Sai số ≤ 20%', 'R²', 'Độ bao phủ khoảng giá'].forEach(t => row.append(el('th', t))); head.append(row); table.append(head);
+  const body = el('tbody');
+  for (const m of items) {
+    const r = el('tr'); [m.name, money(m.metrics.mae_vnd), money(m.metrics.rmse_vnd), percent(m.metrics.within_20_percent), m.r2.toFixed(3), percent(m.metrics.interval_coverage_percent)].forEach(v => r.append(el('td', v))); body.append(r);
+  }
+  table.append(body); document.getElementById('comparison-table').append(table);
+} catch { document.getElementById('dataset-strip').textContent = 'Chưa tải được kết quả kiểm định. Kiểm tra backend rồi tải lại trang.'; }

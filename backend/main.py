@@ -10,19 +10,19 @@ from fastapi import Depends
 
 from database import Base, engine, get_db
 from models import Item
-from routers import auth, items
+from routers import auth, homeval
 
 Base.metadata.create_all(engine)   # Mốc 3 dùng tạm. Dự án thật dùng Alembic migration.
 
 app = FastAPI(
-    title="TÊN-SẢN-PHẨM API",
+    title="HomeVal API",
     version="1.0.0",
-    description="TODO: mô tả sản phẩm. Tài liệu tự sinh tại /docs.",
+    description="Dự đoán từ Vietnam Housing Dataset 2024, quản trị mô hình và thanh toán sandbox.",
 )
 
 # CORS chỉ cần khi frontend chạy ở cổng khác (lúc phát triển: Live Server 5500).
 # Khi deploy, FastAPI serve luôn frontend nên cùng origin, không cần CORS.
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5500,http://127.0.0.1:5500").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:4173,http://127.0.0.1:4173,http://localhost:5500,http://127.0.0.1:5500").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in origins if o.strip()],
@@ -32,14 +32,13 @@ app.add_middleware(
 )
 
 app.include_router(auth.router)
-app.include_router(items.router)
-app.include_router(items.me_router)
+app.include_router(homeval.router)
 # TODO: thêm router của các thành viên khác ở đây
 
 
 @app.get("/api/health", tags=["ops"])
 def health():
-    return {"status": "ok"}
+    return {"status": "ok", "runtime": "trained", "sandbox_billing": os.getenv("HOMEVAL_DEMO_BILLING") == "1"}
 
 
 # ---- Serve frontend (Mốc 4) --------------------------------------------

@@ -8,13 +8,16 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css"></head>
 <body>
 <site-header></site-header>
 <main class="container page">
   <div class="empty">
-    <p class="empty__title">Không tìm thấy trang này</p>
-    <p class="empty__hint">Địa chỉ sai, mục đã gỡ, hoặc bạn không có quyền xem (BR-10).</p>
+    <p class="error-code" aria-hidden="true">404</p><h1 class="empty__title">Không tìm thấy trang này</h1>
+    <p class="empty__hint">Có thể đường dẫn đã thay đổi hoặc trang này không khả dụng. Hãy bắt đầu lại từ trang chủ.</p>
     <p><a class="btn btn--primary empty__action" href="index.html">Về trang chủ</a>
     <a class="btn" href="predict.html">Dự đoán giá nhà</a></p>
   </div>

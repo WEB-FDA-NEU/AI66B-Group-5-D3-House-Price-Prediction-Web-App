@@ -75,6 +75,12 @@ export function setFieldError(input, message) {
   const slot = input.closest('.field')?.querySelector('.field__error');
   if (!slot) return;
   slot.textContent = message ?? '';
+  if (input.id) {
+    slot.id ||= `${input.id}-error`;
+    const describedBy = new Set((input.getAttribute('aria-describedby') || '').split(' ').filter(Boolean));
+    describedBy.add(slot.id);
+    input.setAttribute('aria-describedby', [...describedBy].join(' '));
+  }
   input.setAttribute('aria-invalid', message ? 'true' : 'false');
 }
 

@@ -1,0 +1,23 @@
+{
+  "passed": true,
+  "results": [
+    "Home: no horizontal overflow at 360/390/768/1440px",
+    "Mobile navigation, Escape and FAQ disclosure work",
+    "Prediction: no horizontal overflow at 360/390/768/1440px",
+    "Guest result: no horizontal overflow at 360/390/768/1440px",
+    "Login: no horizontal overflow at 360/390/768/1440px",
+    "History: no horizontal overflow at 360/390/768/1440px",
+    "Saved detail: no horizontal overflow at 360/390/768/1440px",
+    "Quick estimate → validation → guest result → login → save → history → detail → cancel/delete",
+    "profile: no horizontal overflow at 360/390/768/1440px",
+    "about-model: no horizontal overflow at 360/390/768/1440px",
+    "404: no horizontal overflow at 360/390/768/1440px",
+    "500: no horizontal overflow at 360/390/768/1440px",
+    "register: no horizontal overflow at 360/390/768/1440px",
+    "admin: no horizontal overflow at 360/390/768/1440px",
+    "admin-models: no horizontal overflow at 360/390/768/1440px",
+    "admin-models-new: no horizontal overflow at 360/390/768/1440px",
+    "Admin guard, model table and upload validation work",
+    "No browser JavaScript errors or failed resources"
+  ]
+}

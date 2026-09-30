@@ -1,6 +1,8 @@
-import { savePrediction } from '../api.js';
+import { el, money } from '../model-catalog.js';
+import { savePrediction, getModels, getEntitlements, createPrediction } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast } from '../ui.js';
+import { propertyFacts, isLand } from '../property.js';
 
 let draft;
 try { draft = JSON.parse(sessionStorage.getItem('homeval_prediction_draft') || 'null'); }
@@ -23,14 +25,14 @@ if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
   document.getElementById('model-version').textContent =
     `Model ${draft.model.version} - ${draft.model.algorithm}`;
 
-  const fields = [
-    ['Quận/huyện', draft.input.district],
-    ['Loại hình', draft.input.property_type],
-    ['Diện tích', `${draft.input.area_m2} m²`],
-    ['Phòng ngủ', draft.input.bedrooms],
-    ['Phòng tắm', draft.input.bathrooms],
-    ['Số tầng', draft.input.floors],
-  ];
+  if (isLand(draft.input.property_type)) document.querySelector('h1').textContent = 'Giá đất ước tính';
+  if (draft.disclaimer) {
+    const note = document.createElement('p');
+    note.className = 'field__hint';
+    note.textContent = draft.disclaimer;
+    document.querySelector('.result-summary').append(note);
+  }
+  const fields = propertyFacts(draft.input);
   const summary = document.getElementById('input-summary');
   for (const [label, value] of fields) {
     const term = document.createElement('dt');
@@ -63,4 +65,33 @@ saveForm.addEventListener('submit', async event => {
     toast(error.detail ?? 'Không thể lưu dự đoán.', 'error');
     button.disabled = false;
   }
+});
+
+if (draft?.warnings) {
+  const box = el('div', null, 'result-warnings'); box.append(el('strong', 'Đọc cùng kết quả'));
+  const list = el('ul'); draft.warnings.forEach(w => list.append(el('li', w))); box.append(list);
+  box.append(el('p', 'Khoảng giá được hiệu chỉnh ở mức mục tiêu 90% trên dữ liệu độc lập; không phải cam kết giá bán hoặc xác suất đúng của tài sản này.'));
+  document.querySelector('.result-summary').append(box);
+}
+document.getElementById('compare-models').addEventListener('click', async event => {
+  if (!isLoggedIn()) { requireLogin(); return; }
+  const button = event.currentTarget; button.disabled = true;
+  const target = document.getElementById('model-comparison'); target.textContent = 'Đang đối chiếu…';
+  try {
+    const access = await getEntitlements();
+    if (access.plan !== 'premium') {
+      target.replaceChildren(); const link = el('a', 'Mở Premium để so sánh các mô hình ↗', 'btn'); link.href = 'premium.html'; target.append(link); return;
+    }
+    const { items } = await getModels();
+    const outcomes = await Promise.allSettled(items.map(m => createPrediction({...draft.input, model_id:m.id})));
+    target.replaceChildren();
+    outcomes.forEach((outcome, index) => {
+      const card = el('article'); card.append(el('h3', items[index].name));
+      if (outcome.status === 'fulfilled') {
+        const p = outcome.value; card.append(el('strong', money(p.estimated_price)), el('p', `${money(p.confidence_interval.lower)} – ${money(p.confidence_interval.upper)}`), el('small', 'Cùng dữ liệu đầu vào · khoảng mục tiêu 90%'));
+      } else card.append(el('p', outcome.reason.detail || 'Không tính được mô hình này.'));
+      target.append(card);
+    });
+  } catch (error) { target.textContent = error.detail || 'Không tải được so sánh.'; }
+  finally { button.disabled = false; }
 });
