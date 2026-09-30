@@ -56,9 +56,11 @@ class UserOut(BaseModel):
     display_name: str
     phone: str
     role: str
+    email: str
 
 
 class RegisterIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     email: EmailStr
     password: str = Field(min_length=8)
     display_name: str = Field(min_length=2, max_length=80)
@@ -76,6 +78,7 @@ class TokenOut(BaseModel):
     user: UserOut
 
 class ProfileUpdateIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     display_name: str = Field(min_length=2, max_length=80)
     phone: str = Field(default="", max_length=20)
 
@@ -83,5 +86,5 @@ class ProfileUpdateIn(BaseModel):
 class ChangePasswordIn(BaseModel):
     current_password: str
     # TODO BR-12: nếu muốn ép "có chữ và số", thêm validator ở đây,
-    # đồng thời sửa RegisterIn cho khớp - không được lệch giữa 2 nơi.
+    # đồng thời sửa RegisterIn cho khớp — không được lệch giữa 2 nơi.
     new_password: str = Field(min_length=8)

@@ -1,109 +1,65 @@
-
 <!doctype html>
 <html lang="vi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HomeVal - Ước tính giá nhà</title>
-
-<link rel="stylesheet" href="css/reset.css">
-<link rel="stylesheet" href="css/tokens.css">
-<link rel="stylesheet" href="css/layout.css">
-<link rel="stylesheet" href="css/components.css">
-</head>
-
-<body>
-
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HomeVal — Hiểu đúng giá trị ngôi nhà</title>
+<meta name="description" content="Khám phá giá trị ngôi nhà với HomeVal. Trải nghiệm ước tính giá bất động sản, khoảng giá tham khảo và lưu lại dự đoán của bạn.">
+<link rel="stylesheet" href="css/reset.css"><link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css?v=20260930"></head>
+<body class="home-page">
 <site-header active="home"></site-header>
-
-<main>
-
-  <section class="home-intro">
-    <div class="container home-intro__content">
-      <p class="home-intro__eyebrow">HomeVal</p>
-
-      <h1>Dự đoán giá nhà theo dữ liệu thị trường</h1>
-
-      <p class="home-intro__copy">
-        Nhập thông tin bất động sản để nhận giá ước tính,
-        khoảng tin cậy và phiên bản model đang được sử dụng.
-      </p>
-
-      <div class="home-intro__actions">
-        <a class="btn btn--primary" href="predict.html">
-          Bắt đầu dự đoán
-        </a>
-
-        <a class="btn" href="predictions.html">
-          Dự đoán đã lưu
-        </a>
-      </div>
-    </div>
-  </section>
-
-
-  <section
-    class="container page home-overview"
-    aria-label="Thông tin model"
-  >
-
-    <article>
-      <p class="field__hint">Model đang hoạt động</p>
-
-      <h2>Gradient Boosting v2.3.0</h2>
-
-      <p>
-        Dữ liệu nhà ở TP. Hồ Chí Minh,
-        cập nhật cho bản demo.
-      </p>
-    </article>
-
-
-    <article>
-      <p class="field__hint">Độ chính xác tham khảo</p>
-
-      <h2>R² 0.87</h2>
-
-      <p>
-        Kết quả cung cấp khoảng giá để bạn dễ
-        đánh giá mức độ tin cậy.
-      </p>
-    </article>
-
-
-    <article>
-      <p class="field__hint">Dành cho tài khoản</p>
-
-      <h2>Lưu và xem lại</h2>
-
-      <p>
-        Đăng nhập để lưu dự đoán,
-        theo dõi model version và xóa khi cần.
-      </p>
-    </article>
-
-  </section>
-
-
-  <aside class="container page disclaimer" role="note">
-
-    <strong>Lưu ý:</strong>
-    HomeVal chỉ cung cấp ước tính tham khảo,
-    không phải định giá chuyên nghiệp hay tư vấn tài chính.
-    Vui lòng tham khảo chuyên gia trước khi ra quyết định.
-
-    Xem chi tiết ở
-    <a href="about-model.html">
-      Giới thiệu mô hình
-    </a>.
-
-  </aside>
-
+<main id="main-content">
+<div class="hero-dark" role="region" aria-roledescription="băng chuyền" aria-label="Góc nhìn HomeVal"><div class="hero-orbit" aria-hidden="true"></div><section class="container landing-hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="status-dot"></span> PROPERTY INTELLIGENCE · HOMEVAL</p>
+    <h1>Nhìn sâu dữ liệu.<br><em>Hiểu đúng giá trị.</em></h1>
+    <p class="hero-description">Khám phá giá trị ngôi nhà qua dữ liệu, đối chiếu các mô hình và hiểu khoảng giá trước khi đưa ra quyết định.</p>
+    <div class="hero-actions"><a class="btn btn--primary btn--large" href="predict.html">Bắt đầu định giá <span aria-hidden="true">↗</span></a><a class="hero-secondary" href="explore.html"><span class="play-icon" aria-hidden="true">⌖</span> Khám phá bản đồ</a></div>
+    <div class="hero-assurance"><span class="assurance-icon" aria-hidden="true">✓</span><span>Mô hình nhà ở 2024</span><span class="assurance-divider"></span><span>Sai số được công bố</span></div>
+  </div>
+  <div class="hero-visual">
+    <img src="img/hero-house.jpg" alt="Không gian sống hiện đại với cây xanh, ánh sáng tự nhiên và kiến trúc mở" fetchpriority="high" width="1400" height="1050">
+    <div class="image-label"><span class="status-dot"></span> HOMEVAL / PROPERTY INSIGHTS</div>
+    <div class="valuation-preview"><div class="preview-icon" aria-hidden="true">⌂</div><div><p>Giá trị tham khảo</p><strong>4,85 <span>tỷ VNĐ</span></strong><small>Ví dụ minh họa · Nhà phố 72 m²</small></div><span class="preview-check" aria-hidden="true">✓</span></div>
+    <div class="hero-data-tag"><span>PHẠM VI TRẢI NGHIỆM</span><strong>03 <small>góc nhìn mô hình</small></strong><div class="mini-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="visual-caption">DATA. LOCATION. PERSPECTIVE.</span>
+  </div>
+</section><div class="container hero-bottom-line hero-carousel-controls"><div class="hero-carousel-tabs" aria-label="Chọn nhu cầu"><button type="button" data-hero-slide="0" aria-pressed="true"><small>01</small>Mua để ở</button><button type="button" data-hero-slide="1" aria-pressed="false"><small>02</small>Đầu tư</button><button type="button" data-hero-slide="2" aria-pressed="false"><small>03</small>Hiểu mô hình</button></div><a class="scroll-explore" href="#quick-estimate"><span class="scroll-explore__orbit" aria-hidden="true"><span class="scroll-explore__disc"><svg viewBox="0 0 24 24" fill="none"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span><span class="scroll-explore__copy"><small>SCROLL TO EXPLORE</small><strong>Khám phá giá trị</strong></span></a><div class="hero-carousel-arrows"><span class="hero-carousel-count" aria-live="polite">01 / 03</span><button type="button" id="hero-previous" aria-label="Nội dung trước">←</button><button type="button" id="hero-next" aria-label="Nội dung tiếp theo">→</button></div></div></div>
+<section class="container quick-estimate" id="quick-estimate" tabindex="-1" aria-labelledby="quick-title">
+  <div class="quick-heading"><h2 id="quick-title">Bất động sản của bạn đáng giá bao nhiêu?</h2><span>Bắt đầu chỉ với vài thông tin cơ bản</span></div>
+  <form action="predict.html" method="get" class="quick-form">
+    <label class="quick-field"><span>01 / KHU VỰC</span><select name="district" aria-label="Khu vực"><option value="">Chọn quận / huyện</option><option>Thủ Đức</option><option>Bình Thạnh</option><option>Quận 7</option><option>Quận 1</option></select></label>
+    <label class="quick-field"><span>02 / LOẠI BẤT ĐỘNG SẢN</span><select name="property_type" aria-label="Loại bất động sản"><option>Nhà phố</option><option>Căn hộ</option><option>Biệt thự</option><option>Đất nền</option><option>Thửa đất</option></select></label>
+    <label class="quick-field"><span>03 / DIỆN TÍCH</span><div class="area-input"><input type="number" name="area_m2" min="15" max="10000" placeholder="Ví dụ: 72" aria-label="Diện tích"><span>m²</span></div></label>
+    <button class="btn btn--primary" type="submit">Ước tính ngay <span aria-hidden="true">↗</span></button>
+  </form>
+</section>
+<section class="container value-strip" aria-label="Điểm khác biệt của HomeVal">
+  <article><span class="feature-symbol" aria-hidden="true">⌁</span><div><h3>Dữ liệu dẫn lối</h3><p>Ước tính dựa trên đặc điểm ngôi nhà</p></div></article>
+  <article><span class="feature-symbol" aria-hidden="true">◈</span><div><h3>Minh bạch kết quả</h3><p>Khoảng giá và thông tin mô hình rõ ràng</p></div></article>
+  <article><span class="feature-symbol" aria-hidden="true">▤</span><div><h3>Lưu lại, dễ so sánh</h3><p>Mọi dự đoán trong một không gian riêng</p></div></article>
+</section>
+<section class="container intelligence-section" id="neighborhoods">
+<div class="section-heading"><div><p class="eyebrow">KHÔNG CHỈ LÀ MỘT CON SỐ</p><h2>Mọi góc nhìn.<br><span class="muted-heading">Trong một không gian.</span></h2></div><p>Chọn cách bạn muốn khám phá.<br>Từ thông tin chi tiết đến bức tranh khu vực.</p></div>
+<div class="intelligence-grid">
+<a class="intel-card intel-map" href="explore.html"><div class="intel-card-top"><span class="pill">01 / LOCATION INTELLIGENCE</span><span class="circle-arrow">↗</span></div><h3>Thu gần bản đồ.<br>Mở rộng góc nhìn.</h3><p>Kéo, zoom và chọn bất động sản.<br>Thông tin theo vùng nhìn trong bản demo.</p><div class="map-art"><img src="img/district-map.svg" alt="Sơ đồ khu vực minh họa"><span class="map-price mp-one">4,2 tỷ</span><span class="map-price mp-two">6,8 tỷ</span><span class="map-price mp-three">3,6 tỷ</span></div><span class="card-footnote">BẢN ĐỒ MINH HỌA · CHƯA KẾT NỐI NGUỒN TRỰC TIẾP</span></a>
+<a class="intel-card intel-land" href="predict.html?property_type=%C4%90%E1%BA%A5t%20n%E1%BB%81n"><div class="intel-card-top"><span class="pill">02 / LAND INTELLIGENCE</span><span class="circle-arrow">↗</span></div><div class="parcel-art" aria-hidden="true"><i></i><i></i><i></i><i></i><span>THỬA 128<br>120 m²</span></div><h3>Từng thửa đất.<br>Từng tiềm năng.</h3><p>Thêm diện tích, mặt tiền, đường tiếp cận và thông tin pháp lý khai báo.</p><span class="card-footnote">ĐẤT NỀN & THỬA ĐẤT · DỮ LIỆU DEMO</span></a>
+<a class="intel-card intel-model" href="about-model.html"><div class="intel-card-top"><span class="pill">03 / MODEL INSIGHTS</span><span class="circle-arrow">↗</span></div><div class="model-graphic" aria-hidden="true"><span>INPUT</span><i></i><b>HV</b><i></i><span>VALUE</span></div><h3>Hiểu cả cách<br>kết quả được tạo ra.</h3><p>Khoảng giá, phiên bản và phương pháp luôn đi cùng mỗi ước tính.</p><span class="card-footnote">RÕ PHƯƠNG PHÁP · RÕ GIỚI HẠN</span></a>
+</div>
+<div class="asset-types"><span>KHÁM PHÁ THEO LOẠI HÌNH</span><a href="predict.html?property_type=Nh%C3%A0%20ph%E1%BB%91">Nhà phố ↗</a><a href="predict.html?property_type=C%C4%83n%20h%E1%BB%99">Căn hộ ↗</a><a href="predict.html?property_type=Bi%E1%BB%87t%20th%E1%BB%B1">Biệt thự ↗</a><a href="predict.html?property_type=%C4%90%E1%BA%A5t%20n%E1%BB%81n">Đất nền ↗</a><a href="predict.html?property_type=Th%E1%BB%ADa%20%C4%91%E1%BA%A5t">Thửa đất ↗</a></div>
+</section>
+<section class="premium-teaser"><div class="container premium-teaser-inner"><div><p class="eyebrow">HOMEVAL PREMIUM / NHIỀU GÓC NHÌN</p><h2>Một bước sâu hơn.<br><em>Nhiều góc nhìn hơn.</em></h2><p>Chọn thêm mô hình đã huấn luyện, đối chiếu cùng một tài sản và đọc sai số được kiểm định. Thử mở Premium qua thanh toán giả lập.</p><a class="btn btn--mint btn--large" href="premium.html">Khám phá Premium <span>↗</span></a></div><div class="premium-stack"><div class="model-ticket"><span>01 / BASELINE</span><strong>Ridge Regression</strong><small>Giá rao 2024 · Đã kiểm định</small><b>↗</b></div><div class="model-ticket featured"><span>02 / PREMIUM · SANDBOX</span><strong>Forest & Boosting</strong><small>Nhiều mô hình. Thêm đối chiếu.</small><b>✧</b></div><div class="model-ticket"><span>03 / LAND · DỰ KIẾN</span><strong>Spatial Intelligence</strong><small>Đặc trưng vị trí & dữ liệu thửa đất</small><b>⌖</b></div></div></div></section>
+<section class="container process-section" id="how-it-works">
+  <div class="section-heading"><div><p class="eyebrow">ĐƠN GIẢN TỪ BƯỚC ĐẦU TIÊN</p><h2>Từ thông tin đến sự tự tin.</h2></div><a class="text-link" href="about-model.html">Tìm hiểu mô hình ↗</a></div>
+  <div class="process-grid"><article><span class="step-number">01</span><h3>Chọn cách bạn bắt đầu</h3><p>Nhập thông tin hoặc chọn một bất động sản trên bản đồ demo để điền sẵn biểu mẫu.</p></article><article><span class="step-number">02</span><h3>Khám phá khoảng giá</h3><p>Nhận giá ước tính cùng khoảng tham khảo và phương pháp được sử dụng.</p></article><article><span class="step-number">03</span><h3>Lưu cho hành trình tiếp theo</h3><p>Đặt tên và lưu kết quả để dễ dàng xem lại bất cứ khi nào bạn cần.</p></article></div>
+</section>
+<section class="container faq-section"><div><p class="eyebrow">BẠN CÓ THỂ ĐANG TỰ HỎI</p><h2>Hiểu rõ hơn.<br>An tâm hơn.</h2><p>Một vài điều trước khi bạn bắt đầu.</p></div><div class="faq-list">
+  <details><summary>HomeVal định giá nhà như thế nào?<span>+</span></summary><p>HomeVal học từ Vietnam Housing Dataset 2024, dùng khu vực, diện tích và cấu trúc nhà để ước tính giá rao. Ba mô hình được kiểm định trên tập dữ liệu độc lập. Chưa hỗ trợ định giá đất hoặc dữ liệu giá trực tiếp; xem trang mô hình để hiểu sai số.</p></details>
+  <details><summary>Tôi có cần tài khoản để xem kết quả?<span>+</span></summary><p>Bạn có thể xem kết quả mà không cần đăng nhập. Tạo tài khoản khi muốn lưu, đặt tên và quản lý các dự đoán của mình.</p></details>
+  <details><summary>Kết quả có phải là giá bán thực tế?<span>+</span></summary><p>Không. Đây là ước tính minh họa, không phải mức giá giao dịch hoặc chứng thư thẩm định. Giá thực tế còn phụ thuộc tình trạng, pháp lý và nhiều yếu tố khác.</p></details>
+</div></section>
+<section class="container closing-cta"><div><p class="eyebrow">DỮ LIỆU RÕ RÀNG. QUYẾT ĐỊNH CỦA BẠN.</p><h2>Bước tiếp theo bắt đầu<br>từ một góc nhìn rõ ràng.</h2></div><a class="btn btn--light btn--large" href="predict.html">Khám phá giá trị tài sản ↗</a></section>
 </main>
-
-<site-footer></site-footer>
-
-<script type="module" src="js/pages/home.js"></script>
-
-</body>
-</html>
+<site-footer></site-footer><script type="module" src="js/pages/home.js?v=20260930"></script>
+</body></html>

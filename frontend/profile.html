@@ -8,16 +8,19 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css"></head>
 <body>
 
 <site-header active="profile"></site-header>
 
-<main class="container page stack" style="max-width:480px">
-  <h1>Hồ sơ của tôi</h1>
+<main class="container page stack profile-page">
+  <div class="page-heading"><p class="eyebrow">KHÔNG GIAN CỦA BẠN</p><h1>Hồ sơ của tôi</h1><p>Quản lý thông tin cá nhân và bảo mật tài khoản.</p></div><div class="profile-columns">
 
   <!-- ══════════════ Sửa thông tin ══════════════ -->
-  <section class="stack">
+  <section class="panel stack">
     <h2>Thông tin cá nhân</h2>
     <form id="profile-form" class="stack" novalidate>
       <div class="field">
@@ -35,7 +38,7 @@
   </section>
 
   <!-- ══════════════ Đổi mật khẩu ══════════════ -->
-  <section class="stack">
+  <section class="panel stack">
     <h2>Đổi mật khẩu</h2>
     <form id="password-form" class="stack" novalidate>
       <div class="field">
@@ -56,7 +59,7 @@
       <button class="btn btn--primary" type="submit">Đổi mật khẩu</button>
     </form>
   </section>
-</main>
+</div></main>
 
 <site-footer></site-footer>
 

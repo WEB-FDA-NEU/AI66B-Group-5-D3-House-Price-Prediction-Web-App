@@ -1,0 +1,17 @@
+{
+  "name": "homeval",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "python backend/run.py",
+    "preview:static": "node scripts/preview.mjs",
+    "test:models": "python -m pytest backend/tests -q",
+    "test:models-ui": "node scripts/model-smoke.mjs && node scripts/model-workflows.mjs",
+    "test:ux": "node scripts/ux-qa.mjs",
+    "test:design": "node scripts/design-qa.mjs",
+    "test:experience": "node scripts/experience-qa.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
