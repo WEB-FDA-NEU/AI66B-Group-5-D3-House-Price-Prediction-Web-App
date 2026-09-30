@@ -8,16 +8,23 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
-</head>
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
 <body>
 <site-header active="predict"></site-header>
-<main class="container page" style="max-width:720px">
-  <h1>Dự đoán giá nhà</h1>
-  <p class="field__hint">Nhập thông tin căn nhà để nhận mức giá ước tính theo model đang hoạt động.</p>
-  <form id="prediction-form" class="stack" novalidate>
-    <div class="prediction-form__grid">
-      <div class="field">
-        <label class="field__label" for="district">Quận/huyện</label>
+<main class="container page" id="main-content">
+  <div class="breadcrumb-line"><a href="index.html">Trang chủ</a><span>/</span><span>Định giá nhà</span></div>
+  <div class="page-heading"><p class="eyebrow">MỖI TÀI SẢN, MỘT GÓC NHÌN RIÊNG</p><h1>Thêm dữ liệu. Rõ giá trị.</h1><p>Định giá nhà ở từ dữ liệu 2024. Chọn khu vực, bổ sung thông tin và đối chiếu các mô hình.</p></div>
+  <nav class="mode-switch" aria-label="Cách nhập dữ liệu"><a class="is-active" href="predict.html" aria-current="page">▤ Nhập thông tin</a><a href="explore.html">⌖ Chọn trên bản đồ</a></nav><p class="map-source" id="map-source" hidden></p>
+  <div class="service-notice" id="prediction-service" hidden role="status"><span id="service-message"></span><button type="button" class="btn" id="retry-prediction">Thử kết nối lại</button></div>
+<div class="prediction-steps" aria-label="Các bước định giá"><span class="is-current"><b>01</b> Thông tin tài sản</span><i></i><span><b>02</b> Chọn góc nhìn</span><i></i><span><b>03</b> Đọc khoảng giá</span></div><div class="prediction-layout">
+    <form id="prediction-form" class="panel prediction-panel" novalidate>
+      <div class="form-section-heading"><span>01</span><div><h2>Thông tin bất động sản</h2><p class="field__hint" id="form-progress">Bắt đầu với vị trí và loại tài sản</p></div></div>
+      <div class="prediction-form__grid">
+      <div class="field field--wide"><label class="field__label" for="city">Tỉnh/thành trong dữ liệu 2024</label><select class="select" id="city" name="city" required><option value="">Đang tải khu vực…</option></select><p class="field__error"></p></div><div class="field field--wide">
+        <label class="field__label" for="district">Quận/huyện</label><p class="field__hint" id="location-hint"></p>
         <select class="select" id="district" name="district" required>
           <option value="">Chọn quận/huyện</option>
           <option value="Thủ Đức">Thủ Đức</option>
@@ -27,13 +34,13 @@
         </select>
         <p class="field__error"></p>
       </div>
-      <div class="field">
+      <div class="field field--wide">
         <label class="field__label" for="property_type">Loại hình</label>
         <select class="select" id="property_type" name="property_type" required>
           <option value="">Chọn loại hình</option>
           <option>Nhà phố</option>
           <option>Căn hộ</option>
-          <option>Biệt thự</option>
+          <option>Biệt thự</option><option>Đất nền</option><option>Thửa đất</option>
         </select>
         <p class="field__error"></p>
       </div>
@@ -42,24 +49,37 @@
         <input class="input" id="area_m2" name="area_m2" type="number" min="15" max="1000" required value="72">
         <p class="field__error"></p>
       </div>
-      <div class="field">
+      <div class="field housing-field">
         <label class="field__label" for="bedrooms">Phòng ngủ</label>
         <input class="input" id="bedrooms" name="bedrooms" type="number" min="0" max="15" required value="3">
         <p class="field__error"></p>
       </div>
-      <div class="field">
+      <div class="field housing-field">
         <label class="field__label" for="bathrooms">Phòng tắm</label>
         <input class="input" id="bathrooms" name="bathrooms" type="number" min="0" max="15" required value="2">
         <p class="field__error"></p>
       </div>
-      <div class="field">
+      <div class="field housing-field">
         <label class="field__label" for="floors">Số tầng</label>
         <input class="input" id="floors" name="floors" type="number" min="1" max="20" required value="2">
         <p class="field__error"></p>
-      </div>
-    </div>
-    <button class="btn btn--primary" type="submit">Xem giá ước tính</button>
-  </form>
+      </div><div class="field"><label class="field__label" for="frontage_m">Mặt tiền (m) · tùy chọn</label><input class="input" id="frontage_m" name="frontage_m" type="number" min="1" max="200" step="0.1" placeholder="Ví dụ: 4"><p class="field__error"></p></div><div class="field"><label class="field__label" for="road_width_m">Đường tiếp cận (m) · tùy chọn</label><input class="input" id="road_width_m" name="road_width_m" type="number" min="0" max="100" step="0.1" placeholder="Ví dụ: 6"><p class="field__error"></p></div></div>
+<section class="land-fields" id="land-fields" hidden><div class="form-section-heading"><span>02</span><h2>Thông tin thửa đất</h2></div><p class="field__hint">Thông tin do bạn khai báo, không thay thế việc xác minh giấy tờ hoặc quy hoạch.</p><div class="prediction-form__grid">
+
+
+<div class="field"><label class="field__label" for="land_use">Mục đích sử dụng đất</label><select class="select" id="land_use" name="land_use" required disabled><option value="">Chọn mục đích</option><option>Đất ở</option><option>Đất nông nghiệp</option><option>Chưa xác định</option></select><p class="field__error"></p></div>
+<div class="field"><label class="field__label" for="legal_status">Pháp lý khai báo</label><select class="select" id="legal_status" name="legal_status" required disabled><option value="">Chọn tình trạng</option><option>Có giấy chứng nhận (khai báo)</option><option>Chưa có giấy chứng nhận</option><option>Chưa xác minh</option></select><p class="field__error"></p></div>
+<div class="field"><label class="field__label" for="parcel_number">Số thửa (tùy chọn)</label><input class="input" id="parcel_number" name="parcel_number" maxlength="20" pattern="[0-9A-Za-z/-]+" placeholder="Ví dụ: 128" disabled><p class="field__error"></p></div>
+<div class="field"><label class="field__label" for="map_sheet">Tờ bản đồ (tùy chọn)</label><input class="input" id="map_sheet" name="map_sheet" maxlength="20" pattern="[0-9A-Za-z/-]+" placeholder="Ví dụ: 12" disabled><p class="field__error"></p></div>
+<div class="field"><label class="field__label" for="planning_status">Thông tin quy hoạch</label><select class="select" id="planning_status" name="planning_status" disabled><option>Chưa xác minh</option><option>Đã có thông tin (tự khai báo)</option></select><p class="field__error"></p></div>
+</div></section><div class="data-callout" id="land-notice" hidden><strong>Chưa mở định giá đất nền / thửa đất.</strong><p>Dữ liệu hiện tại không có mẫu đất được xác minh. Bạn có thể khám phá biểu mẫu, nhưng chưa thể nhận kết quả định giá đất.</p><a href="data-sources.html">Xem nguồn dữ liệu cần bổ sung ↗</a></div>
+<div class="model-choice"><div class="field"><label class="field__label" for="model_id">Chọn góc nhìn dự đoán</label><select class="select" name="model_id" id="model_id" required><option value="">Đang tải mô hình…</option></select><small id="selected-model">Đang kiểm tra quyền sử dụng…</small><p class="field__error"></p></div></div>
+<div class="prediction-models" id="prediction-models" aria-label="Các mô hình định giá"></div>
+<section class="premium-inline" id="premium-in-context"><div class="premium-inline__icon" aria-hidden="true">✧</div><div><span class="eyebrow">THÊM CƠ SỞ ĐỂ ĐỐI CHIẾU</span><h3>Một tài sản, nhiều góc nhìn.</h3><p>Mở thêm mô hình và so sánh ngay trên thông tin bạn vừa nhập.</p><button class="btn btn--primary" type="button" data-open-upgrade>Khám phá Premium ↗</button><small>Thanh toán thử · Không thu tiền · Giữ nguyên biểu mẫu</small></div></section>
+      <div class="form-submit"><p>Ước tính từ giá rao năm 2024. Đọc khoảng giá và giới hạn mô hình trước khi sử dụng.</p><button class="btn btn--primary" type="submit">Xem giá ước tính <span aria-hidden="true">↗</span></button></div>
+    </form>
+    <aside><div class="property-preview"><img src="img/hero-house.jpg" alt="Không gian nhà hiện đại tràn ánh sáng"><div class="property-preview__body"><p class="eyebrow">TÀI SẢN BẠN ĐANG KHÁM PHÁ</p><h2 id="preview-property">Bất động sản của bạn</h2><p id="preview-location">Chọn khu vực để bắt đầu</p><div class="preview-facts"><span id="preview-area">72 m²</span><span id="preview-rooms">3 phòng ngủ</span></div></div></div><div class="prediction-note"><strong>Một khoảng giá, nhiều góc nhìn.</strong><p>Bạn sẽ nhận giá ước tính, khoảng tham khảo và thông tin mô hình. Không cần đăng nhập để xem kết quả.</p><a class="text-link" href="about-model.html">Tìm hiểu phương pháp ↗</a></div></aside>
+  </div>
 </main>
 <site-footer></site-footer>
 <script type="module" src="js/components/site-header.js"></script>

@@ -5,9 +5,11 @@
 // ============================================================
 const TOKEN_KEY = 'app_token';
 const USER_KEY  = 'app_user';
+// Retire browser-only demo sessions when switching to the real backend.
+if (localStorage.getItem(TOKEN_KEY) === 'mock-token') { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const getUser  = () => JSON.parse(localStorage.getItem(USER_KEY) || 'null');
+export const getUser = () => { try { return JSON.parse(localStorage.getItem(USER_KEY) || 'null'); } catch { return null; } };
 export const isLoggedIn = () => !!getToken();
 export const getRole = () => getUser()?.role ?? 'guest';
 export const isAdmin = () => getRole() === 'admin';
@@ -15,6 +17,12 @@ export const isAdmin = () => getRole() === 'admin';
 export function saveSession({ access_token, user }) {
   localStorage.setItem(TOKEN_KEY, access_token);
   localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
+
+export function clearSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  initHeader();
 }
 
 export function logout() {

@@ -2,6 +2,7 @@ import { deletePrediction, getPrediction, ApiError } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { confirmAction, toast } from '../ui.js';
 import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
+import { propertyFacts } from '../property.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
@@ -32,12 +33,7 @@ async function load() {
     document.getElementById('prediction-disclaimer').textContent = prediction.disclaimer || predictionDisclaimer;
     const input = prediction.input ?? prediction;
     const facts = document.getElementById('input-summary');
-    addFact(facts, 'Quận/huyện', prediction.district);
-    addFact(facts, 'Loại hình', prediction.property_type);
-    addFact(facts, 'Diện tích', `${prediction.area_m2} m²`);
-    if (input.bedrooms != null) addFact(facts, 'Phòng ngủ', input.bedrooms);
-    if (input.bathrooms != null) addFact(facts, 'Phòng tắm', input.bathrooms);
-    if (input.floors != null) addFact(facts, 'Số tầng', input.floors);
+    for (const [label, value] of propertyFacts(input)) addFact(facts, label, value);
     detail.hidden = false;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) location.href = '404.html';

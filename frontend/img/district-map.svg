@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+<defs><pattern id="blocks" width="110" height="95" patternUnits="userSpaceOnUse" patternTransform="rotate(-16)"><rect width="110" height="95" fill="#e8eee7"/><rect x="9" y="9" width="40" height="33" rx="3" fill="#dce5da"/><rect x="57" y="9" width="44" height="33" rx="3" fill="#dde6da"/><rect x="9" y="51" width="92" height="35" rx="3" fill="#dfe7dc"/></pattern></defs>
+<rect width="1200" height="800" fill="url(#blocks)"/>
+<g fill="#cddfc4"><path d="m65 80 180-30 50 140-180 50Z"/><path d="m870 90 210 65-25 190-220-60Z"/><path d="m670 560 140 35 20 150-170 10Z"/><path d="m120 590 180-30 25 125-210 50Z"/></g>
+<path d="M540-40C455 95 770 120 644 265S528 390 690 480 440 690 595 840" fill="none" stroke="#a8d3d4" stroke-width="72"/>
+<path d="M542-40C457 95 772 120 646 265S530 390 692 480 442 690 597 840" fill="none" stroke="#c0e0dd" stroke-width="45"/>
+<g fill="none" stroke="#fff" stroke-width="14"><path d="m-50 240 1250-100M-50 560 1300-230M210-50l240 900M830-50 170 900M-30 710l1260-190"/></g>
+<g fill="none" stroke="#e5d7ab" stroke-width="5"><path d="m-50 240 1250-100M-50 560 1300-230M210-50l240 900M830-50 170 900"/></g>
+<g stroke="#b8c6b5" stroke-width="1.5" fill="none" stroke-dasharray="7 6"><path d="m0 395 1200-40M470 0 440 800M790 0 760 800"/></g>
+<g font-family="Segoe UI, sans-serif" fill="#72846f" font-size="23" font-weight="600" letter-spacing="3"><text x="230" y="340">BÌNH THẠNH</text><text x="830" y="400">THỦ ĐỨC</text><text x="240" y="630">QUẬN 1</text><text x="770" y="720">QUẬN 7</text></g>
+<g font-family="Segoe UI, sans-serif" fill="#788c78" font-size="12"><text x="112" y="145">Công viên minh họa</text><text x="897" y="230">Không gian xanh</text><text x="570" y="365" transform="rotate(-55 570 365)" fill="#669b9e">SÔNG · MINH HỌA</text></g>
+</svg>

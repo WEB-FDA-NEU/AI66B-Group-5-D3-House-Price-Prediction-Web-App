@@ -1,0 +1,416 @@
+[
+  {
+    "id": "ridge-6bb218132ff4",
+    "name": "Góc nhìn cơ bản",
+    "algorithm": "Ridge Regression",
+    "tier": "free",
+    "summary": "Một mốc tham chiếu nhanh, dễ hiểu để bắt đầu đánh giá tài sản.",
+    "pros": [
+      "Dự đoán nhanh, ổn định",
+      "Tạo mốc đối chiếu rõ ràng"
+    ],
+    "cons": [
+      "Khó nắm bắt quan hệ giá phức tạp",
+      "Có thể bỏ sót khác biệt ở tài sản đặc biệt"
+    ],
+    "suitable": "Người mua ở thực hoặc nhà đầu tư cần một mốc tham chiếu.",
+    "key": "ridge",
+    "metrics": {
+      "mae_vnd": 1304883140.52094,
+      "rmse_vnd": 1771595957.2697055,
+      "r2": 0.3668071526319626,
+      "mape_percent": 25.946598226112062,
+      "within_20_percent": 54.17780748663101,
+      "interval_coverage_percent": 89.3716577540107
+    },
+    "dataset": {
+      "id": "vietnam-housing-2024",
+      "name": "Vietnam Housing Dataset 2024",
+      "source": "https://www.kaggle.com/datasets/nguyentiennhan/vietnam-housing-dataset-2024",
+      "sha256": "7ee188d69aca06349a81bac0c2d2d1503058d5aec7124edfd075154fa87d97c8",
+      "original_rows": 30229,
+      "cleaned_rows": 29899,
+      "removed_rows": 330,
+      "train_rows": 17935,
+      "calibration_rows": 5980,
+      "test_rows": 5984,
+      "features": [
+        "area_m2",
+        "bedrooms",
+        "bathrooms",
+        "floors",
+        "frontage_m",
+        "road_width_m",
+        "city",
+        "district"
+      ],
+      "price_unit": "CSV Price: tỷ VNĐ; API: VNĐ",
+      "price_min": 1000000000.0,
+      "price_max": 11500000000.0,
+      "area_min": 15.0,
+      "area_max": 595.0,
+      "split": "60/20/20 theo nhóm địa chỉ + cấu trúc; seed 42/43. Không phải kiểm định theo thời gian.",
+      "target": "Giá rao bán trong dữ liệu 2024, không phải giá giao dịch hoặc giá hiện tại.",
+      "limitations": [
+        "Không có tọa độ, ranh thửa hoặc lịch sử giao dịch.",
+        "Không có cột loại hình để xác minh riêng nhà phố/căn hộ/biệt thự.",
+        "Không huấn luyện định giá đất nền/thửa đất từ dữ liệu này."
+      ],
+      "missing": {
+        "area_m2": 0.0,
+        "bedrooms": 0.1708,
+        "bathrooms": 0.2346,
+        "floors": 0.1197,
+        "frontage_m": 0.3823,
+        "road_width_m": 0.4399
+      }
+    },
+    "segments": [
+      {
+        "city": "Hồ Chí Minh",
+        "count": 2318,
+        "mae_vnd": 1267231112.2873065,
+        "mape_percent": 23.577115556300356
+      },
+      {
+        "city": "Hà Nội",
+        "count": 2122,
+        "mae_vnd": 1259197939.3682184,
+        "mape_percent": 22.688901778451616
+      },
+      {
+        "city": "Bình Dương",
+        "count": 320,
+        "mae_vnd": 1109866616.3450084,
+        "mape_percent": 28.829657369192784
+      },
+      {
+        "city": "Đà Nẵng",
+        "count": 271,
+        "mae_vnd": 1282057355.7517717,
+        "mape_percent": 24.804261737906163
+      },
+      {
+        "city": "Đồng Nai",
+        "count": 165,
+        "mae_vnd": 1371103382.6184464,
+        "mape_percent": 38.615995417404775
+      },
+      {
+        "city": "Hải Phòng",
+        "count": 158,
+        "mae_vnd": 1412921724.184858,
+        "mape_percent": 31.511909207822992
+      },
+      {
+        "city": "Khánh Hòa",
+        "count": 144,
+        "mae_vnd": 1545809872.4389637,
+        "mape_percent": 40.57802143169291
+      },
+      {
+        "city": "Hưng Yên",
+        "count": 75,
+        "mae_vnd": 1112550185.953777,
+        "mape_percent": 13.43062576665387
+      },
+      {
+        "city": "Long An",
+        "count": 72,
+        "mae_vnd": 1141866413.7264514,
+        "mape_percent": 28.986584510999098
+      },
+      {
+        "city": "Bà Rịa Vũng Tàu",
+        "count": 37,
+        "mae_vnd": 2549535172.361171,
+        "mape_percent": 67.7571224378848
+      },
+      {
+        "city": "Bắc Ninh",
+        "count": 30,
+        "mae_vnd": 1553166101.2803676,
+        "mape_percent": 37.06961963824036
+      }
+    ],
+    "config": {},
+    "evaluated_at": "2026-09-29T16:28:23.863551+00:00",
+    "artifact_sha256": "f88c379c64ee07f0b2a276f25e9dadc72d0b21dc3411bbb90add816b57471954"
+  },
+  {
+    "id": "random_forest-8492aa0837ac",
+    "name": "Góc nhìn so sánh",
+    "algorithm": "Random Forest",
+    "tier": "premium",
+    "summary": "Kết hợp nhiều cây quyết định để phản ánh quan hệ phi tuyến giữa các đặc điểm.",
+    "pros": [
+      "Nhận diện nhiều kiểu quan hệ trong dữ liệu",
+      "Có thể đối chiếu với mô hình cơ bản"
+    ],
+    "cons": [
+      "Khó giải thích hơn hồi quy",
+      "Không đáng tin khi tài sản nằm ngoài vùng dữ liệu"
+    ],
+    "suitable": "Đối chiếu danh mục và khảo sát nhiều tài sản; không dự báo lợi nhuận.",
+    "key": "random_forest",
+    "metrics": {
+      "mae_vnd": 1093608209.4397917,
+      "rmse_vnd": 1439644716.9008164,
+      "r2": 0.5818642555548289,
+      "mape_percent": 22.131304569368076,
+      "within_20_percent": 62.9846256684492,
+      "interval_coverage_percent": 90.22393048128342
+    },
+    "dataset": {
+      "id": "vietnam-housing-2024",
+      "name": "Vietnam Housing Dataset 2024",
+      "source": "https://www.kaggle.com/datasets/nguyentiennhan/vietnam-housing-dataset-2024",
+      "sha256": "7ee188d69aca06349a81bac0c2d2d1503058d5aec7124edfd075154fa87d97c8",
+      "original_rows": 30229,
+      "cleaned_rows": 29899,
+      "removed_rows": 330,
+      "train_rows": 17935,
+      "calibration_rows": 5980,
+      "test_rows": 5984,
+      "features": [
+        "area_m2",
+        "bedrooms",
+        "bathrooms",
+        "floors",
+        "frontage_m",
+        "road_width_m",
+        "city",
+        "district"
+      ],
+      "price_unit": "CSV Price: tỷ VNĐ; API: VNĐ",
+      "price_min": 1000000000.0,
+      "price_max": 11500000000.0,
+      "area_min": 15.0,
+      "area_max": 595.0,
+      "split": "60/20/20 theo nhóm địa chỉ + cấu trúc; seed 42/43. Không phải kiểm định theo thời gian.",
+      "target": "Giá rao bán trong dữ liệu 2024, không phải giá giao dịch hoặc giá hiện tại.",
+      "limitations": [
+        "Không có tọa độ, ranh thửa hoặc lịch sử giao dịch.",
+        "Không có cột loại hình để xác minh riêng nhà phố/căn hộ/biệt thự.",
+        "Không huấn luyện định giá đất nền/thửa đất từ dữ liệu này."
+      ],
+      "missing": {
+        "area_m2": 0.0,
+        "bedrooms": 0.1708,
+        "bathrooms": 0.2346,
+        "floors": 0.1197,
+        "frontage_m": 0.3823,
+        "road_width_m": 0.4399
+      }
+    },
+    "segments": [
+      {
+        "city": "Hồ Chí Minh",
+        "count": 2318,
+        "mae_vnd": 1055402288.8017827,
+        "mape_percent": 19.280565233832814
+      },
+      {
+        "city": "Hà Nội",
+        "count": 2122,
+        "mae_vnd": 1084885699.6033401,
+        "mape_percent": 20.123661314846007
+      },
+      {
+        "city": "Bình Dương",
+        "count": 320,
+        "mae_vnd": 824987875.9666841,
+        "mape_percent": 22.860254140710552
+      },
+      {
+        "city": "Đà Nẵng",
+        "count": 271,
+        "mae_vnd": 1131267764.0998352,
+        "mape_percent": 21.181808497155195
+      },
+      {
+        "city": "Đồng Nai",
+        "count": 165,
+        "mae_vnd": 1100225711.177458,
+        "mape_percent": 35.46362917258343
+      },
+      {
+        "city": "Hải Phòng",
+        "count": 158,
+        "mae_vnd": 1148055253.9365413,
+        "mape_percent": 27.121337351544017
+      },
+      {
+        "city": "Khánh Hòa",
+        "count": 144,
+        "mae_vnd": 1315775124.9671702,
+        "mape_percent": 34.85518526559257
+      },
+      {
+        "city": "Hưng Yên",
+        "count": 75,
+        "mae_vnd": 1043083160.6924865,
+        "mape_percent": 12.658860554958688
+      },
+      {
+        "city": "Long An",
+        "count": 72,
+        "mae_vnd": 987992289.8463014,
+        "mape_percent": 27.953747966980778
+      },
+      {
+        "city": "Bà Rịa Vũng Tàu",
+        "count": 37,
+        "mae_vnd": 1603473666.1387634,
+        "mape_percent": 41.296969193549764
+      },
+      {
+        "city": "Bắc Ninh",
+        "count": 30,
+        "mae_vnd": 1282051042.9844182,
+        "mape_percent": 36.448919098754814
+      }
+    ],
+    "config": {},
+    "evaluated_at": "2026-09-29T16:28:34.073950+00:00",
+    "artifact_sha256": "a9ae248211b803f4faca0f88072aa0d5fee8b1324946682a41c20e8a2414bb81"
+  },
+  {
+    "id": "hist_gradient-8bbf9ade91f9",
+    "name": "Góc nhìn chuyên sâu",
+    "algorithm": "Histogram Gradient Boosting",
+    "tier": "premium",
+    "summary": "Học từ sai số của các bước trước để tạo thêm một góc nhìn định lượng.",
+    "pros": [
+      "Khai thác tương tác giữa các đặc điểm",
+      "Hỗ trợ kiểm tra sự đồng thuận giữa mô hình"
+    ],
+    "cons": [
+      "Nhạy với chất lượng dữ liệu đầu vào",
+      "Không đảm bảo tốt hơn mọi mô hình ở mọi khu vực"
+    ],
+    "suitable": "Nhà đầu tư muốn so sánh kịch bản, không phải tín hiệu mua/bán.",
+    "key": "hist_gradient",
+    "metrics": {
+      "mae_vnd": 1049917585.8945048,
+      "rmse_vnd": 1384699412.1943474,
+      "r2": 0.6131722203744187,
+      "mape_percent": 21.265545990087542,
+      "within_20_percent": 65.30748663101605,
+      "interval_coverage_percent": 90.25735294117648
+    },
+    "dataset": {
+      "id": "vietnam-housing-2024",
+      "name": "Vietnam Housing Dataset 2024",
+      "source": "https://www.kaggle.com/datasets/nguyentiennhan/vietnam-housing-dataset-2024",
+      "sha256": "7ee188d69aca06349a81bac0c2d2d1503058d5aec7124edfd075154fa87d97c8",
+      "original_rows": 30229,
+      "cleaned_rows": 29899,
+      "removed_rows": 330,
+      "train_rows": 17935,
+      "calibration_rows": 5980,
+      "test_rows": 5984,
+      "features": [
+        "area_m2",
+        "bedrooms",
+        "bathrooms",
+        "floors",
+        "frontage_m",
+        "road_width_m",
+        "city",
+        "district"
+      ],
+      "price_unit": "CSV Price: tỷ VNĐ; API: VNĐ",
+      "price_min": 1000000000.0,
+      "price_max": 11500000000.0,
+      "area_min": 15.0,
+      "area_max": 595.0,
+      "split": "60/20/20 theo nhóm địa chỉ + cấu trúc; seed 42/43. Không phải kiểm định theo thời gian.",
+      "target": "Giá rao bán trong dữ liệu 2024, không phải giá giao dịch hoặc giá hiện tại.",
+      "limitations": [
+        "Không có tọa độ, ranh thửa hoặc lịch sử giao dịch.",
+        "Không có cột loại hình để xác minh riêng nhà phố/căn hộ/biệt thự.",
+        "Không huấn luyện định giá đất nền/thửa đất từ dữ liệu này."
+      ],
+      "missing": {
+        "area_m2": 0.0,
+        "bedrooms": 0.1708,
+        "bathrooms": 0.2346,
+        "floors": 0.1197,
+        "frontage_m": 0.3823,
+        "road_width_m": 0.4399
+      }
+    },
+    "segments": [
+      {
+        "city": "Hồ Chí Minh",
+        "count": 2318,
+        "mae_vnd": 991048661.1887594,
+        "mape_percent": 18.35873288956586
+      },
+      {
+        "city": "Hà Nội",
+        "count": 2122,
+        "mae_vnd": 1046781393.584014,
+        "mape_percent": 19.13848656909799
+      },
+      {
+        "city": "Bình Dương",
+        "count": 320,
+        "mae_vnd": 900220352.4729961,
+        "mape_percent": 26.609899598468328
+      },
+      {
+        "city": "Đà Nẵng",
+        "count": 271,
+        "mae_vnd": 1070032916.762348,
+        "mape_percent": 20.743483086705883
+      },
+      {
+        "city": "Đồng Nai",
+        "count": 165,
+        "mae_vnd": 1066877782.8181294,
+        "mape_percent": 30.908893366254915
+      },
+      {
+        "city": "Hải Phòng",
+        "count": 158,
+        "mae_vnd": 1222117317.507594,
+        "mape_percent": 27.319050415590713
+      },
+      {
+        "city": "Khánh Hòa",
+        "count": 144,
+        "mae_vnd": 1256083873.5295343,
+        "mape_percent": 32.07266483700487
+      },
+      {
+        "city": "Hưng Yên",
+        "count": 75,
+        "mae_vnd": 853224057.4921257,
+        "mape_percent": 10.200220310927813
+      },
+      {
+        "city": "Long An",
+        "count": 72,
+        "mae_vnd": 1064711367.269777,
+        "mape_percent": 28.320190736908284
+      },
+      {
+        "city": "Bà Rịa Vũng Tàu",
+        "count": 37,
+        "mae_vnd": 1302884398.8558557,
+        "mape_percent": 35.5757304332897
+      },
+      {
+        "city": "Bắc Ninh",
+        "count": 30,
+        "mae_vnd": 1109186649.6780145,
+        "mape_percent": 29.910233873780413
+      }
+    ],
+    "config": {},
+    "evaluated_at": "2026-09-29T16:28:41.112142+00:00",
+    "artifact_sha256": "5889539eb5fa50000444d3de0f6932293ebd51b20a1cf7123c1e73ee48f3da35"
+  }
+]

@@ -1,16 +1,24 @@
-"""Băm mật khẩu và cấp JWT.
-
-Chú ý về bcrypt: thuật toán chỉ nhận tối đa 72 byte. Mật khẩu tiếng Việt có dấu
-tốn 2-3 byte mỗi ký tự, nên phải cắt trước khi băm, nếu không sẽ ném ValueError.
-(Không dùng passlib vì passlib 1.7.4 xung đột với bcrypt >= 4.1.)
-"""
+"""Băm SHA-256 trước bcrypt để giữ toàn bộ mật khẩu Unicode; hỗ trợ hash cũ khi đăng nhập."""
 import os
+import secrets
+import hashlib
+from pathlib import Path
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
 from jose import jwt, JWTError
 
-SECRET = os.getenv("JWT_SECRET", "dev-secret-doi-truoc-khi-deploy")
+def local_secret():
+    value = os.getenv("JWT_SECRET")
+    if value: return value
+    path = Path(__file__).resolve().parent / ".jwt-secret"
+    try:
+        with path.open("x", encoding="utf-8") as out: out.write(secrets.token_urlsafe(48))
+    except FileExistsError:
+        pass
+    return path.read_text(encoding="utf-8").strip()
+
+SECRET = local_secret()
 ALGO = "HS256"
 EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "60"))
 
@@ -22,11 +30,14 @@ def _to_bytes(password: str) -> bytes:
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(_to_bytes(password), bcrypt.gensalt()).decode()
+    digest = hashlib.sha256(password.encode("utf-8")).hexdigest().encode()
+    return "sha256$" + bcrypt.hashpw(digest, bcrypt.gensalt()).decode()
 
 
 def verify_password(password: str, hashed: str) -> bool:
     try:
+        if hashed.startswith("sha256$"):
+            return bcrypt.checkpw(hashlib.sha256(password.encode("utf-8")).hexdigest().encode(), hashed[7:].encode())
         return bcrypt.checkpw(_to_bytes(password), hashed.encode())
     except ValueError:
         return False

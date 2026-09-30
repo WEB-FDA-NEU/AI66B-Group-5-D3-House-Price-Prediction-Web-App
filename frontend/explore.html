@@ -1,0 +1,17 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="css/reset.css"><link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/design.css"><link rel="stylesheet" href="css/experience.css"><link rel="icon" href="img/favicon.svg" type="image/svg+xml"><title>Bản đồ bất động sản — HomeVal</title><link rel="stylesheet" href="css/ux.css"></head><body class="explore-page"><site-header active="explore"></site-header><main id="main-content" class="container page">
+<div class="explore-heading"><div><p class="eyebrow">LOCATION INTELLIGENCE</p><h1>Một bản đồ. Nhiều góc nhìn.</h1><p>Thu phóng, khám phá và chọn bất động sản để bắt đầu định giá.</p></div><a class="btn" href="predict.html">Nhập thông tin thủ công ↗</a></div>
+<div class="demo-notice"><span class="pill">DEMO</span><p>Sơ đồ và tin đăng giả lập, không phải bản đồ địa chính. Kết nối dữ liệu Batdongsan.com.vn nằm trong lộ trình phát triển.</p></div>
+<div class="map-toolbar"><label><span>Khu vực</span><select id="map-district" class="select"><option value="">Tất cả khu vực</option><option>Thủ Đức</option><option>Bình Thạnh</option><option>Quận 7</option><option>Quận 1</option></select></label><label><span>Loại hình</span><select id="map-type" class="select"><option value="">Tất cả loại hình</option><option>Nhà phố</option><option>Căn hộ</option><option>Biệt thự</option><option>Đất nền</option><option>Thửa đất</option></select></label><div class="map-toolbar-meta"><span class="status-dot"></span> Bộ dữ liệu mẫu · 12 tài sản</div></div>
+<div class="map-workspace">
+<section class="map-canvas" aria-label="Bản đồ minh họa">
+<svg id="property-map" viewBox="0 0 1200 800" tabindex="0" role="group" aria-label="Sơ đồ bất động sản. Dùng phím mũi tên để di chuyển, cộng trừ để thu phóng."><image href="img/district-map.svg" width="1200" height="800"/><g id="map-pins"></g></svg>
+<div class="map-legend"><i></i> Nhà ở <i></i> Đất nền / thửa đất</div>
+<div class="map-controls"><button id="zoom-in" aria-label="Phóng to">+</button><button id="zoom-out" aria-label="Thu nhỏ">−</button><button id="map-reset" aria-label="Đặt lại bản đồ">⌖</button></div>
+<div class="map-navigation"><button data-pan="left" aria-label="Dịch bản đồ sang trái">←</button><button data-pan="up" aria-label="Dịch bản đồ lên trên">↑</button><button data-pan="down" aria-label="Dịch bản đồ xuống dưới">↓</button><button data-pan="right" aria-label="Dịch bản đồ sang phải">→</button></div>
+<div class="map-scale"><span id="zoom-label">1.0×</span> · SƠ ĐỒ MINH HỌA, KHÔNG THEO TỶ LỆ</div>
+</section>
+<aside class="map-results"><div class="map-results-heading"><h2>Trong vùng bản đồ</h2><p id="map-count" role="status" aria-live="polite">Đang tải dữ liệu mẫu…</p></div><div id="map-list"></div><div id="map-selection" hidden></div></aside>
+</div>
+<p class="map-instructions">Kéo để di chuyển · Nút +/− để thu phóng · Bàn phím: mũi tên và +/− · Chọn nhãn giá hoặc một thẻ để xem thông tin.</p>
+<div class="roadmap-inline"><span>TIẾP THEO</span><p>Kết nối nguồn tin được cấp quyền → tải dữ liệu theo vùng bản đồ → đối chiếu nhiều mô hình.</p><a href="premium.html#roadmap">Xem lộ trình ↗</a></div>
+</main><site-footer></site-footer><script type="module" src="js/pages/explore.js"></script></body></html>

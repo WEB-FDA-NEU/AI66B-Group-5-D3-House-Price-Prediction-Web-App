@@ -7,6 +7,7 @@
 // ============================================================
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
 import { getToken, getUser } from './auth.js';
+import { isLand } from './property.js';
 
 export class ApiError extends Error {
   constructor(status, detail) {
@@ -27,7 +28,7 @@ async function request(url, options = {}) {
 
   let res;
   try {
-    res = await fetch(url, { ...options, headers });
+    res = await fetch(url, { signal: AbortSignal.timeout(15000), ...options, headers });
   } catch {
     throw new ApiError(0, 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
   }
@@ -214,16 +215,42 @@ export function getModelInfo() {
 
 export function createPrediction(input) {
   if (USE_MOCK) {
+    if (isLand(input.property_type)) {
+      // An explicit demo formula, not a trained model or market valuation.
+      const rate = { 'Thủ Đức': 42000000, 'Bình Thạnh': 62000000, 'Quận 7': 51000000, 'Quận 1': 95000000 }[input.district] || 42000000;
+      const estimate = Math.round(rate * input.area_m2 * (input.land_use === 'Đất nông nghiệp' ? 0.3 : 1));
+      return Promise.resolve({
+        id: `draft-${Date.now()}`, estimated_price: estimate, currency: 'VND',
+        confidence_interval: { lower: Math.round(estimate * 0.8), upper: Math.round(estimate * 1.2) },
+        model: { version: 'land-demo-0.1', algorithm: 'Công thức minh họa đất nền' },
+        input: { ...input }, is_mock: true, created_at: new Date().toISOString(),
+        disclaimer: 'Dữ liệu đất mô phỏng; khoảng giá là giả lập, chưa được kiểm định và không xác minh pháp lý/quy hoạch.',
+      });
+    }
     return getMock('prediction-result').then(result => ({
       ...result,
       id: `draft-${Date.now()}`,
-      input: { ...result.input, ...input },
+      input: { ...input },
       created_at: new Date().toISOString(),
       is_mock: true,
     }));
   }
   return request(`${API_BASE}/predictions`, { method: 'POST', body: input });
 }
+
+export async function getMapListings() {
+  if (!USE_MOCK) return request(`${API_BASE}/map-listings`);
+  return getMock('map-listings');
+}
+
+// Live APIs: entitlements are enforced on the server.
+export const getModels = () => request(`${API_BASE}/models`);
+export const getLocations = () => request(`${API_BASE}/locations`);
+export const getEntitlements = () => request(`${API_BASE}/me/entitlements`);
+export const startCheckout = () => request(`${API_BASE}/billing/checkout`, { method: 'POST', body: { plan: 'premium-monthly' } });
+export const completeCheckout = (id, outcome) => request(`${API_BASE}/billing/checkout/${encodeURIComponent(id)}/complete`, { method: 'POST', body: { outcome } });
+export const startTraining = config => request(`${API_BASE}/admin/training`, { method: 'POST', body: config });
+export const getTrainingJob = id => request(`${API_BASE}/admin/training/${encodeURIComponent(id)}`);
 
 export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
