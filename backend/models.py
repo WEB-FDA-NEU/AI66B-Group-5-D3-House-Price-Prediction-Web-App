@@ -100,7 +100,7 @@ class Subscription(Base):
     source: Mapped[str] = mapped_column(String(30), default="sandbox")
 
     # ─────────────────────────────────────────────────────────────────
-    #  TODO — NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
+    #  TODO - NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
     #  ghế · phòng · khung giờ · tồn kho · slot duy nhất
     #
     #  Ràng buộc chống trùng PHẢI đặt ở database, không phải câu if trong Python:

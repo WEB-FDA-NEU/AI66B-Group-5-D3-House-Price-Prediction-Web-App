@@ -1,5 +1,10 @@
 # Milestone 2 handoff verification
 
+Historical baseline report. PR #69 subsequently fixes guest result access,
+saved interval/disclaimer display, navigation guards and template copy.
+The updated README describes that integration review copy, not this older
+snapshot alone. See PR #69's `docs/m2-integration-qa.md` for current checks.
+
 Application snapshot: `d3bc1a1` (merged PRs #66 and #67). This document records
 frontend-only verification. No backend service or model inference is required.
 

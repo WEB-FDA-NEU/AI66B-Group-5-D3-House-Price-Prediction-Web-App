@@ -1,7 +1,7 @@
 // ============================================================
 //  Ba trạng thái mọi màn hình có danh sách đều phải có:
 //  đang tải · rỗng · lỗi.
-//  Mốc 1 đã bắt các em mô tả empty state — đây là chỗ nó thành code.
+//  Mốc 1 đã bắt các em mô tả empty state - đây là chỗ nó thành code.
 // ============================================================
 
 export function showSkeleton(container, count = 6) {
