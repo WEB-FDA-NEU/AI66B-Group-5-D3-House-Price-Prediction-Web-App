@@ -6,8 +6,14 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 5
+    "status": "Done",
+    "estimate": 5,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   },
   {
     "number": 27,
@@ -16,8 +22,14 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 5
+    "status": "Done",
+    "estimate": 5,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   },
   {
     "number": 31,
@@ -26,8 +38,14 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 1
+    "status": "Done",
+    "estimate": 1,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   },
   {
     "number": 40,
@@ -36,8 +54,14 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 3
+    "status": "Done",
+    "estimate": 3,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   },
   {
     "number": 42,
@@ -46,8 +70,14 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 3
+    "status": "Done",
+    "estimate": 3,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   },
   {
     "number": 48,
@@ -56,7 +86,13 @@
       "bianh13"
     ],
     "sprint": "Sprint 2",
-    "status": "In progress",
-    "estimate": 3
+    "status": "Done",
+    "estimate": 3,
+    "state": "CLOSED",
+    "state_reason": "COMPLETED",
+    "status_label": "status:done",
+    "reviewed_by": "nguyentue110",
+    "pull_request": "https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74",
+    "main_commit": "f48dfc3f6896c2b419b6f2bc751d477f11d6e373"
   }
 ]
