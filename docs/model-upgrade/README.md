@@ -4,6 +4,8 @@ Bản nâng cấp để team chạy và review từ mã nguồn. Các ZIP và b�
 
 ## Bàn giao GitHub
 
+Xem [báo cáo rà soát toàn bộ 51 issue ngày 01/10/2026](../project-audit/README.md) để biết trạng thái hiện tại của toàn dự án.
+
 Đã chuyển assignee sang **bianh13** cho các issue
 [#10](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/10),
 [#27](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/27),
