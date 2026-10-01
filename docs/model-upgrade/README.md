@@ -13,11 +13,22 @@ Bản nâng cấp để team chạy và review từ mã nguồn. Các ZIP và b�
 [#48](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/48).
 Riêng #31 và #48 chuyển kế hoạch từ Sprint 3 sang Sprint 2; đồng bộ tiêu đề, body, label và trường Sprint trên Project.
 
-Tất cả giữ OPEN / In progress trong lúc team review; board không có trạng thái Review.
+Sáu issue trên đã **Closed / Completed**, có label `status:done` và trạng thái **Done** trên Project.
+[PR #74](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/pull/74) được `nguyentue110` approve và `bianh13` merge.
+Commit trên `main`: [f48dfc3](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/commit/f48dfc3f6896c2b419b6f2bc751d477f11d6e373).
+Lần sửa thông điệp merge giữ nguyên mã nguồn đã được review.
+
+Bằng chứng: 6 kiểm thử backend đã qua sau tích hợp main; 14 luồng mô hình và 10 luồng UX
+được ghi trong các báo cáo bàn giao. Các issue đã liên kết PR, mã nguồn và báo cáo tương ứng.
+Issue #10 dùng tiêu chí của bản nâng cấp đã được yêu cầu và review: dự đoán thật qua backend,
+khách chưa đăng nhập vẫn xem được kết quả. Tiêu chí mock-only của M2 được thay thế cho luồng này.
+
 Giữ nguyên estimate, priority và credit của các PR cũ; không sửa các issue Sprint 1 đã đóng.
-Body từng issue ghi rõ file local tương ứng và chưa có commit/PR cho bản nâng cấp.
-Issue #10 còn cần nhóm xác nhận lại tiêu chí mock-only của M2 vì luồng dự đoán đã chuyển sang backend thật.
-Kết quả kiểm tra lại project nằm trong `github-handoff.json`.
+Kết quả đồng bộ project nằm trong `github-handoff.json`.
+
+Các việc chưa triển khai vẫn ở Sprint 3: [#49 — xuất CSV](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/49)
+và [#50 — đổi quyền admin](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/issues/50). Dữ liệu thửa đất và API thị trường trực tiếp
+cũng chưa có trong bản này; bản đồ hiện tại là dữ liệu minh họa.
 
 ## Chạy và kiểm tra
 
