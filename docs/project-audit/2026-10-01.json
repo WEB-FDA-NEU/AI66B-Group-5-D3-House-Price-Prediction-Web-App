@@ -1,0 +1,1341 @@
+{
+  "date": "2026-10-01",
+  "source_commit": "261eef2e8bd31317003cefdccbf49688a245c138",
+  "records": [
+    {
+      "number": 1,
+      "title": "FE-01 Home, About and shared layout/CSS (8 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "hai291"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress"
+      ],
+      "finding": "Public pages and shared design are implemented, but the original scope includes a home-page model-accuracy summary; current home links to metrics instead of loading them.",
+      "files": [
+        "frontend/index.html",
+        "frontend/js/pages/home.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "hai291"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 2,
+      "title": "FE-04 Prediction form, validation and result (8 pts) - Sprint 2",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "VuSiSi"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:in-progress",
+        "sprint-2"
+      ],
+      "finding": "Guest prediction, result and validation are implemented. The full original form/quota-state scope is not complete; the current upgrade requires the backend.",
+      "files": [
+        "frontend/predict.html",
+        "frontend/js/pages/predict.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "VuSiSi"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 3,
+      "title": "FE-06 Charts, Compare and Market Insights (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "sprint-2"
+      ],
+      "finding": "Feature-contribution charts, market insights and saved-estimate comparison are absent. Premium model comparison is a different feature.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 4,
+      "title": "FE-05 Profile and My Predictions (8 pts) - Sprint 2",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "sprint-2"
+      ],
+      "finding": "Profile name/phone/password and saved-result flows work. Email editing, account deletion, complete history controls and saved-estimate comparison remain missing.",
+      "files": [
+        "frontend/js/pages/profile.js",
+        "frontend/js/pages/predictions.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 5,
+      "title": "FE-07 Admin screens and error pages (13 pts) - Sprint 2",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "sprint-2"
+      ],
+      "finding": "Dashboard, model training/list/publication/archive and error pages exist. Dataset CSV upload/preview and user-management screens are missing.",
+      "files": [
+        "frontend/admin.html",
+        "frontend/admin-models-new.html",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 6,
+      "title": "FE-03 Login and Register (5 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress"
+      ],
+      "finding": "Registration/login work, but the larger epic also requires a password-strength indicator and terms checkbox, neither present in the registration form.",
+      "files": [
+        "frontend/register.html",
+        "frontend/js/pages/register.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 7,
+      "title": "FE-08 Frontend integration and mock API boundary (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:done"
+      ],
+      "finding": "Shared API adapter and integrated auth/prediction/history flows; legacy mock adapters remain available.",
+      "files": [
+        "frontend/js/api.js",
+        "frontend/js/auth.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 8,
+      "title": "FE-09 Responsive QA and release checklist (5 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:review"
+      ],
+      "finding": "Published browser QA exists. The issue still records unchecked release/ZIP reviewer sign-off and accessibility/contribution checklist items; completion of those cannot be inferred from a general PR approval.",
+      "files": [
+        "docs/m2-verification.md",
+        "docs/m2-integration-qa.md"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 9,
+      "title": "[GU-1] Browse the HomeVal home page with product explanation, live model accuracy, and estimate CTA (3 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "hai291"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Home explanation and estimate CTA work. Live model accuracy is not loaded on the home page; metrics are available on About the Model.",
+      "files": [
+        "frontend/index.html",
+        "frontend/js/pages/home.js",
+        "frontend/js/pages/about-model.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "hai291"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 10,
+      "title": "[GU-2] Run a house price prediction without an account from the property form (5 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "P0",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "Guest inference through the real backend, without requiring an account.",
+      "files": [
+        "frontend/js/pages/predict.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 11,
+      "title": "[GU-3] Show predicted price, confidence interval, and model version (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "VuSiSi"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "P0",
+        "status:done"
+      ],
+      "finding": "Result displays estimated price, interval, model version, inputs and disclaimer.",
+      "files": [
+        "frontend/js/pages/predict-result.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 12,
+      "title": "[GU-5] Show About the Model with dataset, features, algorithm, metrics, limitations, and disclaimer (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "hai291"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Model catalog explains dataset, inputs, metrics, strengths, weaknesses and limitations.",
+      "files": [
+        "frontend/about-model.html",
+        "frontend/js/pages/about-model.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 13,
+      "title": "[GU-8] Register a new account and log in to an existing account (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Registration and login use the real authentication API and persisted users.",
+      "files": [
+        "frontend/js/pages/register.js",
+        "frontend/js/pages/login.js",
+        "backend/routers/auth.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 14,
+      "title": "[GU-9] Show guest restrictions and the five-predictions-per-rolling-day quota state (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "VuSiSi"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P0",
+        "sprint-2"
+      ],
+      "finding": "No rolling five-predictions/day guest quota enforcement or matching UI.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "VuSiSi"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 15,
+      "title": "[US-1] Save an estimate with an optional label (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Save an estimate with an optional label; ownership and result signature are checked.",
+      "files": [
+        "frontend/js/pages/predict-result.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 16,
+      "title": "[US-2] View the complete saved prediction history as a list (5 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "History lists saved estimates, but the UI requests only 50 rows and has no pagination controls, so it cannot show a complete history above that size.",
+      "files": [
+        "frontend/js/pages/predictions.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 17,
+      "title": "[US-4] Open a saved prediction detail with input snapshot and model version (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Saved detail displays input snapshot, interval, disclaimer and model version.",
+      "files": [
+        "frontend/js/pages/detail.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 18,
+      "title": "[US-5] Delete a saved estimate through a confirmation step (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Saved-estimate removal requires confirmation; the backend enforces ownership.",
+      "files": [
+        "frontend/js/pages/predictions.js",
+        "frontend/js/pages/detail.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 19,
+      "title": "[US-10] Edit profile display name and email address (3 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Profile updates display name and phone only; editing email is not implemented in the form or update schema/API.",
+      "files": [
+        "frontend/js/pages/profile.js",
+        "backend/schemas.py",
+        "backend/routers/auth.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 20,
+      "title": "[US-11] Change the account password (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Password change verifies the current password and stores a new password hash.",
+      "files": [
+        "frontend/js/pages/profile.js",
+        "backend/routers/auth.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 21,
+      "title": "[US-14] Show the registered-user quota of 100 predictions per day (2 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P0",
+        "sprint-2"
+      ],
+      "finding": "No registered-user quota of 100 predictions/day.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 22,
+      "title": "[AD-1] Admin dashboard with users, prediction counts, active model, and API errors (3 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "P0",
+        "status:done"
+      ],
+      "finding": "Dashboard shows user/prediction/model counts and recent activity; API-error statistics in the issue title are not implemented.",
+      "files": [
+        "frontend/js/pages/admin.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 23,
+      "title": "[AD-2] Admin list of model versions with algorithm, dataset, metrics, date, and state (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "P0",
+        "status:done"
+      ],
+      "finding": "Admin model list shows algorithm, dataset, measured metrics, date and state.",
+      "files": [
+        "frontend/js/pages/admin-models.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 24,
+      "title": "[AD-3] Admin upload form for a model version with metrics and smoke-test state (5 pts) - Sprint 1",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "P0",
+        "status:done"
+      ],
+      "finding": "The old upload screen has been replaced by the requested admin training workflow. Arbitrary model-file upload and its smoke-test/rejection states are not implemented by that replacement.",
+      "files": [
+        "frontend/admin-models-new.html",
+        "frontend/js/pages/admin-models-new.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 25,
+      "title": "[AD-4] Admin activate or roll back one live model version with conflict state (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "P0",
+        "status:done"
+      ],
+      "finding": "Admin can publish a validated version or reactivate an archived version. The reviewed multi-model upgrade keeps one Active version per algorithm, not one globally; the current Free model is protected from archival until replaced.",
+      "files": [
+        "frontend/js/pages/admin-models.js",
+        "backend/routers/homeval.py",
+        "backend/tests/test_homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 26,
+      "title": "[SY-1] Responsive layout for desktop and phone (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "hai291"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Responsive desktop/mobile layouts and reduced-motion behavior have published QA evidence.",
+      "files": [
+        "docs/model-upgrade/browser-smoke.json",
+        "docs/model-upgrade/workflow-checks.json",
+        "docs/ux-polish/checks.json"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 27,
+      "title": "[SY-2] Browser validation plus server-authoritative validation feedback (5 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "P0",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "Browser validation and authoritative API validation cover location, numbers, rooms and rejected extra parameters.",
+      "files": [
+        "frontend/js/pages/predict.js",
+        "backend/routers/homeval.py",
+        "backend/tests/test_homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 28,
+      "title": "[SY-3] Authentication UI and protected-route states for user and admin areas (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "User/admin route guards and backend role/ownership checks protect the relevant actions.",
+      "files": [
+        "frontend/js/auth.js",
+        "backend/deps.py",
+        "backend/tests/test_homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 29,
+      "title": "[SY-4] Dedicated 404 and 500 pages reachable from failures (3 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "404/500 pages have recovery links; detail failures route to 404 and dashboard failures link to 500.",
+      "files": [
+        "frontend/404.html",
+        "frontend/500.html",
+        "frontend/js/pages/detail.js",
+        "frontend/js/pages/admin.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 30,
+      "title": "[SY-5] Explicit empty state on every list screen (2 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "hai291"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "Implemented list surfaces have explicit empty states: history, admin models/activity, model catalog and map results. Future user/report lists are separate unfinished issues.",
+      "files": [
+        "frontend/js/pages/predictions.js",
+        "frontend/js/pages/admin-models.js",
+        "frontend/js/pages/admin.js",
+        "frontend/js/model-catalog.js",
+        "frontend/js/pages/explore.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    },
+    {
+      "number": 31,
+      "title": "[SY-7] FastAPI generated API documentation at /docs (1 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "backend",
+        "P0",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "FastAPI exposes the implemented routes and schemas through /docs and /openapi.json.",
+      "files": [
+        "backend/main.py",
+        "backend/tests/test_homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 32,
+      "title": "[GU-4] Feature-importance chart explaining which inputs moved the estimate (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No feature-importance/contribution chart for an individual estimate.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 33,
+      "title": "[GU-6] Market Insights charts for district averages, price per square metre, and area (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No market-insights screen with the requested aggregate charts.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 34,
+      "title": "[US-3] Search, filter, sort, and paginate prediction history (3 pts) - Sprint 2",
+      "audit_status": "partial_or_unverified",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "Search and backend pagination exist. The history UI lacks filters, sort and pagination controls.",
+      "files": [
+        "frontend/js/pages/predictions.js",
+        "backend/routers/homeval.py"
+      ],
+      "github_state": "OPEN",
+      "project_status": "In progress",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 35,
+      "title": "[US-6] Re-run a saved estimate against the active model and show the change (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No saved-estimate rerun action that shows change against the active model.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 36,
+      "title": "[US-7] Compare two or three saved estimates side by side (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No side-by-side comparison of two or three saved estimates.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 37,
+      "title": "[US-9] Report a wrong estimate with expected price and comment (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "VuSiSi"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No wrong-estimate report form or backend route.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "VuSiSi"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 38,
+      "title": "[US-12] Forgot-password and reset-password screens (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No forgot/reset-password flow.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 39,
+      "title": "[US-13] Delete the account and all saved estimates with confirmation (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "pham-ha-gif"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No account deletion route or confirmation workflow.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "pham-ha-gif"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 40,
+      "title": "[AD-5] Archive a model version from model management (3 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "P1",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "Archive is persisted, archived versions leave inference, and the current Free model is protected.",
+      "files": [
+        "backend/routers/homeval.py",
+        "backend/tests/test_homeval.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 41,
+      "title": "[AD-6] Upload a CSV training dataset with column validation and preview (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No CSV dataset upload with column validation and preview; downloading a fixed Kaggle CSV is not this feature.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 42,
+      "title": "[AD-7] Show dataset statistics and model-to-dataset links (3 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "P1",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "Dataset statistics, missingness, grouped split sizes and model provenance/hash links are available.",
+      "files": [
+        "frontend/js/pages/admin-models-new.js",
+        "frontend/js/pages/admin-models.js",
+        "backend/ml.py"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 43,
+      "title": "[AD-8] List and search users with prediction counts (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No user list/search screen with prediction counts.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 44,
+      "title": "[AD-10] Deactivate a user account with confirmation (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No user deactivation flow.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 45,
+      "title": "[AD-11] Review wrong-estimate reports submitted by users (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No admin wrong-estimate report review.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 46,
+      "title": "[AD-12] Close a wrong-estimate report with an admin note (3 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No report closure with administrator note.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 47,
+      "title": "[SY-6] Rate limiting on the prediction endpoint (5 pts) - Sprint 2",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "VuSiSi"
+      ],
+      "labels_before": [
+        "backend",
+        "status:todo",
+        "P1",
+        "sprint-2"
+      ],
+      "finding": "No prediction-endpoint rate limiter.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "VuSiSi"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 48,
+      "title": "[GU-7] How It Works and FAQ page (3 pts) - Sprint 2",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "P2",
+        "sprint-2",
+        "status:done"
+      ],
+      "finding": "The static How It Works and FAQ page explains inference, Premium, sandbox payment and data limitations.",
+      "files": [
+        "frontend/how-it-works.html",
+        "frontend/js/components/site-footer.js"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 2"
+    },
+    {
+      "number": 49,
+      "title": "[US-8] Export history or one prediction to CSV (3 pts) - Sprint 3",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P2",
+        "sprint-3"
+      ],
+      "finding": "No CSV export flow.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 3"
+    },
+    {
+      "number": 50,
+      "title": "[AD-9] Promote or demote a user administrator role (3 pts) - Sprint 3",
+      "audit_status": "not_implemented",
+      "github_state_before": "OPEN",
+      "assignees_before": [
+        "nguyentue110"
+      ],
+      "labels_before": [
+        "frontend",
+        "status:todo",
+        "P2",
+        "sprint-3"
+      ],
+      "finding": "No administrator promotion/demotion workflow.",
+      "files": [
+        "backend/routers/homeval.py",
+        "frontend/js/api.js"
+      ],
+      "github_state": "OPEN",
+      "project_status": "Todo",
+      "assignees": [
+        "nguyentue110"
+      ],
+      "sprint": "Sprint 3"
+    },
+    {
+      "number": 51,
+      "title": "FE-02 Frontend routing, mock data and API adapter (5 pts) - Sprint 1",
+      "audit_status": "completed",
+      "github_state_before": "CLOSED",
+      "assignees_before": [
+        "bianh13"
+      ],
+      "labels_before": [
+        "frontend",
+        "sprint-1",
+        "status:in-progress",
+        "P0"
+      ],
+      "finding": "The shared legacy mock/API contract and fixtures were merged in PR #60; current API integration remains in the same adapter.",
+      "files": [
+        "frontend/js/api.js",
+        "frontend/mock/prediction-result.json",
+        "docs/m2-verification.md"
+      ],
+      "github_state": "CLOSED",
+      "project_status": "Done",
+      "assignees": [
+        "bianh13"
+      ],
+      "sprint": "Sprint 1"
+    }
+  ]
+}
