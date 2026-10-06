@@ -1,25 +1,47 @@
 ﻿import { getEntitlements, startCheckout, completeCheckout } from '../api.js';
-import { isLoggedIn, requireLogin } from '../auth.js';
+import { isLoggedIn, requireLogin, clearSession } from '../auth.js';
 import { loadCatalog } from '../model-catalog.js';
 import { toast } from '../ui.js';
 const button = document.getElementById('checkout-button');
 const status = document.getElementById('membership-status');
+const retry = document.getElementById('membership-retry');
 const dialog = document.getElementById('checkout-dialog');
 const checkoutStatus = document.getElementById('checkout-status');
 let checkout;
 loadCatalog(document.getElementById('model-catalog')).catch(() => {});
 async function refreshMembership() {
+  retry.hidden = true;
+  delete button.dataset.active;
+  button.textContent = 'Thử thanh toán & mở Premium ↗';
+  button.disabled = false;
   if (!isLoggedIn()) { status.textContent = 'Bạn đang dùng Free. Đăng nhập để thử thanh toán và lưu quyền Premium.'; return; }
+  button.disabled = true;
+  status.textContent = 'Đang kiểm tra gói của bạn…';
   try {
     const access = await getEntitlements();
+    button.disabled = false;
     if (access.plan === 'premium') {
       status.textContent = access.role === 'admin' ? 'Tài khoản admin có quyền sử dụng tất cả mô hình.' : 'Premium đã mở · Hết hạn: ' + new Date(access.expires_at).toLocaleString('vi-VN');
       button.textContent = 'Premium đã mở · Đi đến định giá ↗'; button.dataset.active = 'true';
     } else { status.textContent = 'Gói hiện tại: Free. Bạn có thể thử giao dịch bên dưới.'; delete button.dataset.active; }
     if (!access.sandbox && access.plan !== 'premium') { button.disabled = true; status.textContent += ' Thanh toán thử nghiệm đang tắt.'; }
-  } catch (error) { status.textContent = error.detail || 'Không kiểm tra được gói.'; button.disabled = true; }
+  } catch (error) {
+    if (error.status === 401) {
+      clearSession();
+      status.textContent = 'Phiên đăng nhập đã hết hạn. Đăng nhập lại để kiểm tra gói của bạn.';
+      button.textContent = 'Đăng nhập để tiếp tục ↗';
+      button.disabled = false;
+    } else {
+      status.textContent = error.status === 0
+        ? 'Chưa kết nối được máy chủ HomeVal để kiểm tra gói. Bạn có thể thử kết nối lại.'
+        : error.detail || 'Không kiểm tra được gói. Vui lòng thử lại.';
+      button.disabled = true;
+      retry.hidden = false;
+    }
+  }
 }
 refreshMembership();
+retry.addEventListener('click', refreshMembership);
 button.addEventListener('click', async () => {
   if (!isLoggedIn()) { requireLogin(); return; }
   if (button.dataset.active) { location.href = 'predict.html'; return; }
