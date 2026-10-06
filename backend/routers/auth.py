@@ -52,8 +52,17 @@ def update_profile(
     user: User = Depends(get_current_user),
 ):
     user.display_name = payload.display_name
+    if payload.email.lower() != user.email.lower():
+        existing = db.scalar(select(User).where(User.email == payload.email.lower()))
+        if existing is not None:
+            raise HTTPException(409, "Email này đã được đăng ký.")
+        user.email = payload.email.lower()
     user.phone = payload.phone
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Email này đã được đăng ký.")
     db.refresh(user)
     return user
 

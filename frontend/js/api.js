@@ -494,6 +494,13 @@ export function updateProfile(payload) {
     const user = getUser();
     if (!user) return Promise.reject(new ApiError(401, 'Bạn cần đăng nhập để tiếp tục.'));
     const updated = { ...user, ...payload };
+    const normalizedEmail = payload.email?.trim().toLowerCase();
+    if (normalizedEmail && normalizedEmail !== user.email?.toLowerCase()) {
+      const users = await getMockUsers();
+      if (users.items.some(entry => entry.id !== user.id && entry.email.toLowerCase() === normalizedEmail))
+        return Promise.reject(new ApiError(409, 'Email này đã được đăng ký.'));
+      updated.email = normalizedEmail;
+    }
     const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
     overrides[user.id] = { ...overrides[user.id], ...payload };
     localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
