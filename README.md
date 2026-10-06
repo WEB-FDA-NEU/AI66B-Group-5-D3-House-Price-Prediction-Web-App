@@ -10,12 +10,12 @@ python backend/bootstrap.py
 python backend/run.py
 ```
 
-Mở **http://127.0.0.1:8000**. Khi clone mới, chạy đủ bốn lệnh trên để tải dataset và tạo mô hình local.
+Mở **<http://127.0.0.1:8000>**. Khi clone mới, chạy đủ bốn lệnh trên để tải dataset và tạo mô hình local.
 Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối để mở ứng dụng.
 
 - Tài khoản thường: `anh@example.com` / `password123`.
 - Admin local: `admin@homeval.vn` / `admin123`.
-- API docs: http://127.0.0.1:8000/docs.
+- API docs: <http://127.0.0.1:8000/docs>.
 - [Hướng dẫn kiểm tra, sai số và giới hạn](docs/model-upgrade/README.md).
 - [Bản tối ưu UX: quận/huyện, Premium tại chỗ, chuyển động](docs/ux-polish/README.md).
 
@@ -27,7 +27,7 @@ Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối đ�
 Nội dung dưới đây được giữ để bảo toàn lịch sử đóng góp; không mô tả backend mới.
 
 > **Giao diện mới:** chạy `node scripts/preview.mjs` từ thư mục gốc, rồi mở
-> http://127.0.0.1:4173. Mã nguồn mới nằm trong `frontend/`.
+> <http://127.0.0.1:4173>. Mã nguồn mới nằm trong `frontend/`.
 > Xem [bản V2: giao diện, bản đồ, Premium và đất nền](docs/redesign-v2/README.md).
 > Các phần bên dưới mô tả bản nộp Milestone 2 trước khi thiết kế lại;
 > các ZIP/bản đóng gói cũ chưa được tạo lại.

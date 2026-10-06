@@ -30,5 +30,7 @@
     { "name": "Loại hình", "impact": 0.17 },
     { "name": "Số phòng ngủ", "impact": 0.08 }
   ],
-  "created_at": "2026-09-27T09:30:00Z"
+  "created_at": "2026-09-27T09:30:00Z",
+  "low_confidence": false,
+  "disclaimer": "Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp."
 }

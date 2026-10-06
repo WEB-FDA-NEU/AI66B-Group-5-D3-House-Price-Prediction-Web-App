@@ -24,10 +24,16 @@
       <p class="result-summary__price" id="estimated-price"></p>
       <p id="confidence-interval"></p>
       <p class="field__hint" id="model-version"></p>
+      <p class="alert alert--error" id="low-confidence" role="alert" hidden></p>
     </section>
     <section>
       <h2>Thông tin bất động sản</h2>
       <dl class="facts" id="input-summary"></dl>
+    </section>
+    <!--Placeholder for feature importance chart-->
+    <section id="feature-importance">
+      <h2>Các yếu tố ảnh hưởng đến dự đoán</h2>
+      <p class=""field__hint">Biểu đồ mức độ ảnh hưởng của từng yếu tố sẽ được bổ sung ở phiên bản sau</p>
     </section>
     <form id="save-form" class="save-prediction" hidden>
       <label class="field__label" for="label">Tên gợi nhớ (không bắt buộc)</label>

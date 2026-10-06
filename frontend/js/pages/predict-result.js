@@ -1,3 +1,4 @@
+import { predictionDisclaimer } from '../prediction-summary.js';
 import { el, money } from '../model-catalog.js';
 import { savePrediction, getModels, getEntitlements, createPrediction } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
@@ -26,11 +27,17 @@ if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
     `Model ${draft.model.version} - ${draft.model.algorithm}`;
 
   if (isLand(draft.input.property_type)) document.querySelector('h1').textContent = 'Giá đất ước tính';
-  if (draft.disclaimer) {
-    const note = document.createElement('p');
-    note.className = 'field__hint';
-    note.textContent = draft.disclaimer;
-    document.querySelector('.result-summary').append(note);
+ // BR-9: luôn hiện disclaimer; server không trả thì dùng câu mặc định.
+  const note = document.createElement('p');
+  note.className = 'field__hint';
+  note.textContent = draft.disclaimer || predictionDisclaimer;
+  document.querySelector('.result-summary').append(note);
+
+  // BR-8: ngoài vùng dữ liệu huấn luyện thì cảnh báo, không giấu đi.
+  if (draft.low_confidence) {
+    const warn = document.getElementById('low-confidence');
+    warn.textContent = 'Độ tin cậy thấp: thông tin nhập nằm ngoài vùng dữ liệu mô hình đã học. Khoảng giá đã được nới rộng, hãy dùng kết quả rất thận trọng.';
+    warn.hidden = false;
   }
   const fields = propertyFacts(draft.input);
   const summary = document.getElementById('input-summary');
