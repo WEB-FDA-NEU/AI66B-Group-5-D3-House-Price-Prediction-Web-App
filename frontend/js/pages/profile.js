@@ -18,6 +18,7 @@ const passwordForm = document.getElementById('password-form');
 const me = getUser();
 if (me) {
   profileForm.display_name.value = me.display_name ?? '';
+  profileForm.email.value = me.email ?? '';
   profileForm.phone.value = me.phone ?? '';
 }
 
@@ -30,12 +31,17 @@ profileForm.addEventListener('submit', async e => {
     setFieldError(profileForm.display_name, 'Tên tối thiểu 2 ký tự.');
     return;
   }
+  if (!profileForm.email.validity.valid) {
+    setFieldError(profileForm.email, 'Vui lòng nhập email hợp lệ.');
+    return;
+  }
 
   const btn = profileForm.querySelector('button[type=submit]');
   btn.disabled = true;
   try {
     const user = await updateProfile({
       display_name: profileForm.display_name.value.trim(),
+      email: profileForm.email.value.trim().toLowerCase(),
       phone: profileForm.phone.value.trim(),
     });
     // Cập nhật lại session để header hiện đúng tên mới ngay lập tức

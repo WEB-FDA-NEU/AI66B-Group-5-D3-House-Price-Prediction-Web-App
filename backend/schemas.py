@@ -80,6 +80,7 @@ class TokenOut(BaseModel):
 class ProfileUpdateIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
     display_name: str = Field(min_length=2, max_length=80)
+    email: EmailStr
     phone: str = Field(default="", max_length=20)
 
 
