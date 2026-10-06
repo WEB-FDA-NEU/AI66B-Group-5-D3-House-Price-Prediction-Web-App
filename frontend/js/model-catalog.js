@@ -23,6 +23,17 @@ export async function loadCatalog(target) {
     const data = await getModels(); target.replaceChildren(...data.items.map(modelCard));
     if (!data.items.length) target.append(el('p', 'Admin chưa phát hành mô hình. Vui lòng quay lại sau.'));
     return data;
-  } catch (error) { target.replaceChildren(el('p', error.detail || 'Không tải được mô hình. Hãy thử tải lại trang.', 'model-error')); throw error; }
+  } catch (error) {
+    const message = el('div', null, 'model-error');
+    const retry = el('button', 'Tải lại mô hình', 'btn');
+    retry.type = 'button';
+    retry.addEventListener('click', () => {
+      retry.disabled = true;
+      loadCatalog(target).catch(() => {});
+    });
+    message.append(el('p', error.detail || 'Không tải được mô hình. Vui lòng thử lại.'), retry);
+    target.replaceChildren(message);
+    throw error;
+  }
   finally { target.removeAttribute('aria-busy'); }
 }
