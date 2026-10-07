@@ -57,6 +57,33 @@ class UserOut(BaseModel):
     phone: str
     role: str
     email: str
+    status: str = "Active"
+
+
+class AdminUserOut(UserOut):
+    """User row on the admin Users screen, with saved-prediction count."""
+    prediction_count: int = 0
+    created_at: datetime
+
+
+class AdminUserPage(BaseModel):
+    items: list[AdminUserOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class DatasetPreview(BaseModel):
+    """Result of validating an uploaded training CSV (FE-07).
+    Stateless: the file is validated and previewed, never promoted to
+    training data. Switching the training dataset is out of scope."""
+    filename: str
+    size_bytes: int
+    rows: int
+    columns: list[str]
+    required_columns: list[str]
+    missing_columns: list[str]
+    preview: list[dict]
 
 
 class RegisterIn(BaseModel):

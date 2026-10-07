@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Model Management - HomeVal</title>
+<title>Quản lý người dùng - HomeVal</title>
 <link rel="stylesheet" href="css/reset.css">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/layout.css">
@@ -13,19 +13,31 @@
 <link rel="stylesheet" href="css/experience.css">
 <link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
 <body>
-<site-header active="models"></site-header>
+<site-header active="admin"></site-header>
 <main class="container page stack">
   <nav class="admin-nav" aria-label="Admin">
     <a class="btn" href="admin.html">Tổng quan</a>
-    <a class="btn is-active" href="admin-models.html">Mô hình</a>
+    <a class="btn" href="admin-models.html">Mô hình</a>
     <a class="btn" href="admin-models-new.html">Huấn luyện</a>
-    <a class="btn" href="admin-users.html">Người dùng</a>
+    <a class="btn is-active" href="admin-users.html">Người dùng</a>
     <a class="btn" href="admin-datasets.html">Dữ liệu</a>
   </nav>
-  <h1>Quản lý mô hình</h1>
-  <p class="field__hint">Xem chỉ số đo trên tập kiểm tra trước khi phát hành. Mỗi thuật toán có một phiên bản đang phục vụ; lịch sử và cấu hình được lưu trên máy chủ.</p>
+  <h1>Quản lý người dùng</h1>
+  <p class="field__hint">Tìm kiếm tài khoản, xem vai trò, trạng thái và số dự đoán đã lưu. Vô hiệu hoá chặn đăng nhập ngay lập tức.</p>
+  <form id="search-form" class="save-prediction" role="search">
+    <label class="field__label" for="q">Tìm theo tên hoặc email</label>
+    <div class="save-prediction__controls">
+      <input class="input" id="q" name="q" maxlength="80" placeholder="Ví dụ: anh@example.com">
+      <button class="btn btn--primary" type="submit">Tìm kiếm</button>
+    </div>
+  </form>
   <div id="alert"></div>
   <div id="list"></div>
+  <div id="pager" class="row__actions" hidden>
+    <button class="btn" id="prev" type="button">← Trang trước</button>
+    <p class="field__hint" id="page-info"></p>
+    <button class="btn" id="next" type="button">Trang sau →</button>
+  </div>
   <dialog id="confirm-dialog">
     <h3 class="dialog__title"></h3>
     <p class="dialog__message"></p>
@@ -41,6 +53,6 @@
 </template>
 <script type="module" src="js/components/site-header.js"></script>
 <script type="module" src="js/components/site-footer.js"></script>
-<script type="module" src="js/pages/admin-models.js"></script>
+<script type="module" src="js/pages/admin-users.js"></script>
 </body>
 </html>
