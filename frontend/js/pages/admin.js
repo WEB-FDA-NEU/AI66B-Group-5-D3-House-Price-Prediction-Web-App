@@ -10,7 +10,7 @@ const chart = document.getElementById('chart');
 const activity = document.getElementById('activity');
 const alertBox = document.getElementById('alert');
 
-showSkeleton(kpis, 4);
+showSkeleton(kpis, 5);
 
 try {
   const s = await getAdminStats();
@@ -21,6 +21,7 @@ try {
     ['Dự báo hôm nay', fmt(s.predictions_today), `${fmt(s.predictions_week)} / tuần`],
     ['Model đang live', s.active_model.version, `${s.active_model.algorithm} · R² ${s.active_model.r2}`],
     ['Mô hình đã phát hành', fmt(s.published_models), 'Sẵn sàng cho dự đoán'],
+    ['Lỗi API 24h', fmt(s.api_errors_24h ?? 0), 'lỗi máy chủ 5xx'],
   ];
   for (const [label, value, sub] of cards) {
     const d = document.createElement('div');
