@@ -18,6 +18,7 @@ from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
 from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, utcnow
 from security import SECRET
+from request_stats import snapshot as error_snapshot
 from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
@@ -267,7 +268,8 @@ def stats(user:User=Depends(get_admin),db:Session=Depends(get_db)):
     return dict(users_total=db.scalar(select(func.count(User.id))),predictions_today=len(recent),predictions_week=sum(p.created_at.replace(tzinfo=timezone.utc)>=utcnow()-timedelta(days=7) for p in all_predictions),
         active_model=dict(version=m.id if m else "Chưa có",algorithm=m.report["algorithm"] if m else "",r2=m.report["metrics"]["r2"] if m else 0),
         published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=(utcnow()-timedelta(days=i)).strftime("%m-%d"),count=sum(p.created_at.date()==(utcnow()-timedelta(days=i)).date() for p in all_predictions)) for i in reversed(range(7))],
-        recent_activity=[dict(text="Đã huấn luyện "+x.report["name"],created_at=x.created_at.isoformat()) for x in db.scalars(select(ModelVersion).order_by(ModelVersion.created_at.desc()).limit(5))])
+        recent_activity=[dict(text="Đã huấn luyện "+x.report["name"],created_at=x.created_at.isoformat()) for x in db.scalars(select(ModelVersion).order_by(ModelVersion.created_at.desc()).limit(5))],
+        **error_snapshot())
 
 @router.get("/map-listings")
 def map_listings():
