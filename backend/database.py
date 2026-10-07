@@ -21,6 +21,24 @@ class Base(DeclarativeBase):
     pass
 
 
+def _ensure_user_status_column():
+    # Lightweight migration for FE-07: existing homeval.db files were created
+    # before User.status existed. create_all() never alters tables, so add the
+    # column once here instead of requiring a manual DB reset.
+    from sqlalchemy import inspect, text
+    if "users" not in inspect(engine).get_table_names():
+        return
+    columns = [c["name"] for c in inspect(engine).get_columns("users")]
+    if "status" in columns:
+        return
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE users ADD COLUMN status VARCHAR(20) DEFAULT 'Active'"))
+        conn.execute(text("UPDATE users SET status='Active' WHERE status IS NULL"))
+
+
+_ensure_user_status_column()
+
+
 def get_db():
     db = SessionLocal()
     try:

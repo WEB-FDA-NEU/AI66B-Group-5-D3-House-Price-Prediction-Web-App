@@ -38,6 +38,9 @@ def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
     if user is None or not verify_password(payload.password, user.password_hash):
         # Cùng một thông điệp cho cả hai trường hợp - không tiết lộ email nào tồn tại.
         raise HTTPException(401, "Email hoặc mật khẩu không đúng.")
+    if (user.status or "Active") != "Active":
+        # Tài khoản bị vô hiệu hoá: cùng message 401, không tiết lộ thêm.
+        raise HTTPException(401, "Email hoặc mật khẩu không đúng.")
     return {"access_token": create_token(user.id), "user": user}
 
 

@@ -27,8 +27,9 @@ class User(Base):
     email:         Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     display_name:  Mapped[str] = mapped_column(String(80))
-    phone:         Mapped[str] = mapped_column(String(20), default="")
+    phone:        Mapped[str] = mapped_column(String(20), default="")
     role:          Mapped[str] = mapped_column(String(20), default="user")   # user | admin
+    status:        Mapped[str] = mapped_column(String(20), default="Active")  # Active | Inactive
     created_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     items: Mapped[list["Item"]] = relationship(back_populates="owner")

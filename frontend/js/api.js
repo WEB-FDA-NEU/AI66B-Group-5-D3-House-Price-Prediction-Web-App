@@ -363,6 +363,44 @@ export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
   return request(`${API_BASE}/admin/users?${qs}`);
 }
 
+export function deactivateUser(id) {
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const target = data.items.find(user => String(user.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy người dùng.');
+      const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+      overrides[target.id] = { ...overrides[target.id], status: 'Inactive' };
+      localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+      return { ...target, status: 'Inactive' };
+    });
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/deactivate`, { method: 'POST' });
+}
+
+const DATASET_REQUIRED_COLUMNS = ['Address', 'Area', 'Price', 'Bedrooms', 'Bathrooms', 'Floors'];
+
+function previewCsvFile(file) {
+  return file.text().then(text => {
+    const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(line => line.trim() !== '');
+    const columns = (lines[0] ?? '').split(',').map(cell => cell.trim());
+    const missing = DATASET_REQUIRED_COLUMNS.filter(col => !columns.includes(col));
+    const preview = lines.slice(1, 6).map(line => Object.fromEntries(
+      line.split(',').map((value, i) => [columns[i] ?? `col${i}`, value.trim()])));
+    return {
+      filename: file.name, size_bytes: file.size, rows: Math.max(0, lines.length - 1),
+      columns, required_columns: DATASET_REQUIRED_COLUMNS,
+      missing_columns: missing, preview,
+    };
+  });
+}
+
+export function uploadDatasetPreview(file) {
+  if (USE_MOCK) return previewCsvFile(file);
+  const form = new FormData();
+  form.append('file', file);
+  return request(`${API_BASE}/admin/datasets/preview`, { method: 'POST', body: form });
+}
+
 export const MOCK_UI_STATES = Object.freeze({
   loading: 'Đang tải dữ liệu…',
   empty: 'Chưa có dữ liệu để hiển thị.',

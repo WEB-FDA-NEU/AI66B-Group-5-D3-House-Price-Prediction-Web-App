@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dữ liệu huấn luyện - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
+<body>
+<site-header active="admin"></site-header>
+<main class="container page stack">
+  <nav class="admin-nav" aria-label="Admin">
+    <a class="btn" href="admin.html">Tổng quan</a>
+    <a class="btn" href="admin-models.html">Mô hình</a>
+    <a class="btn" href="admin-models-new.html">Huấn luyện</a>
+    <a class="btn" href="admin-users.html">Người dùng</a>
+    <a class="btn is-active" href="admin-datasets.html">Dữ liệu</a>
+  </nav>
+  <h1>Dữ liệu huấn luyện</h1>
+  <p class="field__hint">Dataset đang dùng để huấn luyện và form kiểm tra file CSV mới. File tải lên chỉ được kiểm tra và xem trước, không thay thế dữ liệu huấn luyện.</p>
+  <section>
+    <h2>Dataset đang sử dụng</h2>
+    <div id="current"></div>
+  </section>
+  <section>
+    <h2>Kiểm tra file CSV mới</h2>
+    <form id="upload-form" class="stack">
+      <div class="field">
+        <label class="field__label" for="file">File CSV (tối đa 20 MB, mã hoá UTF-8)</label>
+        <input class="input" id="file" name="file" type="file" accept=".csv,text/csv" required>
+        <p class="field__error" aria-live="polite"></p>
+        <p class="field__hint">Cột bắt buộc: Address, Area, Price, Bedrooms, Bathrooms, Floors.</p>
+      </div>
+      <div><button class="btn btn--primary" type="submit">Kiểm tra và xem trước</button></div>
+    </form>
+    <div id="preview" class="stack"></div>
+  </section>
+</main>
+<site-footer></site-footer>
+<template id="tpl-empty-state">
+  <div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a></div>
+</template>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/admin-datasets.js"></script>
+</body>
+</html>

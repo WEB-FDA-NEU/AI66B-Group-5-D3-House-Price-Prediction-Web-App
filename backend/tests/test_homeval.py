@@ -148,3 +148,33 @@ def test_sandbox_off_cannot_grant_subscription(client,users,monkeypatch):
     user,_,_=users
     monkeypatch.setenv('HOMEVAL_DEMO_BILLING','0')
     assert client.post('/api/billing/checkout',json={},headers=user).status_code==403
+
+def test_admin_users_and_dataset_preview(client,users):
+    _,_,admin=users
+    page=client.get('/api/admin/users',headers=admin).json()
+    assert page['total']>=3
+    assert all('prediction_count' in u and u.get('status')=='Active' for u in page['items'])
+    assert client.get('/api/admin/users',headers=users[0]).status_code==403
+    assert client.get('/api/admin/users').status_code==401
+    found=client.get('/api/admin/users?q=admin@homeval',headers=admin).json()
+    assert found['total']>=1 and all('admin@homeval' in u['email'] for u in found['items'])
+    victim=client.post('/api/auth/register',json={'email':'victim@example.com','password':'secure-password','display_name':'Victim User'}).json()
+    assert client.post('/api/auth/login',json={'email':'victim@example.com','password':'secure-password'}).status_code==200
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==200
+    assert client.post('/api/auth/login',json={'email':'victim@example.com','password':'secure-password'}).status_code==401
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==409
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/deactivate",headers=admin).status_code==422
+    assert client.post('/api/admin/users/999999/deactivate',headers=admin).status_code==404
+    good={'file':('housing.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n"Quan 1, HCM",50,5,2,2,1\n','text/csv')}
+    preview=client.post('/api/admin/datasets/preview',files=good,headers=admin)
+    assert preview.status_code==200,preview.text
+    assert preview.json()['rows']==1 and not preview.json()['missing_columns']
+    assert len(preview.json()['preview'])==1
+    bad={'file':('housing.csv','Area,Price\n50,5\n','text/csv')}
+    missing=client.post('/api/admin/datasets/preview',files=bad,headers=admin)
+    assert missing.status_code==200
+    assert set(['Address','Bedrooms','Bathrooms','Floors'])<=set(missing.json()['missing_columns'])
+    txt={'file':('housing.txt','Address\nX\n','text/plain')}
+    assert client.post('/api/admin/datasets/preview',files=txt,headers=admin).status_code==422
+    assert client.post('/api/admin/datasets/preview',files=good).status_code==401

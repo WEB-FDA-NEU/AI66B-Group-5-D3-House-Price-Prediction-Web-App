@@ -3,21 +3,24 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+import csv
 import hashlib
 import hmac
+import io
 import json
 import os
 import threading
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, UploadFile, File
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
 from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, utcnow
 from security import SECRET
+import schemas
 from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
@@ -67,6 +70,80 @@ def models(user:User=Depends(get_admin),db:Session=Depends(get_db)):
 @router.get("/admin/datasets")
 def datasets(user:User=Depends(get_admin)):
     return {"items":[dataset_cached()]}
+
+DATASET_REQUIRED_COLUMNS = ["Address", "Area", "Price", "Bedrooms", "Bathrooms", "Floors"]
+DATASET_MAX_BYTES = 20 * 1024 * 1024
+DATASET_MAX_ROWS = 100_000
+
+@router.post("/admin/datasets/preview", response_model=schemas.DatasetPreview)
+def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin)):
+    # FE-07: validate + preview an uploaded training CSV. Stateless: the file
+    # is never promoted to training data. Switching the training dataset is
+    # a separate decision (retrain + re-evaluate), out of scope here.
+    name = file.filename or ""
+    if not name.lower().endswith(".csv"):
+        raise HTTPException(422, "file: Chỉ chấp nhận file .csv")
+    raw = file.file.read()
+    if len(raw) > DATASET_MAX_BYTES:
+        raise HTTPException(422, "file: File vượt quá 20 MB")
+    try:
+        text = raw.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        raise HTTPException(422, "file: File phải là CSV mã hoá UTF-8")
+    reader = csv.DictReader(io.StringIO(text))
+    columns = [(c or "").strip() for c in (reader.fieldnames or [])]
+    if not columns:
+        raise HTTPException(422, "file: Không đọc được dòng tiêu đề của CSV")
+    missing = [c for c in DATASET_REQUIRED_COLUMNS if c not in columns]
+    rows, preview = 0, []
+    for record in reader:
+        rows += 1
+        if rows > DATASET_MAX_ROWS:
+            raise HTTPException(422, "file: File vượt quá 100.000 dòng")
+        if len(preview) < 5:
+            preview.append({k: (v or "") for k, v in record.items() if k})
+    return schemas.DatasetPreview(filename=name, size_bytes=len(raw), rows=rows,
+        columns=columns, required_columns=DATASET_REQUIRED_COLUMNS,
+        missing_columns=missing, preview=preview)
+
+@router.get("/admin/users", response_model=schemas.AdminUserPage)
+def admin_users(q: str = "", page: int = 1, page_size: int = 20,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    page = max(1, page)
+    page_size = min(100, max(1, page_size))
+    base = select(User)
+    if q.strip():
+        like = f"%{q.strip()}%"
+        base = base.where(or_(User.display_name.ilike(like), User.email.ilike(like)))
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    users = db.scalars(base.order_by(User.id.desc()).offset((page - 1) * page_size).limit(page_size)).all()
+    counts = dict(db.execute(
+        select(Prediction.owner_id, func.count())
+        .where(Prediction.saved == True, Prediction.owner_id.in_([u.id for u in users]))
+        .group_by(Prediction.owner_id)).all()) if users else {}
+    return {"items": [dict(id=u.id, display_name=u.display_name, email=u.email,
+        phone=u.phone, role=u.role, status=u.status or "Active",
+        prediction_count=counts.get(u.id, 0), created_at=u.created_at) for u in users],
+        "total": total, "page": page, "page_size": page_size}
+
+@router.post("/admin/users/{user_id}/deactivate", response_model=schemas.UserOut)
+def deactivate_user(user_id: int, user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if target.id == user.id:
+        raise HTTPException(422, "Không thể vô hiệu hoá chính tài khoản của mình.")
+    if (target.status or "Active") != "Active":
+        raise HTTPException(409, "Tài khoản này đã bị vô hiệu hoá.")
+    if target.role == "admin":
+        remaining = db.scalar(select(func.count(User.id)).where(
+            User.role == "admin", User.status != "Inactive", User.id != target.id))
+        if not remaining:
+            raise HTTPException(409, "Không thể vô hiệu hoá admin cuối cùng còn hoạt động.")
+    target.status = "Inactive"
+    db.commit()
+    db.refresh(target)
+    return target
 
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
