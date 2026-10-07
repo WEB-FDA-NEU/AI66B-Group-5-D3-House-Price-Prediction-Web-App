@@ -11,6 +11,7 @@ from fastapi import Depends
 from database import Base, engine, get_db
 from models import Item
 from routers import auth, homeval
+from request_stats import record
 
 Base.metadata.create_all(engine)   # Mốc 3 dùng tạm. Dự án thật dùng Alembic migration.
 
@@ -34,6 +35,21 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(homeval.router)
 # TODO: thêm router của các thành viên khác ở đây
+
+
+@app.middleware("http")
+async def count_api_errors(request, call_next):
+    # AD-1: feed the "Lỗi API 24h" card on the admin dashboard.
+    # Unhandled crashes never produce a response, so record them as 500 here.
+    if not request.url.path.startswith("/api"):
+        return await call_next(request)
+    try:
+        response = await call_next(request)
+    except Exception:
+        record(request.method, request.url.path, 500)
+        raise
+    record(request.method, request.url.path, response.status_code)
+    return response
 
 
 @app.get("/api/health", tags=["ops"])
