@@ -75,6 +75,24 @@ class TrainingJob(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class DatasetUpload(Base):
+    """CSV training dataset đã qua kiểm tra cột (AD-6).
+
+    File hợp lệ được LƯU LẠI để truy vết, nhưng KHÔNG tự thay thế dữ liệu
+    huấn luyện. Đổi dữ liệu train là quyết định retrain + đánh giá lại,
+    nằm ngoài scope trang Datasets."""
+    __tablename__ = "dataset_uploads"
+    id:            Mapped[str] = mapped_column(String(64), primary_key=True)
+    filename:      Mapped[str] = mapped_column(String(255))
+    stored_filename: Mapped[str] = mapped_column(String(255))
+    size_bytes:    Mapped[int]  = mapped_column(Integer, default=0)
+    rows:          Mapped[int]  = mapped_column(Integer, default=0)
+    columns:       Mapped[list] = mapped_column(JSON, default=list)
+    missing_columns: Mapped[list] = mapped_column(JSON, default=list)
+    owner_id:      Mapped[int]  = mapped_column(ForeignKey("users.id"))
+    created_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Prediction(Base):
     __tablename__ = "predictions"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)

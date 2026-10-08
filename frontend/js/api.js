@@ -438,6 +438,37 @@ export function uploadDatasetPreview(file) {
   return request(`${API_BASE}/admin/datasets/preview`, { method: 'POST', body: form });
 }
 
+const MOCK_UPLOADS_KEY = 'homeval_mock_dataset_uploads';
+
+export function uploadDataset(file) {
+  if (USE_MOCK) {
+    return previewCsvFile(file).then(checked => {
+      const record = {
+        id: `du-${Date.now()}`, filename: checked.filename,
+        stored_filename: `mock-${Date.now()}.csv`, size_bytes: checked.size_bytes,
+        rows: checked.rows, columns: checked.columns,
+        missing_columns: checked.missing_columns, owner_id: getUser()?.id ?? null,
+        uploader_email: getUser()?.email ?? '', created_at: new Date().toISOString(),
+      };
+      const stored = readMockStorage(MOCK_UPLOADS_KEY, []);
+      stored.unshift(record);
+      localStorage.setItem(MOCK_UPLOADS_KEY, JSON.stringify(stored));
+      return record;
+    });
+  }
+  const form = new FormData();
+  form.append('file', file);
+  return request(`${API_BASE}/admin/datasets/uploads`, { method: 'POST', body: form });
+}
+
+export function listDatasetUploads() {
+  if (USE_MOCK) {
+    const items = readMockStorage(MOCK_UPLOADS_KEY, []);
+    return Promise.resolve({ items, total: items.length });
+  }
+  return request(`${API_BASE}/admin/datasets/uploads`);
+}
+
 export const MOCK_UI_STATES = Object.freeze({
   loading: 'Đang tải dữ liệu…',
   empty: 'Chưa có dữ liệu để hiển thị.',
