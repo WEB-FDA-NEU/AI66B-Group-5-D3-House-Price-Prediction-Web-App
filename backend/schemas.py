@@ -122,3 +122,25 @@ class RoleUpdateIn(BaseModel):
     """Đổi vai trò user <-> admin (AD-9). extra=forbid để không lọt trường lạ."""
     model_config = ConfigDict(extra="forbid")
     role: Literal["admin", "user"]
+
+
+class DatasetUploadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    filename: str
+    stored_filename: str
+    size_bytes: int
+    rows: int
+    columns: list[str]
+    missing_columns: list[str]
+    owner_id: int
+    created_at: datetime
+
+
+class AdminDatasetUploadOut(DatasetUploadOut):
+    uploader_email: str = ""
+
+
+class DatasetUploadPage(BaseModel):
+    items: list[AdminDatasetUploadOut]
+    total: int
