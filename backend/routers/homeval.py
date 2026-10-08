@@ -176,6 +176,28 @@ def reactivate_user(user_id: int, user: User = Depends(get_admin), db: Session =
     db.refresh(target)
     return target
 
+@router.post("/admin/users/{user_id}/role", response_model=schemas.UserOut)
+def change_user_role(user_id: int, payload: schemas.RoleUpdateIn,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    # AD-9: promote/demote. Self-change is blocked so an admin can never
+    # lock themselves out by accident; demoting the last active admin too.
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if target.id == user.id:
+        raise HTTPException(422, "Không thể tự đổi vai trò của chính mình.")
+    if target.role == payload.role:
+        raise HTTPException(409, f"Tài khoản này đã là {payload.role}.")
+    if target.role == "admin" and payload.role == "user":
+        remaining = db.scalar(select(func.count(User.id)).where(
+            User.role == "admin", User.status != "Inactive", User.id != target.id))
+        if not remaining:
+            raise HTTPException(409, "Không thể hạ cấp admin cuối cùng còn hoạt động.")
+    target.role = payload.role
+    db.commit()
+    db.refresh(target)
+    return target
+
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     algorithm: Literal["ridge","random_forest","hist_gradient"]

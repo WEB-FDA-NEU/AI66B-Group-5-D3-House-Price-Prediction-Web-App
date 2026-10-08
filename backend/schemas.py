@@ -10,6 +10,7 @@ VÌ SAO TÁCH KHỎI models.py: bảng users có cột password_hash, nhưng JSO
 internet KHÔNG được có nó. Model nằm trong DB, schema đi ra ngoài.
 """
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
@@ -115,3 +116,9 @@ class ChangePasswordIn(BaseModel):
     # TODO BR-12: nếu muốn ép "có chữ và số", thêm validator ở đây,
     # đồng thời sửa RegisterIn cho khớp — không được lệch giữa 2 nơi.
     new_password: str = Field(min_length=8)
+
+
+class RoleUpdateIn(BaseModel):
+    """Đổi vai trò user <-> admin (AD-9). extra=forbid để không lọt trường lạ."""
+    model_config = ConfigDict(extra="forbid")
+    role: Literal["admin", "user"]
