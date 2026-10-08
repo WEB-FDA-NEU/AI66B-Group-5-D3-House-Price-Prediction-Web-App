@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
-import { listDatasets, uploadDatasetPreview } from '../api.js';
-import { showEmpty, showError, setFieldError, clearFieldErrors } from '../ui.js';
+import { listDatasets, uploadDatasetPreview, uploadDataset, listDatasetUploads } from '../api.js';
+import { showEmpty, showError, setFieldError, clearFieldErrors, toast } from '../ui.js';
 import { el } from '../model-catalog.js';
 
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -12,6 +12,53 @@ const currentEl = document.getElementById('current');
 const form = document.getElementById('upload-form');
 const fileInput = document.getElementById('file');
 const previewEl = document.getElementById('preview');
+const historyEl = document.getElementById('history');
+let lastFile = null;
+
+async function loadHistory() {
+  historyEl.innerHTML = '<p class="field__hint">Đang tải…</p>';
+  try {
+    const { items, total } = await listDatasetUploads();
+    if (!total) {
+      showEmpty(historyEl, { title: 'Chưa lưu file nào', hint: 'File CSV hợp lệ được lưu ở đây để truy vết.' });
+      return;
+    }
+    historyEl.innerHTML = '';
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    const table = document.createElement('table');
+    table.className = 'table';
+    table.innerHTML = '<thead><tr><th>File</th><th>Dòng</th><th>Dung lượng</th><th>Cột thiếu</th><th>Người tải</th><th>Ngày tải</th></tr></thead>';
+    const tb = document.createElement('tbody');
+    for (const h of items) {
+      const tr = document.createElement('tr');
+      const td = text => { const c = document.createElement('td'); c.textContent = text; return c; };
+      tr.append(td(h.filename));
+      tr.append(td(Number(h.rows ?? 0).toLocaleString('vi-VN')));
+      tr.append(td(`${(Number(h.size_bytes ?? 0) / 1024).toFixed(1)} KB`));
+      const miss = document.createElement('td');
+      const b = document.createElement('span');
+      b.className = 'badge';
+      if (h.missing_columns?.length) {
+        b.dataset.variant = 'warning';
+        b.textContent = `Thiếu: ${h.missing_columns.join(', ')}`;
+      } else {
+        b.dataset.variant = 'success';
+        b.textContent = 'Đủ cột';
+      }
+      miss.append(b);
+      tr.append(miss);
+      tr.append(td(h.uploader_email || '—'));
+      tr.append(td(h.created_at ? new Date(h.created_at).toLocaleDateString('vi-VN') : '—'));
+      tb.append(tr);
+    }
+    table.append(tb);
+    wrap.append(table);
+    historyEl.append(wrap);
+  } catch (err) {
+    showError(historyEl, err, loadHistory);
+  }
+}
 
 async function loadCurrent() {
   currentEl.innerHTML = '<p class="field__hint">Đang tải…</p>';
@@ -62,6 +109,21 @@ function renderPreview(result) {
   } else {
     const ok = el('p', 'Đủ các cột bắt buộc. File hợp lệ để đưa vào quy trình huấn luyện.', 'alert alert--info');
     previewEl.append(ok);
+    if (!lastFile) return;
+    const saveBtn = el('button', 'Lưu file này vào kho dữ liệu', 'btn btn--primary');
+    saveBtn.type = 'button';
+    saveBtn.onclick = async () => {
+      saveBtn.disabled = true;
+      try {
+        const record = await uploadDataset(lastFile);
+        toast(`Đã lưu ${record.filename} (${record.rows.toLocaleString('vi-VN')} dòng)`, 'success');
+        loadHistory();
+      } catch (err) {
+        previewEl.append(el('p', err.detail ?? 'Không lưu được file.', 'alert alert--error'));
+        saveBtn.disabled = false;
+      }
+    };
+    previewEl.append(saveBtn);
   }
   if (!result.preview?.length) {
     previewEl.append(el('p', 'File không có dòng dữ liệu nào để xem trước.', 'field__hint'));
@@ -106,6 +168,7 @@ form.addEventListener('submit', async event => {
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
   previewEl.innerHTML = '<p class="field__hint">Đang kiểm tra file…</p>';
+  lastFile = file;
   try {
     renderPreview(await uploadDatasetPreview(file));
   } catch (err) {
@@ -118,5 +181,6 @@ form.addEventListener('submit', async event => {
 });
 
 loadCurrent();
+loadHistory();
 }
 initPage();

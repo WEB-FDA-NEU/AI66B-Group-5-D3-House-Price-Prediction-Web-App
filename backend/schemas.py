@@ -116,3 +116,25 @@ class ChangePasswordIn(BaseModel):
     # TODO BR-12: nếu muốn ép "có chữ và số", thêm validator ở đây,
     # đồng thời sửa RegisterIn cho khớp — không được lệch giữa 2 nơi.
     new_password: str = Field(min_length=8)
+
+
+class DatasetUploadOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    filename: str
+    stored_filename: str
+    size_bytes: int
+    rows: int
+    columns: list[str]
+    missing_columns: list[str]
+    owner_id: int
+    created_at: datetime
+
+
+class AdminDatasetUploadOut(DatasetUploadOut):
+    uploader_email: str = ""
+
+
+class DatasetUploadPage(BaseModel):
+    items: list[AdminDatasetUploadOut]
+    total: int
