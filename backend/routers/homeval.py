@@ -164,6 +164,18 @@ def deactivate_user(user_id: int, user: User = Depends(get_admin), db: Session =
     db.refresh(target)
     return target
 
+@router.post("/admin/users/{user_id}/reactivate", response_model=schemas.UserOut)
+def reactivate_user(user_id: int, user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if (target.status or "Active") == "Active":
+        raise HTTPException(409, "Tài khoản này đang hoạt động.")
+    target.status = "Active"
+    db.commit()
+    db.refresh(target)
+    return target
+
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     algorithm: Literal["ridge","random_forest","hist_gradient"]
