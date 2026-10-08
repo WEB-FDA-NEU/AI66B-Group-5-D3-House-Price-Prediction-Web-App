@@ -179,6 +179,22 @@ def test_admin_users_and_dataset_preview(client,users):
     assert client.post('/api/admin/datasets/preview',files=txt,headers=admin).status_code==422
     assert client.post('/api/admin/datasets/preview',files=good).status_code==401
 
+def test_estimate_report_submit_and_review(client,users):
+    user,_,admin=users
+    assert client.post('/api/reports',json={'expected_price':4000000000,'comment':'Too high'}).status_code==401
+    bad=client.post('/api/reports',json={'expected_price':1,'comment':'x'},headers=user)
+    assert bad.status_code==422
+    created=client.post('/api/reports',json={'expected_price':4200000000,'comment':'Khu này chỉ khoảng 4,2 tỷ.'},headers=user)
+    assert created.status_code==201,created.text
+    rid=created.json()['id']
+    assert created.json()['status']=='open' and created.json()['admin_note']==''
+    mine=client.get('/api/me/reports',headers=user).json()
+    assert mine['total']>=1 and mine['items'][0]['id']==rid
+    queue=client.get('/api/admin/reports',headers=admin).json()
+    assert queue['total']>=1 and queue['items'][0]['reporter_email']
+    assert client.get('/api/admin/reports?status=bogus',headers=admin).status_code==422
+    assert client.get('/api/admin/reports',headers=user).status_code==403
+
 def test_dataset_upload_save_and_history(client,users):
     _,_,admin=users
     good={'file':('housing.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n"Quan 1, HCM",50,5,2,2,1\n','text/csv')}

@@ -144,3 +144,46 @@ class AdminDatasetUploadOut(DatasetUploadOut):
 class DatasetUploadPage(BaseModel):
     items: list[AdminDatasetUploadOut]
     total: int
+
+
+class ReportIn(BaseModel):
+    """Người dùng báo ước tính sai (US-9). Form phía user do #37 đảm nhiệm,
+    contract POST /api/reports ở đây để hai bên cùng dùng."""
+    model_config = ConfigDict(extra="forbid")
+    prediction_id: str | None = Field(default=None, max_length=64)
+    expected_price: int = Field(ge=1_000_000, le=1_000_000_000_000)
+    comment: str = Field(min_length=1, max_length=1000)
+
+
+class ReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    owner_id: int
+    prediction_id: str | None = None
+    expected_price: int
+    comment: str
+    status: str = "open"
+    admin_note: str = ""
+    closed_at: datetime | None = None
+    closed_by: int | None = None
+    created_at: datetime
+
+
+class AdminReportOut(ReportOut):
+    """Hàng báo cáo trên trang admin review (AD-11), kèm người gửi."""
+    reporter_email: str = ""
+    reporter_name: str = ""
+
+
+class ReportPage(BaseModel):
+    items: list[ReportOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class AdminReportPage(BaseModel):
+    items: list[AdminReportOut]
+    total: int
+    page: int
+    page_size: int
