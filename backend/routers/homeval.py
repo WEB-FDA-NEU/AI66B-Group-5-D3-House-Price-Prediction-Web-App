@@ -283,6 +283,22 @@ def admin_reports(status: str = "", page: int = 1, page_size: int = 20,
     return {"items": [_report_out(r, *(people.get(r.owner_id, ("", "")) or ("", ""))) for r in items],
         "total": total, "page": page, "page_size": page_size}
 
+@router.post("/admin/reports/{report_id}/close", response_model=schemas.ReportOut)
+def close_report(report_id: str, payload: schemas.ReportCloseIn,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    if report.status == "closed":
+        raise HTTPException(409, "Báo cáo này đã được đóng.")
+    report.status = "closed"
+    report.admin_note = payload.note.strip()
+    report.closed_at = utcnow()
+    report.closed_by = user.id
+    db.commit()
+    db.refresh(report)
+    return _report_out(report)
+
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     algorithm: Literal["ridge","random_forest","hist_gradient"]
