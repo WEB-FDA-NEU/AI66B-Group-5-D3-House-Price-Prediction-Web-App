@@ -18,7 +18,7 @@ from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
-from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, utcnow
+from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, EstimateReport, utcnow
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
@@ -233,6 +233,55 @@ def change_user_role(user_id: int, payload: schemas.RoleUpdateIn,
     db.commit()
     db.refresh(target)
     return target
+
+def _report_out(r, reporter_email="", reporter_name=""):
+    return dict(id=r.id, owner_id=r.owner_id, prediction_id=r.prediction_id,
+        expected_price=r.expected_price, comment=r.comment, status=r.status,
+        admin_note=r.admin_note or "", closed_at=r.closed_at, closed_by=r.closed_by,
+        created_at=r.created_at, reporter_email=reporter_email, reporter_name=reporter_name)
+
+@router.post("/reports", response_model=schemas.ReportOut, status_code=201)
+def submit_report(payload: schemas.ReportIn,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # US-9 contract: the user-side form (#37, VuSiSi) calls this endpoint.
+    report = EstimateReport(id="rep-" + uuid.uuid4().hex[:12], owner_id=user.id,
+        prediction_id=payload.prediction_id, expected_price=payload.expected_price,
+        comment=payload.comment.strip())
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return _report_out(report)
+
+@router.get("/me/reports", response_model=schemas.ReportPage)
+def my_reports(page: int = 1, page_size: int = 20,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    page = max(1, page)
+    page_size = min(100, max(1, page_size))
+    base = select(EstimateReport).where(EstimateReport.owner_id == user.id)
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    items = db.scalars(base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
+    return {"items": [_report_out(r) for r in items],
+        "total": total, "page": page, "page_size": page_size}
+
+@router.get("/admin/reports", response_model=schemas.AdminReportPage)
+def admin_reports(status: str = "", page: int = 1, page_size: int = 20,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    if status not in ("", "open", "closed"):
+        raise HTTPException(422, "status: Chỉ nhận open hoặc closed.")
+    page = max(1, page)
+    page_size = min(100, max(1, page_size))
+    base = select(EstimateReport)
+    if status:
+        base = base.where(EstimateReport.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    items = db.scalars(base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
+    people = {uid: (email, name) for uid, email, name in db.execute(
+        select(User.id, User.email, User.display_name)
+        .where(User.id.in_([r.owner_id for r in items]))).all()} if items else {}
+    return {"items": [_report_out(r, *(people.get(r.owner_id, ("", "")) or ("", ""))) for r in items],
+        "total": total, "page": page, "page_size": page_size}
 
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")

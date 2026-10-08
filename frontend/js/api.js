@@ -469,6 +469,53 @@ export function listDatasetUploads() {
   return request(`${API_BASE}/admin/datasets/uploads`);
 }
 
+const MOCK_REPORTS_KEY = 'homeval_mock_reports';
+
+function getMockReportStore() {
+  return readMockStorage(MOCK_REPORTS_KEY, []);
+}
+
+export function submitReport(payload) {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const report = {
+      id: `rep-${Date.now()}`, owner_id: user.id,
+      prediction_id: payload.prediction_id ?? null,
+      expected_price: payload.expected_price, comment: payload.comment,
+      status: 'open', admin_note: '', closed_at: null, closed_by: null,
+      created_at: new Date().toISOString(),
+      reporter_email: user.email, reporter_name: user.display_name,
+    };
+    const stored = getMockReportStore();
+    stored.unshift(report);
+    localStorage.setItem(MOCK_REPORTS_KEY, JSON.stringify(stored));
+    return Promise.resolve(report);
+  }
+  return request(`${API_BASE}/reports`, { method: 'POST', body: payload });
+}
+
+export function myReports({ page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const items = getMockReportStore().filter(r => r.owner_id === user.id);
+    const paging = normalisePage(page, pageSize, items.length);
+    return Promise.resolve({ ...paging, items: items.slice(paging.start, paging.start + paging.page_size) });
+  }
+  return request(`${API_BASE}/me/reports?page=${page}&page_size=${pageSize}`);
+}
+
+export function getReports({ status = '', page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    let items = getMockReportStore();
+    if (status) items = items.filter(r => r.status === status);
+    const paging = normalisePage(page, pageSize, items.length);
+    return Promise.resolve({ ...paging, items: items.slice(paging.start, paging.start + paging.page_size) });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  if (status) qs.set('status', status);
+  return request(`${API_BASE}/admin/reports?${qs}`);
+}
+
 export const MOCK_UI_STATES = Object.freeze({
   loading: 'Đang tải dữ liệu…',
   empty: 'Chưa có dữ liệu để hiển thị.',
