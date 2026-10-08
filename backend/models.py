@@ -113,3 +113,39 @@ class Subscription(Base):
     #  Vì `if SELECT ... then INSERT` vẫn lọt khi hai request đến cùng một lúc.
     #  Xem docs/QUY-UOC-CODE.md mục 6.
     # ─────────────────────────────────────────────────────────────────
+
+
+class DatasetUpload(Base):
+    """CSV training dataset đã qua kiểm tra cột (AD-6).
+
+    File hợp lệ được LƯU LẠI để truy vết, nhưng KHÔNG tự thay thế dữ liệu
+    huấn luyện. Đổi dữ liệu train là quyết định retrain + đánh giá lại,
+    nằm ngoài scope trang Datasets."""
+    __tablename__ = "dataset_uploads"
+    id:            Mapped[str] = mapped_column(String(64), primary_key=True)
+    filename:      Mapped[str] = mapped_column(String(255))
+    stored_filename: Mapped[str] = mapped_column(String(255))
+    size_bytes:    Mapped[int]  = mapped_column(Integer, default=0)
+    rows:          Mapped[int]  = mapped_column(Integer, default=0)
+    columns:       Mapped[list] = mapped_column(JSON, default=list)
+    missing_columns: Mapped[list] = mapped_column(JSON, default=list)
+    owner_id:      Mapped[int]  = mapped_column(ForeignKey("users.id"))
+    created_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class EstimateReport(Base):
+    """Báo cáo ước tính sai do người dùng gửi (AD-11/AD-12).
+
+    Form gửi phía user thuộc US-9 (#37, VuSiSi). Backend + trang admin review
+    ở đây, để #37 chỉ việc gọi POST /api/reports."""
+    __tablename__ = "estimate_reports"
+    id:             Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id:       Mapped[int] = mapped_column(ForeignKey("users.id"))
+    prediction_id:  Mapped[str | None] = mapped_column(String(64), nullable=True, default=None)
+    expected_price: Mapped[int]  = mapped_column(Integer)
+    comment:        Mapped[str]  = mapped_column(Text, default="")
+    status:         Mapped[str]  = mapped_column(String(20), default="open")  # open | closed
+    admin_note:     Mapped[str]  = mapped_column(Text, default="")
+    closed_at:      Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    closed_by:      Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, default=None)
+    created_at:     Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -346,20 +346,29 @@ export function listDatasets() {
   return request(`${API_BASE}/admin/datasets`);
 }
 
-export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
+export function listUsers({ q = '', role = '', status = '', sort = 'newest', order = 'desc', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
     return getMockUsers().then(data => {
       const keyword = q.trim().toLowerCase();
-      const items = keyword
-        ? data.items.filter(user => [user.display_name, user.email, user.role]
-            .some(value => String(value ?? '').toLowerCase().includes(keyword)))
-        : data.items;
+      let items = data.items.map(user => ({ ...user, status: user.status ?? 'Active' }));
+      if (keyword) items = items.filter(user => [user.display_name, user.email, user.role]
+        .some(value => String(value ?? '').toLowerCase().includes(keyword)));
+      if (role) items = items.filter(user => user.role === role);
+      if (status) items = items.filter(user => user.status === status);
+      const by = { newest: 'created_at', oldest: 'created_at', name: 'display_name', predictions: 'prediction_count' }[sort] ?? 'created_at';
+      const dir = order === 'desc' ? -1 : 1;
+      items = [...items].sort((a, b) => {
+        if (by === 'prediction_count') return dir * (Number(a[by] ?? 0) - Number(b[by] ?? 0));
+        return dir * String(a[by] ?? '').localeCompare(String(b[by] ?? ''), 'vi');
+      });
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
     });
   }
-  const qs = new URLSearchParams({ page, page_size: pageSize });
+  const qs = new URLSearchParams({ page, page_size: pageSize, sort, order });
   if (q) qs.set('q', q);
+  if (role) qs.set('role', role);
+  if (status) qs.set('status', status);
   return request(`${API_BASE}/admin/users?${qs}`);
 }
 
@@ -399,6 +408,127 @@ export function uploadDatasetPreview(file) {
   const form = new FormData();
   form.append('file', file);
   return request(`${API_BASE}/admin/datasets/preview`, { method: 'POST', body: form });
+}
+
+const MOCK_UPLOADS_KEY = 'homeval_mock_dataset_uploads';
+
+export function uploadDataset(file) {
+  if (USE_MOCK) {
+    return previewCsvFile(file).then(checked => {
+      const record = {
+        id: `du-${Date.now()}`, filename: checked.filename,
+        stored_filename: `mock-${Date.now()}.csv`, size_bytes: checked.size_bytes,
+        rows: checked.rows, columns: checked.columns,
+        missing_columns: checked.missing_columns, owner_id: getUser()?.id ?? null,
+        uploader_email: getUser()?.email ?? '', created_at: new Date().toISOString(),
+      };
+      const stored = readMockStorage(MOCK_UPLOADS_KEY, []);
+      stored.unshift(record);
+      localStorage.setItem(MOCK_UPLOADS_KEY, JSON.stringify(stored));
+      return record;
+    });
+  }
+  const form = new FormData();
+  form.append('file', file);
+  return request(`${API_BASE}/admin/datasets/uploads`, { method: 'POST', body: form });
+}
+
+export function listDatasetUploads() {
+  if (USE_MOCK) {
+    const items = readMockStorage(MOCK_UPLOADS_KEY, []);
+    return Promise.resolve({ items, total: items.length });
+  }
+  return request(`${API_BASE}/admin/datasets/uploads`);
+}
+
+export function reactivateUser(id) {
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const target = data.items.find(user => String(user.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy người dùng.');
+      const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+      overrides[target.id] = { ...overrides[target.id], status: 'Active' };
+      localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+      return { ...target, status: 'Active' };
+    });
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/reactivate`, { method: 'POST' });
+}
+
+export function setUserRole(id, role) {
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const target = data.items.find(user => String(user.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy người dùng.');
+      const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+      overrides[target.id] = { ...overrides[target.id], role };
+      localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+      return { ...target, role };
+    });
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/role`, { method: 'POST', body: { role } });
+}
+
+const MOCK_REPORTS_KEY = 'homeval_mock_reports';
+
+function getMockReportStore() {
+  return readMockStorage(MOCK_REPORTS_KEY, []);
+}
+
+export function submitReport(payload) {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const report = {
+      id: `rep-${Date.now()}`, owner_id: user.id,
+      prediction_id: payload.prediction_id ?? null,
+      expected_price: payload.expected_price, comment: payload.comment,
+      status: 'open', admin_note: '', closed_at: null, closed_by: null,
+      created_at: new Date().toISOString(),
+      reporter_email: user.email, reporter_name: user.display_name,
+    };
+    const stored = getMockReportStore();
+    stored.unshift(report);
+    localStorage.setItem(MOCK_REPORTS_KEY, JSON.stringify(stored));
+    return Promise.resolve(report);
+  }
+  return request(`${API_BASE}/reports`, { method: 'POST', body: payload });
+}
+
+export function myReports({ page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    const user = requireMockUser();
+    const items = getMockReportStore().filter(r => r.owner_id === user.id);
+    const paging = normalisePage(page, pageSize, items.length);
+    return Promise.resolve({ ...paging, items: items.slice(paging.start, paging.start + paging.page_size) });
+  }
+  return request(`${API_BASE}/me/reports?page=${page}&page_size=${pageSize}`);
+}
+
+export function getReports({ status = '', page = 1, pageSize = 10 } = {}) {
+  if (USE_MOCK) {
+    let items = getMockReportStore();
+    if (status) items = items.filter(r => r.status === status);
+    const paging = normalisePage(page, pageSize, items.length);
+    return Promise.resolve({ ...paging, items: items.slice(paging.start, paging.start + paging.page_size) });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  if (status) qs.set('status', status);
+  return request(`${API_BASE}/admin/reports?${qs}`);
+}
+
+export function closeReport(id, note) {
+  if (USE_MOCK) {
+    const stored = getMockReportStore();
+    const target = stored.find(r => String(r.id) === String(id));
+    if (!target) return Promise.reject(new ApiError(404, 'Không tìm thấy báo cáo.'));
+    if (target.status === 'closed') return Promise.reject(new ApiError(409, 'Báo cáo này đã được đóng.'));
+    target.status = 'closed';
+    target.admin_note = note;
+    target.closed_at = new Date().toISOString();
+    localStorage.setItem(MOCK_REPORTS_KEY, JSON.stringify(stored));
+    return Promise.resolve(target);
+  }
+  return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}/close`, { method: 'POST', body: { note } });
 }
 
 export const MOCK_UI_STATES = Object.freeze({

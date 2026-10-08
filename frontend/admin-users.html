@@ -21,14 +21,44 @@
     <a class="btn" href="admin-models-new.html">Huấn luyện</a>
     <a class="btn is-active" href="admin-users.html">Người dùng</a>
     <a class="btn" href="admin-datasets.html">Dữ liệu</a>
+    <a class="btn" href="admin-reports.html">Báo cáo</a>
   </nav>
   <h1>Quản lý người dùng</h1>
   <p class="field__hint">Tìm kiếm tài khoản, xem vai trò, trạng thái và số dự đoán đã lưu. Vô hiệu hoá chặn đăng nhập ngay lập tức.</p>
-  <form id="search-form" class="save-prediction" role="search">
-    <label class="field__label" for="q">Tìm theo tên hoặc email</label>
-    <div class="save-prediction__controls">
-      <input class="input" id="q" name="q" maxlength="80" placeholder="Ví dụ: anh@example.com">
-      <button class="btn btn--primary" type="submit">Tìm kiếm</button>
+  <form id="search-form" class="stack" role="search">
+    <div class="field">
+      <label class="field__label" for="q">Tìm theo tên hoặc email</label>
+      <div class="save-prediction__controls">
+        <input class="input" id="q" name="q" maxlength="80" placeholder="Ví dụ: anh@example.com">
+        <button class="btn btn--primary" type="submit">Tìm kiếm</button>
+      </div>
+    </div>
+    <div class="prediction-form__grid">
+      <div class="field">
+        <label class="field__label" for="role">Vai trò</label>
+        <select class="select" id="role" name="role">
+          <option value="">Tất cả</option>
+          <option value="user">Người dùng</option>
+          <option value="admin">Quản trị</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="status">Trạng thái</label>
+        <select class="select" id="status" name="status">
+          <option value="">Tất cả</option>
+          <option value="Active">Đang hoạt động</option>
+          <option value="Inactive">Đã vô hiệu hoá</option>
+        </select>
+      </div>
+      <div class="field">
+        <label class="field__label" for="sort">Sắp xếp</label>
+        <select class="select" id="sort" name="sort">
+          <option value="newest">Mới nhất</option>
+          <option value="oldest">Cũ nhất</option>
+          <option value="name">Tên A–Z</option>
+          <option value="predictions">Nhiều dự đoán nhất</option>
+        </select>
+      </div>
     </div>
   </form>
   <div id="alert"></div>

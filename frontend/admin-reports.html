@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo cáo sai số - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css"><link rel="stylesheet" href="css/ux.css"></head>
+<body>
+<site-header active="admin"></site-header>
+<main class="container page stack">
+  <nav class="admin-nav" aria-label="Admin">
+    <a class="btn" href="admin.html">Tổng quan</a>
+    <a class="btn" href="admin-models.html">Mô hình</a>
+    <a class="btn" href="admin-models-new.html">Huấn luyện</a>
+    <a class="btn" href="admin-users.html">Người dùng</a>
+    <a class="btn" href="admin-datasets.html">Dữ liệu</a>
+    <a class="btn is-active" href="admin-reports.html">Báo cáo</a>
+  </nav>
+  <h1>Báo cáo ước tính sai</h1>
+  <p class="field__hint">Xem báo cáo người dùng gửi, đóng kèm ghi chú để khép vòng phản hồi.</p>
+  <form id="filter-form" class="stack" role="search">
+    <div class="field">
+      <label class="field__label" for="status">Trạng thái</label>
+      <select class="select" id="status" name="status">
+        <option value="">Tất cả</option>
+        <option value="open" selected>Đang mở</option>
+        <option value="closed">Đã đóng</option>
+      </select>
+    </div>
+  </form>
+  <div id="alert"></div>
+  <div id="list"></div>
+  <div id="pager" class="row__actions" hidden>
+    <button class="btn" id="prev" type="button">← Trang trước</button>
+    <p class="field__hint" id="page-info"></p>
+    <button class="btn" id="next" type="button">Trang sau →</button>
+  </div>
+  <dialog id="report-dialog">
+    <h3 class="dialog__title">Chi tiết báo cáo</h3>
+    <div id="report-detail" class="stack"></div>
+    <form id="close-form" class="stack">
+      <div class="field">
+        <label class="field__label" for="note">Ghi chú của admin (bắt buộc khi đóng)</label>
+        <textarea class="input" id="note" name="note" rows="3" maxlength="1000" placeholder="Ví dụ: Đã ghi nhận, khu này model v2.3 sai số cao."></textarea>
+        <p class="field__error" aria-live="polite"></p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" id="cancel-close" type="button">Để sau</button>
+        <button class="btn btn--primary" type="submit">Đóng báo cáo</button>
+      </div>
+    </form>
+  </dialog>
+</main>
+<site-footer></site-footer>
+<template id="tpl-empty-state">
+  <div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a></div>
+</template>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/admin-reports.js"></script>
+</body>
+</html>

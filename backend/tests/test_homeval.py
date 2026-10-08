@@ -178,3 +178,67 @@ def test_admin_users_and_dataset_preview(client,users):
     txt={'file':('housing.txt','Address\nX\n','text/plain')}
     assert client.post('/api/admin/datasets/preview',files=txt,headers=admin).status_code==422
     assert client.post('/api/admin/datasets/preview',files=good).status_code==401
+
+def test_admin_users_filters_sort_role_and_reactivate(client,users):
+    _,_,admin=users
+    extra=client.post('/api/auth/register',json={'email':'zebra@example.com','password':'secure-password','display_name':'Zebra User'}).json()
+    zid=extra['user']['id']
+    assert client.get('/api/admin/users?role=user',headers=admin).json()['total']>=2
+    admins=client.get('/api/admin/users?role=admin',headers=admin).json()
+    assert admins['total']>=1 and all(u['role']=='admin' for u in admins['items'])
+    assert client.get('/api/admin/users?status=Active',headers=admin).json()['total']>=3
+    assert client.get('/api/admin/users?role=boss',headers=admin).status_code==422
+    assert client.get('/api/admin/users?sort=bogus',headers=admin).status_code==422
+    byname=client.get('/api/admin/users?sort=name&order=asc',headers=admin).json()
+    names=[u['display_name'] for u in byname['items']]
+    assert names==sorted(names)
+    assert client.post(f'/api/admin/users/{zid}/deactivate',headers=admin).status_code==200
+    off=client.get('/api/admin/users?status=Inactive',headers=admin).json()
+    assert off['total']>=1 and all(u['status']=='Inactive' for u in off['items'])
+    assert client.post(f'/api/admin/users/{zid}/reactivate',headers=admin).status_code==200
+    assert client.post(f'/api/admin/users/{zid}/reactivate',headers=admin).status_code==409
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==200
+    assert client.get('/api/admin/users?role=admin',headers=admin).json()['total']>=2
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==409
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'super'},headers=admin).status_code==422
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/role",json={'role':'user'},headers=admin).status_code==422
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'user'},headers=admin).status_code==200
+
+def test_dataset_upload_save_and_history(client,users):
+    _,_,admin=users
+    good={'file':('housing.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n"Quan 1, HCM",50,5,2,2,1\n','text/csv')}
+    saved=client.post('/api/admin/datasets/uploads',files=good,headers=admin)
+    assert saved.status_code==201,saved.text
+    assert saved.json()['rows']==1 and not saved.json()['missing_columns']
+    history=client.get('/api/admin/datasets/uploads',headers=admin).json()
+    assert history['total']>=1 and history['items'][0]['filename']=='housing.csv'
+    assert history['items'][0]['uploader_email']=='admin@homeval.vn'
+    partial={'file':('partial.csv','Address,Area\nQ1,50\n','text/csv')}
+    kept=client.post('/api/admin/datasets/uploads',files=partial,headers=admin)
+    assert kept.status_code==201 and len(kept.json()['missing_columns'])==4
+    assert client.post('/api/admin/datasets/uploads',files=good).status_code==401
+    assert client.post('/api/admin/datasets/uploads',files=good,headers=users[0]).status_code==403
+
+def test_estimate_report_lifecycle(client,users):
+    user,_,admin=users
+    assert client.post('/api/reports',json={'expected_price':4000000000,'comment':'Too high'}).status_code==401
+    bad=client.post('/api/reports',json={'expected_price':1,'comment':'x'},headers=user)
+    assert bad.status_code==422
+    created=client.post('/api/reports',json={'expected_price':4200000000,'comment':'Khu này chỉ khoảng 4,2 tỷ.'},headers=user)
+    assert created.status_code==201,created.text
+    rid=created.json()['id']
+    assert created.json()['status']=='open' and created.json()['admin_note']==''
+    mine=client.get('/api/me/reports',headers=user).json()
+    assert mine['total']>=1 and mine['items'][0]['id']==rid
+    queue=client.get('/api/admin/reports',headers=admin).json()
+    assert queue['total']>=1 and queue['items'][0]['reporter_email']
+    assert client.get('/api/admin/reports',headers=user).status_code==403
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':''},headers=admin).status_code==422
+    closed=client.post(f'/api/admin/reports/{rid}/close',json={'note':'Đã ghi nhận, model v2.3 sai số cao ở khu này.'},headers=admin)
+    assert closed.status_code==200,closed.text
+    assert closed.json()['status']=='closed' and closed.json()['closed_by'] is not None
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'again'},headers=admin).status_code==409
+    assert client.post('/api/admin/reports/nope/close',json={'note':'x'},headers=admin).status_code==404
+    done=client.get('/api/admin/reports?status=closed',headers=admin).json()
+    assert done['total']>=1 and all(i['status']=='closed' for i in done['items'])

@@ -18,7 +18,7 @@ from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
-from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, utcnow
+from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, EstimateReport, utcnow
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
@@ -76,11 +76,10 @@ DATASET_REQUIRED_COLUMNS = ["Address", "Area", "Price", "Bedrooms", "Bathrooms",
 DATASET_MAX_BYTES = 20 * 1024 * 1024
 DATASET_MAX_ROWS = 100_000
 
-@router.post("/admin/datasets/preview", response_model=schemas.DatasetPreview)
-def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin)):
-    # FE-07: validate + preview an uploaded training CSV. Stateless: the file
-    # is never promoted to training data. Switching the training dataset is
-    # a separate decision (retrain + re-evaluate), out of scope here.
+def _validate_dataset_upload(file: UploadFile):
+    # Shared by preview (stateless) and save (AD-6): extension, size,
+    # encoding, header and row cap. Raises 422 with a "field: message"
+    # detail the frontend shows as-is.
     name = file.filename or ""
     if not name.lower().endswith(".csv"):
         raise HTTPException(422, "file: Chỉ chấp nhận file .csv")
@@ -103,28 +102,83 @@ def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin
             raise HTTPException(422, "file: File vượt quá 100.000 dòng")
         if len(preview) < 5:
             preview.append({k: (v or "") for k, v in record.items() if k})
-    return schemas.DatasetPreview(filename=name, size_bytes=len(raw), rows=rows,
+    return dict(filename=name, size_bytes=len(raw), rows=rows,
         columns=columns, required_columns=DATASET_REQUIRED_COLUMNS,
         missing_columns=missing, preview=preview)
 
+@router.post("/admin/datasets/preview", response_model=schemas.DatasetPreview)
+def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin)):
+    # FE-07: validate + preview only. Nothing is stored.
+    return schemas.DatasetPreview(**_validate_dataset_upload(file))
+
+DATASET_UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads" / "datasets"
+
+@router.post("/admin/datasets/uploads", response_model=schemas.DatasetUploadOut, status_code=201)
+def dataset_save(file: UploadFile = File(...), user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    # AD-6 upgrade: persist a validated CSV for traceability. The file is
+    # NEVER auto-promoted to training data; switching the training dataset
+    # stays a retrain + re-evaluate decision.
+    checked = _validate_dataset_upload(file)
+    DATASET_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    stored = f"dataset-{uuid.uuid4().hex}.csv"
+    # _validate_dataset_upload already consumed the stream; rewind and store.
+    file.file.seek(0)
+    (DATASET_UPLOAD_DIR / stored).write_bytes(file.file.read())
+    record = DatasetUpload(id="du-" + uuid.uuid4().hex[:12], filename=checked["filename"],
+        stored_filename=stored, size_bytes=checked["size_bytes"], rows=checked["rows"],
+        columns=checked["columns"], missing_columns=checked["missing_columns"], owner_id=user.id)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+@router.get("/admin/datasets/uploads")
+def dataset_uploads(user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    records = db.scalars(select(DatasetUpload).order_by(DatasetUpload.created_at.desc())).all()
+    emails = dict(db.execute(select(User.id, User.email)
+        .where(User.id.in_([r.owner_id for r in records]))).all()) if records else {}
+    return {"items": [dict(id=r.id, filename=r.filename, stored_filename=r.stored_filename,
+        size_bytes=r.size_bytes, rows=r.rows, columns=r.columns,
+        missing_columns=r.missing_columns, owner_id=r.owner_id,
+        uploader_email=emails.get(r.owner_id, ""), created_at=r.created_at) for r in records],
+        "total": len(records)}
+
+USER_SORTS = ("newest", "oldest", "name", "predictions")
+
 @router.get("/admin/users", response_model=schemas.AdminUserPage)
-def admin_users(q: str = "", page: int = 1, page_size: int = 20,
+def admin_users(q: str = "", role: str = "", status: str = "",
+        sort: str = "newest", order: str = "desc",
+        page: int = 1, page_size: int = 20,
         user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    if role not in ("", "user", "admin"):
+        raise HTTPException(422, "role: Chỉ nhận user hoặc admin.")
+    if status not in ("", "Active", "Inactive"):
+        raise HTTPException(422, "status: Chỉ nhận Active hoặc Inactive.")
+    if sort not in USER_SORTS:
+        raise HTTPException(422, "sort: Chỉ nhận newest, oldest, name hoặc predictions.")
+    if order not in ("asc", "desc"):
+        raise HTTPException(422, "order: Chỉ nhận asc hoặc desc.")
     page = max(1, page)
     page_size = min(100, max(1, page_size))
-    base = select(User)
+    counts_sq = select(Prediction.owner_id, func.count().label("n")) \
+        .where(Prediction.saved == True).group_by(Prediction.owner_id).subquery()
+    base = select(User, func.coalesce(counts_sq.c.n, 0).label("pc")) \
+        .outerjoin(counts_sq, counts_sq.c.owner_id == User.id)
     if q.strip():
         like = f"%{q.strip()}%"
         base = base.where(or_(User.display_name.ilike(like), User.email.ilike(like)))
+    if role:
+        base = base.where(User.role == role)
+    if status:
+        base = base.where(User.status == status if status == "Inactive" else or_(User.status == "Active", User.status.is_(None)))
     total = db.scalar(select(func.count()).select_from(base.subquery()))
-    users = db.scalars(base.order_by(User.id.desc()).offset((page - 1) * page_size).limit(page_size)).all()
-    counts = dict(db.execute(
-        select(Prediction.owner_id, func.count())
-        .where(Prediction.saved == True, Prediction.owner_id.in_([u.id for u in users]))
-        .group_by(Prediction.owner_id)).all()) if users else {}
+    sort_col = {"newest": User.id, "oldest": User.id, "name": User.display_name,
+        "predictions": func.coalesce(counts_sq.c.n, 0)}[sort]
+    rows = db.execute(base.order_by(sort_col.asc() if order == "asc" else sort_col.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
     return {"items": [dict(id=u.id, display_name=u.display_name, email=u.email,
         phone=u.phone, role=u.role, status=u.status or "Active",
-        prediction_count=counts.get(u.id, 0), created_at=u.created_at) for u in users],
+        prediction_count=pc, created_at=u.created_at) for u, pc in rows],
         "total": total, "page": page, "page_size": page_size}
 
 @router.post("/admin/users/{user_id}/deactivate", response_model=schemas.UserOut)
@@ -145,6 +199,105 @@ def deactivate_user(user_id: int, user: User = Depends(get_admin), db: Session =
     db.commit()
     db.refresh(target)
     return target
+
+@router.post("/admin/users/{user_id}/reactivate", response_model=schemas.UserOut)
+def reactivate_user(user_id: int, user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if (target.status or "Active") == "Active":
+        raise HTTPException(409, "Tài khoản này đang hoạt động.")
+    target.status = "Active"
+    db.commit()
+    db.refresh(target)
+    return target
+
+@router.post("/admin/users/{user_id}/role", response_model=schemas.UserOut)
+def change_user_role(user_id: int, payload: schemas.RoleUpdateIn,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    # AD-9: promote/demote. Self-change is blocked so an admin can never
+    # lock themselves out by accident; demoting the last active admin too.
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if target.id == user.id:
+        raise HTTPException(422, "Không thể tự đổi vai trò của chính mình.")
+    if target.role == payload.role:
+        raise HTTPException(409, f"Tài khoản này đã là {payload.role}.")
+    if target.role == "admin" and payload.role == "user":
+        remaining = db.scalar(select(func.count(User.id)).where(
+            User.role == "admin", User.status != "Inactive", User.id != target.id))
+        if not remaining:
+            raise HTTPException(409, "Không thể hạ cấp admin cuối cùng còn hoạt động.")
+    target.role = payload.role
+    db.commit()
+    db.refresh(target)
+    return target
+
+def _report_out(r, reporter_email="", reporter_name=""):
+    return dict(id=r.id, owner_id=r.owner_id, prediction_id=r.prediction_id,
+        expected_price=r.expected_price, comment=r.comment, status=r.status,
+        admin_note=r.admin_note or "", closed_at=r.closed_at, closed_by=r.closed_by,
+        created_at=r.created_at, reporter_email=reporter_email, reporter_name=reporter_name)
+
+@router.post("/reports", response_model=schemas.ReportOut, status_code=201)
+def submit_report(payload: schemas.ReportIn,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    # US-9 contract: the user-side form (#37, VuSiSi) calls this endpoint.
+    report = EstimateReport(id="rep-" + uuid.uuid4().hex[:12], owner_id=user.id,
+        prediction_id=payload.prediction_id, expected_price=payload.expected_price,
+        comment=payload.comment.strip())
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return _report_out(report)
+
+@router.get("/me/reports", response_model=schemas.ReportPage)
+def my_reports(page: int = 1, page_size: int = 20,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    page = max(1, page)
+    page_size = min(100, max(1, page_size))
+    base = select(EstimateReport).where(EstimateReport.owner_id == user.id)
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    items = db.scalars(base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
+    return {"items": [_report_out(r) for r in items],
+        "total": total, "page": page, "page_size": page_size}
+
+@router.get("/admin/reports", response_model=schemas.AdminReportPage)
+def admin_reports(status: str = "", page: int = 1, page_size: int = 20,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    if status not in ("", "open", "closed"):
+        raise HTTPException(422, "status: Chỉ nhận open hoặc closed.")
+    page = max(1, page)
+    page_size = min(100, max(1, page_size))
+    base = select(EstimateReport)
+    if status:
+        base = base.where(EstimateReport.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery()))
+    items = db.scalars(base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
+    people = {uid: (email, name) for uid, email, name in db.execute(
+        select(User.id, User.email, User.display_name)
+        .where(User.id.in_([r.owner_id for r in items]))).all()} if items else {}
+    return {"items": [_report_out(r, *(people.get(r.owner_id, ("", "")) or ("", ""))) for r in items],
+        "total": total, "page": page, "page_size": page_size}
+
+@router.post("/admin/reports/{report_id}/close", response_model=schemas.ReportOut)
+def close_report(report_id: str, payload: schemas.ReportCloseIn,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    if report.status == "closed":
+        raise HTTPException(409, "Báo cáo này đã được đóng.")
+    report.status = "closed"
+    report.admin_note = payload.note.strip()
+    report.closed_at = utcnow()
+    report.closed_by = user.id
+    db.commit()
+    db.refresh(report)
+    return _report_out(report)
 
 class TrainIn(BaseModel):
     model_config=ConfigDict(extra="forbid")

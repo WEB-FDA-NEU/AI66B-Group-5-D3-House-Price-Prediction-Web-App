@@ -1,5 +1,5 @@
 import { requireAdmin } from '../auth.js';
-import { listUsers, deactivateUser } from '../api.js';
+import { listUsers, deactivateUser, reactivateUser, setUserRole } from '../api.js';
 import { showEmpty, showError, confirmAction, toast } from '../ui.js';
 
 const PAGE_SIZE = 10;
@@ -14,27 +14,40 @@ const pager = document.getElementById('pager');
 const pageInfo = document.getElementById('page-info');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
-let keyword = '';
 let page = 1;
+
+const filters = () => ({
+  q: form.q.value.trim(),
+  role: form.role.value,
+  status: form.status.value,
+  sort: form.sort.value,
+  order: form.sort.value === 'name' ? 'asc' : 'desc',
+});
 
 async function load() {
   listEl.innerHTML = '<p class="field__hint">Đang tải…</p>';
   pager.hidden = true;
   try {
-    const data = await listUsers({ q: keyword, page, pageSize: PAGE_SIZE });
+    const data = await listUsers({ ...filters(), page, pageSize: PAGE_SIZE });
     render(data);
   } catch (err) {
     showError(listEl, err, load);
   }
 }
 
+function badge(text, attr, value) {
+  const b = document.createElement('span');
+  b.className = 'badge';
+  b.dataset[attr] = value;
+  b.textContent = text;
+  return b;
+}
+
 function render(data) {
   alertBox.innerHTML = '';
   if (!data.items.length) {
     pager.hidden = true;
-    showEmpty(listEl, keyword
-      ? { title: 'Không tìm thấy tài khoản', hint: `Không có kết quả cho "${keyword}".` }
-      : { title: 'Chưa có người dùng', hint: 'Tài khoản đăng ký mới sẽ hiện ở đây.' });
+    showEmpty(listEl, { title: 'Không tìm thấy tài khoản', hint: 'Thử nới lỏng từ khoá hoặc bộ lọc.' });
     return;
   }
   listEl.innerHTML = '';
@@ -45,36 +58,35 @@ function render(data) {
   table.innerHTML = '<thead><tr><th>Tên hiển thị</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Dự đoán đã lưu</th><th>Ngày tạo</th><th>Hành động</th></tr></thead>';
   const tb = document.createElement('tbody');
   for (const u of data.items) {
+    const status = u.status ?? 'Active';
     const tr = document.createElement('tr');
     const td = text => { const c = document.createElement('td'); c.textContent = text; return c; };
     tr.append(td(u.display_name), td(u.email));
     const role = document.createElement('td');
-    const roleBadge = document.createElement('span');
-    roleBadge.className = 'badge';
-    roleBadge.dataset.variant = u.role === 'admin' ? 'danger' : 'info';
-    roleBadge.textContent = u.role === 'admin' ? 'Quản trị' : 'Người dùng';
-    role.append(roleBadge);
+    role.append(badge(u.role === 'admin' ? 'Quản trị' : 'Người dùng', 'variant', u.role === 'admin' ? 'danger' : 'info'));
     tr.append(role);
     const state = document.createElement('td');
-    const stateBadge = document.createElement('span');
-    stateBadge.className = 'badge';
-    stateBadge.dataset.state = u.status ?? 'Active';
-    stateBadge.textContent = (u.status ?? 'Active') === 'Active' ? 'Đang hoạt động' : 'Đã vô hiệu hoá';
-    state.append(stateBadge);
+    state.append(badge(status === 'Active' ? 'Đang hoạt động' : 'Đã vô hiệu hoá', 'state', status));
     tr.append(state);
     tr.append(td(Number(u.prediction_count ?? 0).toLocaleString('vi-VN')));
     tr.append(td(u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : '—'));
     const act = document.createElement('td');
-    if ((u.status ?? 'Active') === 'Active') {
-      const btn = document.createElement('button');
-      btn.className = 'btn'; btn.textContent = 'Vô hiệu hoá';
-      btn.onclick = () => onDeactivate(u);
-      act.append(btn);
+    const statusBtn = document.createElement('button');
+    statusBtn.className = 'btn';
+    if (status === 'Active') {
+      statusBtn.textContent = 'Vô hiệu hoá';
+      statusBtn.onclick = () => onDeactivate(u);
     } else {
-      const span = document.createElement('span');
-      span.className = 'field__hint'; span.textContent = 'Đã khoá đăng nhập';
-      act.append(span);
+      statusBtn.textContent = 'Mở khoá';
+      statusBtn.onclick = () => onReactivate(u);
     }
+    act.append(statusBtn);
+    const roleBtn = document.createElement('button');
+    roleBtn.className = 'btn';
+    roleBtn.style.marginLeft = '.5rem';
+    roleBtn.textContent = u.role === 'admin' ? 'Hạ xuống user' : 'Cho làm admin';
+    roleBtn.onclick = () => onRole(u);
+    act.append(roleBtn);
     tr.append(act);
     tb.append(tr);
   }
@@ -105,12 +117,49 @@ async function onDeactivate(u) {
   }
 }
 
+async function onReactivate(u) {
+  const ok = await confirmAction({
+    title: `Mở khoá ${u.email}?`,
+    message: 'Tài khoản được đăng nhập trở lại.',
+    confirmText: 'Mở khoá',
+  });
+  if (!ok) return;
+  try {
+    await reactivateUser(u.id);
+    toast(`Đã mở khoá ${u.email}`, 'success');
+    load();
+  } catch (err) {
+    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Mở khoá thất bại.'}</p>`;
+  }
+}
+
+async function onRole(u) {
+  const toAdmin = u.role !== 'admin';
+  const ok = await confirmAction({
+    title: `${toAdmin ? 'Cho làm admin' : 'Hạ xuống user'}: ${u.email}?`,
+    message: toAdmin
+      ? 'Tài khoản sẽ thấy toàn bộ trang quản trị.'
+      : 'Tài khoản mất quyền quản trị ngay lập tức.',
+    confirmText: toAdmin ? 'Cho làm admin' : 'Hạ xuống user',
+  });
+  if (!ok) return;
+  try {
+    await setUserRole(u.id, toAdmin ? 'admin' : 'user');
+    toast(`Đã cập nhật vai trò của ${u.email}`, 'success');
+    load();
+  } catch (err) {
+    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Đổi vai trò thất bại.'}</p>`;
+  }
+}
+
 form.addEventListener('submit', event => {
   event.preventDefault();
-  keyword = form.q.value.trim();
   page = 1;
   load();
 });
+form.role.addEventListener('change', () => { page = 1; load(); });
+form.status.addEventListener('change', () => { page = 1; load(); });
+form.sort.addEventListener('change', () => { page = 1; load(); });
 prevBtn.onclick = () => { if (page > 1) { page -= 1; load(); } };
 nextBtn.onclick = () => { page += 1; load(); };
 
