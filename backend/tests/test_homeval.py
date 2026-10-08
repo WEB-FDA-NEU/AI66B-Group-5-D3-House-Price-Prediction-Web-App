@@ -195,6 +195,19 @@ def test_estimate_report_submit_and_review(client,users):
     assert client.get('/api/admin/reports?status=bogus',headers=admin).status_code==422
     assert client.get('/api/admin/reports',headers=user).status_code==403
 
+def test_estimate_report_close(client,users):
+    user,_,admin=users
+    rid=client.post('/api/reports',json={'expected_price':4100000000,'comment':'Cần admin đóng.'},headers=user).json()['id']
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':''},headers=admin).status_code==422
+    closed=client.post(f'/api/admin/reports/{rid}/close',json={'note':'Đã ghi nhận, khu này sai số cao.'},headers=admin)
+    assert closed.status_code==200,closed.text
+    assert closed.json()['status']=='closed' and closed.json()['closed_by'] is not None
+    assert closed.json()['admin_note'].startswith('Đã ghi nhận')
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'again'},headers=admin).status_code==409
+    assert client.post('/api/admin/reports/nope/close',json={'note':'x'},headers=admin).status_code==404
+    done=client.get('/api/admin/reports?status=closed',headers=admin).json()
+    assert done['total']>=1 and all(i['status']=='closed' for i in done['items'])
+
 def test_dataset_upload_save_and_history(client,users):
     _,_,admin=users
     good={'file':('housing.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n"Quan 1, HCM",50,5,2,2,1\n','text/csv')}

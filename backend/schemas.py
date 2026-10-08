@@ -187,3 +187,9 @@ class AdminReportPage(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ReportCloseIn(BaseModel):
+    """Đóng báo cáo kèm ghi chú admin (AD-12). note bắt buộc có nội dung."""
+    model_config = ConfigDict(extra="forbid")
+    note: str = Field(min_length=1, max_length=1000)

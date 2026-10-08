@@ -45,9 +45,17 @@
   <dialog id="report-dialog">
     <h3 class="dialog__title">Chi tiết báo cáo</h3>
     <div id="report-detail" class="stack"></div>
-    <div class="dialog__actions">
-      <button class="btn" id="cancel-close" type="button">Đóng lại</button>
-    </div>
+    <form id="close-form" class="stack">
+      <div class="field">
+        <label class="field__label" for="note">Ghi chú của admin (bắt buộc khi đóng)</label>
+        <textarea class="input" id="note" name="note" rows="3" maxlength="1000" placeholder="Ví dụ: Đã ghi nhận, khu này model v2.3 sai số cao."></textarea>
+        <p class="field__error" aria-live="polite"></p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn" id="cancel-close" type="button">Để sau</button>
+        <button class="btn btn--primary" type="submit">Đóng báo cáo</button>
+      </div>
+    </form>
   </dialog>
 </main>
 <site-footer></site-footer>

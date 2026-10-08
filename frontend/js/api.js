@@ -516,6 +516,21 @@ export function getReports({ status = '', page = 1, pageSize = 10 } = {}) {
   return request(`${API_BASE}/admin/reports?${qs}`);
 }
 
+export function closeReport(id, note) {
+  if (USE_MOCK) {
+    const stored = getMockReportStore();
+    const target = stored.find(r => String(r.id) === String(id));
+    if (!target) return Promise.reject(new ApiError(404, 'Không tìm thấy báo cáo.'));
+    if (target.status === 'closed') return Promise.reject(new ApiError(409, 'Báo cáo này đã được đóng.'));
+    target.status = 'closed';
+    target.admin_note = note;
+    target.closed_at = new Date().toISOString();
+    localStorage.setItem(MOCK_REPORTS_KEY, JSON.stringify(stored));
+    return Promise.resolve(target);
+  }
+  return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}/close`, { method: 'POST', body: { note } });
+}
+
 export const MOCK_UI_STATES = Object.freeze({
   loading: 'Đang tải dữ liệu…',
   empty: 'Chưa có dữ liệu để hiển thị.',
