@@ -107,24 +107,42 @@ def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin
         columns=columns, required_columns=DATASET_REQUIRED_COLUMNS,
         missing_columns=missing, preview=preview)
 
+USER_SORTS = ("newest", "oldest", "name", "predictions")
+
 @router.get("/admin/users", response_model=schemas.AdminUserPage)
-def admin_users(q: str = "", page: int = 1, page_size: int = 20,
+def admin_users(q: str = "", role: str = "", status: str = "",
+        sort: str = "newest", order: str = "desc",
+        page: int = 1, page_size: int = 20,
         user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    if role not in ("", "user", "admin"):
+        raise HTTPException(422, "role: Chỉ nhận user hoặc admin.")
+    if status not in ("", "Active", "Inactive"):
+        raise HTTPException(422, "status: Chỉ nhận Active hoặc Inactive.")
+    if sort not in USER_SORTS:
+        raise HTTPException(422, "sort: Chỉ nhận newest, oldest, name hoặc predictions.")
+    if order not in ("asc", "desc"):
+        raise HTTPException(422, "order: Chỉ nhận asc hoặc desc.")
     page = max(1, page)
     page_size = min(100, max(1, page_size))
-    base = select(User)
+    counts_sq = select(Prediction.owner_id, func.count().label("n")) \
+        .where(Prediction.saved == True).group_by(Prediction.owner_id).subquery()
+    base = select(User, func.coalesce(counts_sq.c.n, 0).label("pc")) \
+        .outerjoin(counts_sq, counts_sq.c.owner_id == User.id)
     if q.strip():
         like = f"%{q.strip()}%"
         base = base.where(or_(User.display_name.ilike(like), User.email.ilike(like)))
+    if role:
+        base = base.where(User.role == role)
+    if status:
+        base = base.where(User.status == status if status == "Inactive" else or_(User.status == "Active", User.status.is_(None)))
     total = db.scalar(select(func.count()).select_from(base.subquery()))
-    users = db.scalars(base.order_by(User.id.desc()).offset((page - 1) * page_size).limit(page_size)).all()
-    counts = dict(db.execute(
-        select(Prediction.owner_id, func.count())
-        .where(Prediction.saved == True, Prediction.owner_id.in_([u.id for u in users]))
-        .group_by(Prediction.owner_id)).all()) if users else {}
+    sort_col = {"newest": User.id, "oldest": User.id, "name": User.display_name,
+        "predictions": func.coalesce(counts_sq.c.n, 0)}[sort]
+    rows = db.execute(base.order_by(sort_col.asc() if order == "asc" else sort_col.desc())
+        .offset((page - 1) * page_size).limit(page_size)).all()
     return {"items": [dict(id=u.id, display_name=u.display_name, email=u.email,
         phone=u.phone, role=u.role, status=u.status or "Active",
-        prediction_count=counts.get(u.id, 0), created_at=u.created_at) for u in users],
+        prediction_count=pc, created_at=u.created_at) for u, pc in rows],
         "total": total, "page": page, "page_size": page_size}
 
 @router.post("/admin/users/{user_id}/deactivate", response_model=schemas.UserOut)

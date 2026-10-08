@@ -178,3 +178,20 @@ def test_admin_users_and_dataset_preview(client,users):
     txt={'file':('housing.txt','Address\nX\n','text/plain')}
     assert client.post('/api/admin/datasets/preview',files=txt,headers=admin).status_code==422
     assert client.post('/api/admin/datasets/preview',files=good).status_code==401
+
+def test_admin_users_filter_and_sort(client,users):
+    _,_,admin=users
+    extra=client.post('/api/auth/register',json={'email':'zebra@example.com','password':'secure-password','display_name':'Zebra User'})
+    assert extra.status_code==201
+    assert client.get('/api/admin/users?role=user',headers=admin).json()['total']>=2
+    admins=client.get('/api/admin/users?role=admin',headers=admin).json()
+    assert admins['total']>=1 and all(u['role']=='admin' for u in admins['items'])
+    assert client.get('/api/admin/users?status=Active',headers=admin).json()['total']>=3
+    assert all('prediction_count' in u for u in admins['items'])
+    assert client.get('/api/admin/users?role=boss',headers=admin).status_code==422
+    assert client.get('/api/admin/users?status=bogus',headers=admin).status_code==422
+    assert client.get('/api/admin/users?sort=bogus',headers=admin).status_code==422
+    assert client.get('/api/admin/users?order=sideways',headers=admin).status_code==422
+    byname=client.get('/api/admin/users?sort=name&order=asc',headers=admin).json()
+    names=[u['display_name'] for u in byname['items']]
+    assert names==sorted(names)
