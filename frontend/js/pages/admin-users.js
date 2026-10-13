@@ -14,14 +14,21 @@ const pager = document.getElementById('pager');
 const pageInfo = document.getElementById('page-info');
 const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
-let keyword = '';
 let page = 1;
+
+const filters = () => ({
+  q: form.q.value.trim(),
+  role: form.role.value,
+  status: form.status.value,
+  sort: form.sort.value,
+  order: form.sort.value === 'name' ? 'asc' : 'desc',
+});
 
 async function load() {
   listEl.innerHTML = '<p class="field__hint">Đang tải…</p>';
   pager.hidden = true;
   try {
-    const data = await listUsers({ q: keyword, page, pageSize: PAGE_SIZE });
+    const data = await listUsers({ ...filters(), page, pageSize: PAGE_SIZE });
     render(data);
   } catch (err) {
     showError(listEl, err, load);
@@ -32,9 +39,7 @@ function render(data) {
   alertBox.innerHTML = '';
   if (!data.items.length) {
     pager.hidden = true;
-    showEmpty(listEl, keyword
-      ? { title: 'Không tìm thấy tài khoản', hint: `Không có kết quả cho "${keyword}".` }
-      : { title: 'Chưa có người dùng', hint: 'Tài khoản đăng ký mới sẽ hiện ở đây.' });
+    showEmpty(listEl, { title: 'Không tìm thấy tài khoản', hint: 'Thử nới lỏng từ khoá hoặc bộ lọc.' });
     return;
   }
   listEl.innerHTML = '';
@@ -45,6 +50,7 @@ function render(data) {
   table.innerHTML = '<thead><tr><th>Tên hiển thị</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Dự đoán đã lưu</th><th>Ngày tạo</th><th>Hành động</th></tr></thead>';
   const tb = document.createElement('tbody');
   for (const u of data.items) {
+    const status = u.status ?? 'Active';
     const tr = document.createElement('tr');
     const td = text => { const c = document.createElement('td'); c.textContent = text; return c; };
     tr.append(td(u.display_name), td(u.email));
@@ -58,14 +64,14 @@ function render(data) {
     const state = document.createElement('td');
     const stateBadge = document.createElement('span');
     stateBadge.className = 'badge';
-    stateBadge.dataset.state = u.status ?? 'Active';
-    stateBadge.textContent = (u.status ?? 'Active') === 'Active' ? 'Đang hoạt động' : 'Đã vô hiệu hoá';
+    stateBadge.dataset.state = status;
+    stateBadge.textContent = status === 'Active' ? 'Đang hoạt động' : 'Đã vô hiệu hoá';
     state.append(stateBadge);
     tr.append(state);
     tr.append(td(Number(u.prediction_count ?? 0).toLocaleString('vi-VN')));
     tr.append(td(u.created_at ? new Date(u.created_at).toLocaleDateString('vi-VN') : '—'));
     const act = document.createElement('td');
-    if ((u.status ?? 'Active') === 'Active') {
+    if (status === 'Active') {
       const btn = document.createElement('button');
       btn.className = 'btn'; btn.textContent = 'Vô hiệu hoá';
       btn.onclick = () => onDeactivate(u);
@@ -107,10 +113,12 @@ async function onDeactivate(u) {
 
 form.addEventListener('submit', event => {
   event.preventDefault();
-  keyword = form.q.value.trim();
   page = 1;
   load();
 });
+form.role.addEventListener('change', () => { page = 1; load(); });
+form.status.addEventListener('change', () => { page = 1; load(); });
+form.sort.addEventListener('change', () => { page = 1; load(); });
 prevBtn.onclick = () => { if (page > 1) { page -= 1; load(); } };
 nextBtn.onclick = () => { page += 1; load(); };
 

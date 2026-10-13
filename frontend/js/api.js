@@ -346,20 +346,29 @@ export function listDatasets() {
   return request(`${API_BASE}/admin/datasets`);
 }
 
-export function listUsers({ q = '', page = 1, pageSize = 10 } = {}) {
+export function listUsers({ q = '', role = '', status = '', sort = 'newest', order = 'desc', page = 1, pageSize = 10 } = {}) {
   if (USE_MOCK) {
     return getMockUsers().then(data => {
       const keyword = q.trim().toLowerCase();
-      const items = keyword
-        ? data.items.filter(user => [user.display_name, user.email, user.role]
-            .some(value => String(value ?? '').toLowerCase().includes(keyword)))
-        : data.items;
+      let items = data.items.map(user => ({ ...user, status: user.status ?? 'Active' }));
+      if (keyword) items = items.filter(user => [user.display_name, user.email, user.role]
+        .some(value => String(value ?? '').toLowerCase().includes(keyword)));
+      if (role) items = items.filter(user => user.role === role);
+      if (status) items = items.filter(user => user.status === status);
+      const by = { newest: 'created_at', oldest: 'created_at', name: 'display_name', predictions: 'prediction_count' }[sort] ?? 'created_at';
+      const dir = order === 'desc' ? -1 : 1;
+      items = [...items].sort((a, b) => {
+        if (by === 'prediction_count') return dir * (Number(a[by] ?? 0) - Number(b[by] ?? 0));
+        return dir * String(a[by] ?? '').localeCompare(String(b[by] ?? ''), 'vi');
+      });
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
     });
   }
-  const qs = new URLSearchParams({ page, page_size: pageSize });
+  const qs = new URLSearchParams({ page, page_size: pageSize, sort, order });
   if (q) qs.set('q', q);
+  if (role) qs.set('role', role);
+  if (status) qs.set('status', status);
   return request(`${API_BASE}/admin/users?${qs}`);
 }
 
