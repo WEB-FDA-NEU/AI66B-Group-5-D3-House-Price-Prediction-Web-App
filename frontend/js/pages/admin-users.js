@@ -1,5 +1,5 @@
 import { requireAdmin } from '../auth.js';
-import { listUsers, deactivateUser } from '../api.js';
+import { listUsers, deactivateUser, reactivateUser } from '../api.js';
 import { showEmpty, showError, confirmAction, toast } from '../ui.js';
 
 const PAGE_SIZE = 10;
@@ -77,9 +77,10 @@ function render(data) {
       btn.onclick = () => onDeactivate(u);
       act.append(btn);
     } else {
-      const span = document.createElement('span');
-      span.className = 'field__hint'; span.textContent = 'Đã khoá đăng nhập';
-      act.append(span);
+      const btn = document.createElement('button');
+      btn.className = 'btn'; btn.textContent = 'Mở khoá';
+      btn.onclick = () => onReactivate(u);
+      act.append(btn);
     }
     tr.append(act);
     tb.append(tr);
@@ -108,6 +109,22 @@ async function onDeactivate(u) {
     load();
   } catch (err) {
     alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Vô hiệu hoá thất bại.'}</p>`;
+  }
+}
+
+async function onReactivate(u) {
+  const ok = await confirmAction({
+    title: `Mở khoá ${u.email}?`,
+    message: 'Tài khoản được đăng nhập trở lại.',
+    confirmText: 'Mở khoá',
+  });
+  if (!ok) return;
+  try {
+    await reactivateUser(u.id);
+    toast(`Đã mở khoá ${u.email}`, 'success');
+    load();
+  } catch (err) {
+    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Mở khoá thất bại.'}</p>`;
   }
 }
 
