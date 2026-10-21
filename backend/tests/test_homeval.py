@@ -7,6 +7,7 @@ import json
 import shutil
 import sqlite3
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from datetime import timedelta
 import pytest
@@ -29,7 +30,7 @@ from ml import load_dataset, NUMERIC, ARTIFACTS
 @pytest.fixture(scope='module')
 def client():
     seed_accounts()
-    with sqlite3.connect(ROOT/'homeval.db') as source, SessionLocal() as db:
+    with closing(sqlite3.connect(ROOT/'homeval.db')) as source, SessionLocal() as db:
         for id, algorithm, tier, artifact, report in source.execute("select id,algorithm,tier,artifact,report from model_versions where state='Active'"):
             shutil.copyfile(ROOT/'artifacts'/artifact, ARTIFACTS/artifact)
             db.add(ModelVersion(id=id,algorithm=algorithm,tier=tier,artifact=artifact,report=json.loads(report),state='Active'))
