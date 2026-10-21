@@ -1,5 +1,5 @@
 import { requireAdmin } from '../auth.js';
-import { listUsers, deactivateUser } from '../api.js';
+import { listUsers, deactivateUser, setUserRole } from '../api.js';
 import { showEmpty, showError, confirmAction, toast } from '../ui.js';
 
 const PAGE_SIZE = 10;
@@ -81,6 +81,12 @@ function render(data) {
       span.className = 'field__hint'; span.textContent = 'Đã khoá đăng nhập';
       act.append(span);
     }
+    const roleBtn = document.createElement('button');
+    roleBtn.className = 'btn';
+    roleBtn.style.marginLeft = '.5rem';
+    roleBtn.textContent = u.role === 'admin' ? 'Hạ xuống user' : 'Cho làm admin';
+    roleBtn.onclick = () => onRole(u);
+    act.append(roleBtn);
     tr.append(act);
     tb.append(tr);
   }
@@ -108,6 +114,25 @@ async function onDeactivate(u) {
     load();
   } catch (err) {
     alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Vô hiệu hoá thất bại.'}</p>`;
+  }
+}
+
+async function onRole(u) {
+  const toAdmin = u.role !== 'admin';
+  const ok = await confirmAction({
+    title: `${toAdmin ? 'Cho làm admin' : 'Hạ xuống user'}: ${u.email}?`,
+    message: toAdmin
+      ? 'Tài khoản sẽ thấy toàn bộ trang quản trị.'
+      : 'Tài khoản mất quyền quản trị ngay lập tức.',
+    confirmText: toAdmin ? 'Cho làm admin' : 'Hạ xuống user',
+  });
+  if (!ok) return;
+  try {
+    await setUserRole(u.id, toAdmin ? 'admin' : 'user');
+    toast(`Đã cập nhật vai trò của ${u.email}`, 'success');
+    load();
+  } catch (err) {
+    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Đổi vai trò thất bại.'}</p>`;
   }
 }
 
