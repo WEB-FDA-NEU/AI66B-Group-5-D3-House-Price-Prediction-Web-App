@@ -41,7 +41,7 @@ Tôn trọng `prefers-reduced-motion`, không giữ nội dung chờ hoạt ản
 
 ## Kiểm tra
 
-`npm run test:ux` (server đang chạy tại http://127.0.0.1:8000) kiểm tra các tình huống hồi quy:
+`npm run test:ux` (tùy chọn; cần Node.js) (server đang chạy tại http://127.0.0.1:8000) kiểm tra các tình huống hồi quy:
 dropdown phụ thuộc, token hết hạn, API lỗi và phục hồi, dữ liệu sau đăng nhập, thanh toán inline,
 giữ form, mô hình mở khóa, drawer/mobile không tràn ngang, bàn phím và giảm chuyển động.
 Kết quả: `checks.json`; ảnh desktop/mobile nằm cạnh tài liệu này.
