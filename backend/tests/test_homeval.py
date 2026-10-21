@@ -195,3 +195,16 @@ def test_admin_users_filter_and_sort(client,users):
     byname=client.get('/api/admin/users?sort=name&order=asc',headers=admin).json()
     names=[u['display_name'] for u in byname['items']]
     assert names==sorted(names)
+
+def test_admin_user_role_change(client,users):
+    _,_,admin=users
+    extra=client.post('/api/auth/register',json={'email':'victim-role@example.com','password':'secure-password','display_name':'Victim Role'}).json()
+    zid=extra['user']['id']
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==200
+    assert client.get('/api/admin/users?role=admin',headers=admin).json()['total']>=2
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==409
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'super'},headers=admin).status_code==422
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/role",json={'role':'user'},headers=admin).status_code==422
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'user'},headers=admin).status_code==200
+    assert client.post('/api/admin/users/999999/role',json={'role':'user'},headers=admin).status_code==404
