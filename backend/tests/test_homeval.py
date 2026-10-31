@@ -20,12 +20,14 @@ os.environ['DATABASE_URL'] = 'sqlite:///' + (TEST_ROOT/'test.db').as_posix()
 os.environ['MODEL_ARTIFACT_DIR'] = str(TEST_ROOT/'artifacts')
 os.environ['JWT_SECRET'] = 'isolated-test-secret-never-use-in-production'
 os.environ['HOMEVAL_DEMO_BILLING'] = '1'
+os.environ['PREDICTION_RATE_LIMIT'] = '1000'
 from fastapi.testclient import TestClient
 from main import app
 from database import SessionLocal, engine
 from models import ModelVersion, Subscription, TrainingJob, utcnow
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
+from rate_limit import prediction_rate_limiter
 
 @pytest.fixture(scope='module')
 def client():
@@ -67,6 +69,20 @@ def test_real_prediction_catalog_and_validation(client):
     assert client.post('/api/predictions',json=INPUT,headers={'Authorization':'Bearer invalid'}).status_code==401
     assert client.get('/docs').status_code==200
     assert '/api/admin/training' in client.get('/openapi.json').json()['paths']
+
+def test_prediction_rate_limit(client,monkeypatch):
+    prediction_rate_limiter.clear()
+    monkeypatch.setattr(prediction_rate_limiter,'max_requests',2)
+    try:
+        assert client.post('/api/predictions',json={**INPUT,'area_m2':0}).status_code==422
+        assert client.post('/api/predictions',json=INPUT).status_code==200
+        limited=client.post('/api/predictions',json=INPUT)
+        assert limited.status_code==429
+        assert int(limited.headers['Retry-After'])>=1
+        assert client.get('/api/health').status_code==200
+        assert '429' in client.get('/openapi.json').json()['paths']['/api/predictions']['post']['responses']
+    finally:
+        prediction_rate_limiter.clear()
 
 def test_premium_payment_permissions_and_expiry(client,users):
     user,other,admin=users
