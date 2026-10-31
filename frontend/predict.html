@@ -18,7 +18,7 @@
   <div class="breadcrumb-line"><a href="index.html">Trang chủ</a><span>/</span><span>Định giá nhà</span></div>
   <div class="page-heading"><p class="eyebrow">MỖI TÀI SẢN, MỘT GÓC NHÌN RIÊNG</p><h1>Thêm dữ liệu. Rõ giá trị.</h1><p>Định giá nhà ở từ dữ liệu 2024. Chọn khu vực, bổ sung thông tin và đối chiếu các mô hình.</p></div>
   <nav class="mode-switch" aria-label="Cách nhập dữ liệu"><a class="is-active" href="predict.html" aria-current="page">▤ Nhập thông tin</a><a href="explore.html">⌖ Chọn trên bản đồ</a></nav><p class="map-source" id="map-source" hidden></p>
-  <div class="service-notice" id="prediction-service" hidden role="status"><span id="service-message"></span><button type="button" class="btn" id="retry-prediction">Thử kết nối lại</button></div>
+  <div class="service-notice" id="prediction-service" hidden role="status"><span id="service-message"></span><a class="btn quota-action" id="quota-action" href="register.html" hidden>Đăng ký để tiếp tục</a><button type="button" class="btn" id="retry-prediction">Thử kết nối lại</button></div>
 <div class="prediction-steps" aria-label="Các bước định giá"><span class="is-current"><b>01</b> Thông tin tài sản</span><i></i><span><b>02</b> Chọn góc nhìn</span><i></i><span><b>03</b> Đọc khoảng giá</span></div><div class="prediction-layout">
     <form id="prediction-form" class="panel prediction-panel" novalidate>
       <div class="form-section-heading"><span>01</span><div><h2>Thông tin bất động sản</h2><p class="field__hint" id="form-progress">Bắt đầu với vị trí và loại tài sản</p></div></div>
@@ -47,6 +47,7 @@
       <div class="field">
         <label class="field__label" for="area_m2">Diện tích (m²)</label>
         <input class="input" id="area_m2" name="area_m2" type="number" min="15" max="1000" required value="72">
+        <p class="field__hint">Nhập diện tích theo hồ sơ hoặc thông tin bạn có; tối thiểu 15 m².</p>
         <p class="field__error"></p>
       </div>
       <div class="field housing-field">
@@ -76,7 +77,7 @@
 <div class="model-choice"><div class="field"><label class="field__label" for="model_id">Chọn góc nhìn dự đoán</label><select class="select" name="model_id" id="model_id" required><option value="">Đang tải mô hình…</option></select><small id="selected-model">Đang kiểm tra quyền sử dụng…</small><p class="field__error"></p></div></div>
 <div class="prediction-models" id="prediction-models" aria-label="Các mô hình định giá"></div>
 <section class="premium-inline" id="premium-in-context"><div class="premium-inline__icon" aria-hidden="true">✧</div><div><span class="eyebrow">THÊM CƠ SỞ ĐỂ ĐỐI CHIẾU</span><h3>Một tài sản, nhiều góc nhìn.</h3><p>Mở thêm mô hình và so sánh ngay trên thông tin bạn vừa nhập.</p><button class="btn btn--primary" type="button" data-open-upgrade>Khám phá Premium ↗</button><small>Thanh toán thử · Không thu tiền · Giữ nguyên biểu mẫu</small></div></section>
-      <div class="form-submit"><p>Ước tính từ giá rao năm 2024. Đọc khoảng giá và giới hạn mô hình trước khi sử dụng.</p><button class="btn btn--primary" type="submit">Xem giá ước tính <span aria-hidden="true">↗</span></button></div>
+      <div class="form-submit"><p>Ước tính từ giá rao năm 2024. Đọc khoảng giá và giới hạn mô hình trước khi sử dụng.</p><div class="form-submit__actions"><button class="btn" type="reset">Nhập lại</button><button class="btn btn--primary" type="submit">Xem giá ước tính <span aria-hidden="true">↗</span></button></div></div>
     </form>
     <aside><div class="property-preview"><img src="img/hero-house.jpg" alt="Không gian nhà hiện đại tràn ánh sáng"><div class="property-preview__body"><p class="eyebrow">TÀI SẢN BẠN ĐANG KHÁM PHÁ</p><h2 id="preview-property">Bất động sản của bạn</h2><p id="preview-location">Chọn khu vực để bắt đầu</p><div class="preview-facts"><span id="preview-area">72 m²</span><span id="preview-rooms">3 phòng ngủ</span></div></div></div><div class="prediction-note"><strong>Một khoảng giá, nhiều góc nhìn.</strong><p>Bạn sẽ nhận giá ước tính, khoảng tham khảo và thông tin mô hình. Không cần đăng nhập để xem kết quả.</p><a class="text-link" href="about-model.html">Tìm hiểu phương pháp ↗</a></div></aside>
   </div>

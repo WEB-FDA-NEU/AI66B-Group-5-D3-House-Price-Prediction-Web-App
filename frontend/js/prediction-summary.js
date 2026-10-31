@@ -12,3 +12,15 @@ export function intervalText(prediction) {
 }
 
 export const predictionDisclaimer = 'Ước tính chỉ mang tính tham khảo, không thay thế định giá chuyên nghiệp.';
+
+export function hasCompletePrediction(prediction) {
+  const interval = prediction?.confidence_interval;
+  const model = prediction?.model;
+  return Number.isFinite(prediction?.estimated_price) && prediction.estimated_price > 0
+    && Number.isFinite(interval?.lower) && Number.isFinite(interval?.upper)
+    && interval.lower >= 0 && interval.lower <= interval.upper
+    && typeof model?.version === 'string' && model.version.trim().length > 0
+    && typeof model?.algorithm === 'string' && model.algorithm.trim().length > 0
+    && prediction.input !== null && typeof prediction.input === 'object'
+    && !Array.isArray(prediction.input);
+}

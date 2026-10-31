@@ -1,14 +1,16 @@
 ﻿import { createPrediction, getMapListings, getLocations, getModels, getEntitlements } from '../api.js';
-import { clearFieldErrors, setFieldError, toast } from '../ui.js';
+import { clearFieldErrors, setFieldError } from '../ui.js';
 import { isLand } from '../property.js';
 import { isLoggedIn, clearSession } from '../auth.js';
 import { LOCATION_SNAPSHOT } from '../location-snapshot.js';
 import { createPremiumUpgrade } from '../components/premium-upgrade.js';
+import { hasCompletePrediction } from '../prediction-summary.js';
 
 const form = document.getElementById('prediction-form');
 const params = new URLSearchParams(location.search);
 const submit = form.querySelector('button[type=submit]');
 const notice = document.getElementById('prediction-service');
+const quotaAction = document.getElementById('quota-action');
 const draftKey = 'homeval_property_form_v2';
 let locations = LOCATION_SNAPSHOT;
 let catalog = [];
@@ -26,7 +28,35 @@ function persist() {
   const values = Object.fromEntries(new FormData(form));
   try { sessionStorage.setItem(draftKey, JSON.stringify({at:Date.now(), values})); } catch { /* Form remains usable if storage is disabled. */ }
 }
-function message(text, kind = 'info') { notice.hidden = !text; notice.dataset.kind = kind; document.getElementById('service-message').textContent = text; }
+function message(text, kind = 'info') {
+  notice.hidden = !text;
+  notice.dataset.kind = kind;
+  notice.setAttribute('role', kind === 'error' ? 'alert' : 'status');
+  document.getElementById('service-message').textContent = text;
+  quotaAction.hidden = true;
+}
+function showQuotaState() {
+  message(isLoggedIn()
+    ? 'Bạn đã đạt giới hạn dự đoán trong ngày. Hãy thử lại sau.'
+    : 'Bạn đã dùng hết lượt dự đoán dành cho khách. Đăng ký hoặc đăng nhập để dùng hạn mức tài khoản.',
+  'error');
+  quotaAction.hidden = isLoggedIn();
+}
+function showServerValidation(detail) {
+  let count = 0;
+  for (const line of String(detail || '').split(/\r?\n/)) {
+    const match = /^([a-z][a-z0-9_]*):\s*(.+)$/i.exec(line.trim());
+    if (!match) continue;
+    const field = form.elements.namedItem(match[1]);
+    if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement) || field.disabled) continue;
+    setFieldError(field, match[2]);
+    count++;
+  }
+  if (!count) return false;
+  message('Máy chủ yêu cầu bạn kiểm tra lại các trường được đánh dấu.', 'error');
+  form.querySelector('[aria-invalid=true]')?.focus();
+  return true;
+}
 function updateDistricts(preferred = '') {
   form.district.replaceChildren(new Option('Chọn quận/huyện', ''), ...(locations[form.city.value] || []).map(name => new Option(name, name)));
   if ([...form.district.options].some(o => o.value === preferred)) form.district.value = preferred;
@@ -133,6 +163,17 @@ form.city.addEventListener('change', () => { updateDistricts(); updatePreview();
 form.addEventListener('input', () => { updatePreview(); persist(); });
 form.addEventListener('change', () => { updatePreview(); persist(); });
 form.property_type.addEventListener('change', () => clearFieldErrors(form));
+form.addEventListener('reset', () => {
+  sessionStorage.removeItem(draftKey);
+  sourceListing = null;
+  requestAnimationFrame(() => {
+    form.city.value = locations['Hồ Chí Minh'] ? 'Hồ Chí Minh' : Object.keys(locations)[0];
+    updateDistricts();
+    clearFieldErrors(form);
+    message('');
+    updatePreview();
+  });
+});
 document.getElementById('retry-prediction').addEventListener('click', refresh);
 window.addEventListener('online', refresh);
 await refresh();
@@ -155,9 +196,15 @@ form.addEventListener('submit', async event => {
   if (sourceListing) input.source_listing_id=sourceListing.id;
   submitting=true; form.setAttribute('aria-busy','true'); updatePreview(); persist();
   try {
-    const prediction=await createPrediction(input); sessionStorage.setItem('homeval_prediction_draft',JSON.stringify(prediction)); location.href='predict-result.html';
+    const prediction=await createPrediction(input);
+    if (!hasCompletePrediction(prediction)) throw new Error('Máy chủ trả về kết quả dự đoán chưa đầy đủ. Thông tin đã được giữ lại; hãy thử kết nối lại.');
+    sessionStorage.setItem('homeval_prediction_draft',JSON.stringify(prediction));
+    location.href='predict-result.html';
   } catch (error) {
     if (error.status === 401) { clearSession(); await refresh(); }
-    message(error.detail || 'Không thể tạo dự đoán. Thông tin đã được giữ lại; bạn có thể thử lại.','error'); toast(error.detail || 'Không thể tạo dự đoán.','error');
+    const detail = error.detail || error.message || 'Không thể tạo dự đoán. Thông tin đã được giữ lại; bạn có thể thử lại.';
+    if (error.status === 429) showQuotaState();
+    else if (error.status === 422 && showServerValidation(detail)) return;
+    else message(detail, 'error');
   } finally { submitting=false; form.removeAttribute('aria-busy'); updatePreview(); }
 });
