@@ -1,6 +1,7 @@
 # HomeVal V2 — Property Intelligence
 
-Chạy `node scripts/preview.mjs` từ thư mục gốc, rồi mở http://127.0.0.1:4173.
+Chạy `python scripts/preview.py` từ thư mục gốc, rồi mở http://127.0.0.1:4173.
+Chỉ cần Python; các script test UI bên dưới là tùy chọn và cần Node.js + Playwright.
 
 ## Các trang mới
 

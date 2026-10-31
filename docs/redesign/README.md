@@ -5,8 +5,8 @@
 
 ## Chạy tại máy
 
-Từ thư mục gốc dự án, chạy `node scripts/preview.mjs` rồi mở
-http://127.0.0.1:4173. Có thể dùng `npm start` nếu npm có sẵn.
+Từ thư mục gốc dự án, chạy `python scripts/preview.py` rồi mở
+http://127.0.0.1:4173. Có thể dùng `python backend/run.py` nếu muốn chạy kèm backend.
 Không cần cài thư viện để chạy máy chủ xem trước. Frontend sử dụng ES modules,
 vì vậy hãy mở qua máy chủ HTTP thay vì nhấp trực tiếp vào HTML.
 
@@ -26,7 +26,7 @@ hình vẫn là mô phỏng. Dữ liệu tài khoản/lịch sử thử nghiệm
 
 ## Kiểm tra
 
-`node scripts/design-qa.mjs` hoặc `npm run test:design`.
+`node scripts/design-qa.mjs` hoặc `npm run test:design` (tùy chọn; cần Node.js).
 Kiểm tra cần Playwright 1.63.0 và Google Chrome. Trên máy mới, cài dev dependencies
 bằng `npm install` và cài Chrome trước khi chạy kiểm tra.
 

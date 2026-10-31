@@ -107,6 +107,8 @@ Nếu tắt máy giữa lúc train, tác vụ có thể dang dở; đây là b�
 
 ## Kiểm chứng
 
+Các script `node` bên dưới là tùy chọn (cần Node.js + Playwright); chạy app chỉ cần Python.
+
 - `python -m pytest backend/tests -q`: 6 bài kiểm tra tích hợp đã qua, dùng DB/artifact riêng.
   Có huấn luyện Ridge thật, publish/archive, kiểm tra tách nhóm, Premium hết hạn, thanh toán idempotent,
   chặn giả role/trọng số, chặn đọc/xóa dữ liệu người khác và bỏ qua giá bị sửa khi lưu.

@@ -26,8 +26,10 @@ Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối đ�
 
 Nội dung dưới đây được giữ để bảo toàn lịch sử đóng góp; không mô tả backend mới.
 
-> **Giao diện mới:** chạy `node scripts/preview.mjs` từ thư mục gốc, rồi mở
+> **Giao diện mới:** chạy `python scripts/preview.py` từ thư mục gốc, rồi mở
 > http://127.0.0.1:4173. Mã nguồn mới nằm trong `frontend/`.
+> Chỉ cần Python để chạy app; các script test UI trong `scripts/` là tùy chọn
+> và cần Node.js + Playwright nếu muốn chạy.
 > Xem [bản V2: giao diện, bản đồ, Premium và đất nền](docs/redesign-v2/README.md).
 > Các phần bên dưới mô tả bản nộp Milestone 2 trước khi thiết kế lại;
 > các ZIP/bản đóng gói cũ chưa được tạo lại.

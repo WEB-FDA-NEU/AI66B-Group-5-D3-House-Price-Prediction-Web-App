@@ -386,6 +386,20 @@ export function deactivateUser(id) {
   return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/deactivate`, { method: 'POST' });
 }
 
+export function reactivateUser(id) {
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const target = data.items.find(user => String(user.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy người dùng.');
+      const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+      overrides[target.id] = { ...overrides[target.id], status: 'Active' };
+      localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+      return { ...target, status: 'Active' };
+    });
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/reactivate`, { method: 'POST' });
+}
+
 const DATASET_REQUIRED_COLUMNS = ['Address', 'Area', 'Price', 'Bedrooms', 'Bathrooms', 'Floors'];
 
 function previewCsvFile(file) {
@@ -536,7 +550,7 @@ function filterMock(data, { q = '', sort = 'newest', category = '',
   return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
 }
 
-export function updateProfile(payload) {
+export async function updateProfile(payload) {
   if (USE_MOCK) {
     const user = getUser();
     if (!user) return Promise.reject(new ApiError(401, 'Bạn cần đăng nhập để tiếp tục.'));

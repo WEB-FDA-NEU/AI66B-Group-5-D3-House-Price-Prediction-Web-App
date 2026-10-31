@@ -7,6 +7,7 @@ import json
 import shutil
 import sqlite3
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from datetime import timedelta
 import pytest
@@ -29,7 +30,7 @@ from ml import load_dataset, NUMERIC, ARTIFACTS
 @pytest.fixture(scope='module')
 def client():
     seed_accounts()
-    with sqlite3.connect(ROOT/'homeval.db') as source, SessionLocal() as db:
+    with closing(sqlite3.connect(ROOT/'homeval.db')) as source, SessionLocal() as db:
         for id, algorithm, tier, artifact, report in source.execute("select id,algorithm,tier,artifact,report from model_versions where state='Active'"):
             shutil.copyfile(ROOT/'artifacts'/artifact, ARTIFACTS/artifact)
             db.add(ModelVersion(id=id,algorithm=algorithm,tier=tier,artifact=artifact,report=json.loads(report),state='Active'))
@@ -195,3 +196,18 @@ def test_admin_users_filter_and_sort(client,users):
     byname=client.get('/api/admin/users?sort=name&order=asc',headers=admin).json()
     names=[u['display_name'] for u in byname['items']]
     assert names==sorted(names)
+
+def test_admin_user_deactivate_reactivate(client,users):
+    _,_,admin=users
+    victim=client.post('/api/auth/register',json={'email':'victim-reactivate@example.com','password':'secure-password','display_name':'Victim User'}).json()
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==200
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==200
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==401
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==409
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/reactivate",headers=admin).status_code==200
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==200
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/reactivate",headers=admin).status_code==409
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/deactivate",headers=admin).status_code==422
+    assert client.post('/api/admin/users/999999/deactivate',headers=admin).status_code==404
+    assert client.post('/api/admin/users/999999/reactivate',headers=admin).status_code==404
