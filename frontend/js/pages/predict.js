@@ -1,4 +1,4 @@
-﻿import { createPrediction, getMapListings, getLocations, getModels, getEntitlements } from '../api.js';
+import { createPrediction, getMapListings, getLocations, getModels, getPredictionQuota, getEntitlements } from '../api.js';
 import { clearFieldErrors, setFieldError, toast } from '../ui.js';
 import { isLand } from '../property.js';
 import { isLoggedIn, clearSession } from '../auth.js';
@@ -9,6 +9,9 @@ const form = document.getElementById('prediction-form');
 const params = new URLSearchParams(location.search);
 const submit = form.querySelector('button[type=submit]');
 const notice = document.getElementById('prediction-service');
+const quotaPanel = document.getElementById('guest-quota');
+const quotaMessage = document.getElementById('guest-quota-message');
+const quotaRetry = document.getElementById('retry-guest-quota');
 const draftKey = 'homeval_property_form_v2';
 let locations = LOCATION_SNAPSHOT;
 let catalog = [];
@@ -16,6 +19,8 @@ let access = { plan: 'free' };
 let modelReady = false;
 let submitting = false;
 let refreshing = false;
+let quotaReady = false;
+let quotaState = null;
 let sourceListing = null;
 let desiredModel = params.get('model') || sessionStorage.getItem('homeval_upgrade_model_id');
 const numeric = new Set(['area_m2','bedrooms','bathrooms','floors','frontage_m','road_width_m']);
@@ -27,6 +32,36 @@ function persist() {
   try { sessionStorage.setItem(draftKey, JSON.stringify({at:Date.now(), values})); } catch { /* Form remains usable if storage is disabled. */ }
 }
 function message(text, kind = 'info') { notice.hidden = !text; notice.dataset.kind = kind; document.getElementById('service-message').textContent = text; }
+function renderQuota(state) {
+  if (!state?.is_guest || !Number.isInteger(state.limit) || !Number.isInteger(state.remaining)) {
+    throw new Error('Máy chủ trả về trạng thái quota không hợp lệ.');
+  }
+  quotaState = state;
+  quotaReady = true;
+  quotaPanel.hidden = isLoggedIn();
+  quotaPanel.removeAttribute('data-kind');
+  quotaPanel.setAttribute('aria-busy', 'false');
+  quotaRetry.hidden = true;
+  if (!quotaPanel.hidden) {
+    if (state.remaining === 0) {
+      const reset = state.resets_at
+        ? new Date(state.resets_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
+        : 'sau 24 giờ';
+      quotaMessage.textContent = `Bạn đã dùng hết ${state.limit} lượt dự đoán trong 24 giờ trượt. Lượt tiếp theo mở lại vào ${reset}. Đăng nhập hoặc tạo tài khoản để tiếp tục và lưu lịch sử.`;
+    } else {
+      quotaMessage.textContent = `Bạn còn ${state.remaining}/${state.limit} lượt dự đoán trong mỗi 24 giờ trượt. Khách vẫn xem được kết quả; đăng nhập để lưu kết quả vào lịch sử.`;
+    }
+  }
+}
+function showQuotaError(error) {
+  quotaState = null;
+  quotaReady = false;
+  quotaPanel.hidden = isLoggedIn();
+  quotaPanel.dataset.kind = 'error';
+  quotaPanel.setAttribute('aria-busy', 'false');
+  quotaMessage.textContent = error.detail || error.message || 'Không tải được trạng thái lượt dự đoán. Hãy thử lại.';
+  quotaRetry.hidden = false;
+}
 function updateDistricts(preferred = '') {
   form.district.replaceChildren(new Option('Chọn quận/huyện', ''), ...(locations[form.city.value] || []).map(name => new Option(name, name)));
   if ([...form.district.options].some(o => o.value === preferred)) form.district.value = preferred;
@@ -56,8 +91,9 @@ function updatePreview() {
   document.getElementById('preview-area').textContent = (form.area_m2.value || '—') + ' m²';
   document.getElementById('preview-rooms').textContent = land ? `Mặt tiền ${form.frontage_m.value || '—'} m` : `${form.bedrooms.value || '0'} phòng ngủ`;
   document.getElementById('land-notice').hidden = !land;
-  submit.disabled = land || !modelReady || submitting;
-  submit.textContent = submitting ? 'Đang tính giá ước tính…' : land ? 'Chưa hỗ trợ định giá đất' : 'Xem giá ước tính ↗';
+  const guestBlocked = !isLoggedIn() && (!quotaReady || quotaState?.remaining === 0);
+  submit.disabled = land || !modelReady || submitting || guestBlocked;
+  submit.textContent = submitting ? 'Đang tính giá ước tính…' : land ? 'Chưa hỗ trợ định giá đất' : guestBlocked && quotaState?.remaining === 0 ? 'Đã hết lượt dự đoán' : guestBlocked ? 'Đang kiểm tra lượt dự đoán…' : 'Xem giá ước tính ↗';
   document.getElementById('form-progress').textContent = form.district.value && form.property_type.value ? 'Thông tin cơ bản đã sẵn sàng' : 'Bắt đầu với vị trí và loại tài sản';
   document.querySelectorAll('[data-model-choice]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.modelChoice === form.model_id.value)));
 }
@@ -105,12 +141,18 @@ async function refresh() {
   refreshing = true; const retry = document.getElementById('retry-prediction'); retry.disabled = true;
   // Independent requests: failed/expired membership must not erase locations.
   const locationsTask = getLocations().then(data => { applyLocations(data.locations); updatePreview(); return true; }).catch(() => false);
+  const quotaTask = isLoggedIn() ? Promise.resolve(true) : getPredictionQuota().then(data => { renderQuota(data); return true; }).catch(error => { showQuotaError(error); return false; });
   const accessTask = isLoggedIn() ? getEntitlements().then(data => { access=data; return ''; }).catch(error => {
     if (error.status === 401) { clearSession(); access={plan:'free'}; return 'Phiên đăng nhập đã hết hạn. Bạn vẫn có thể định giá Free; đăng nhập lại để dùng gói của mình.'; }
     return 'Chưa kiểm tra được gói tài khoản. Bạn có thể tiếp tục nhập thông tin và thử kết nối lại.';
   }) : Promise.resolve('');
   const catalogTask = getModels().then(data => { catalog=data.items; return true; }).catch(() => false);
-  const [locationOk, authNote, catalogOk] = await Promise.all([locationsTask,accessTask,catalogTask]);
+  const wasLoggedIn = isLoggedIn();
+  const [locationOk, authNote, catalogOk] = await Promise.all([locationsTask,accessTask,catalogTask,quotaTask]);
+  if (wasLoggedIn && !isLoggedIn()) {
+    try { renderQuota(await getPredictionQuota()); }
+    catch (error) { showQuotaError(error); }
+  }
   if (catalogOk) renderModels(); else {
     modelReady=false; form.model_id.disabled=true;
     form.model_id.replaceChildren(new Option('Tạm chưa tải được mô hình', ''));
@@ -122,7 +164,9 @@ async function refresh() {
   else if (authNote) message(authNote);
   else if (!locationOk) message('Đang dùng danh mục khu vực dự phòng từ dữ liệu 2024. Máy chủ sẽ kiểm tra lại khu vực khi định giá.');
   else message('');
+  if (isLoggedIn()) quotaPanel.hidden = true;
   refreshing=false; retry.disabled=false;
+  updatePreview();
 }
 // Render the known location catalog immediately, before any network or auth request.
 applyLocations(LOCATION_SNAPSHOT);
@@ -134,6 +178,7 @@ form.addEventListener('input', () => { updatePreview(); persist(); });
 form.addEventListener('change', () => { updatePreview(); persist(); });
 form.property_type.addEventListener('change', () => clearFieldErrors(form));
 document.getElementById('retry-prediction').addEventListener('click', refresh);
+quotaRetry.addEventListener('click', refresh);
 window.addEventListener('online', refresh);
 await refresh();
 if (params.get('listing')) {
@@ -158,6 +203,7 @@ form.addEventListener('submit', async event => {
     const prediction=await createPrediction(input); sessionStorage.setItem('homeval_prediction_draft',JSON.stringify(prediction)); location.href='predict-result.html';
   } catch (error) {
     if (error.status === 401) { clearSession(); await refresh(); }
+    else if (error.status === 429) await refresh();
     message(error.detail || 'Không thể tạo dự đoán. Thông tin đã được giữ lại; bạn có thể thử lại.','error'); toast(error.detail || 'Không thể tạo dự đoán.','error');
   } finally { submitting=false; form.removeAttribute('aria-busy'); updatePreview(); }
 });

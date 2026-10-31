@@ -1,5 +1,5 @@
 import { el, money } from '../model-catalog.js';
-import { savePrediction, getModels, getEntitlements, createPrediction } from '../api.js';
+import { savePrediction, getModels, getEntitlements, getPredictionQuota, createPrediction } from '../api.js';
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast } from '../ui.js';
 import { propertyFacts, isLand } from '../property.js';
@@ -10,6 +10,30 @@ catch { draft = null; }
 const result = document.getElementById('result');
 const saveForm = document.getElementById('save-form');
 const historyLink = document.getElementById('history-link');
+const guestQuota = document.getElementById('guest-result-quota');
+const guestQuotaMessage = document.getElementById('guest-result-quota-message');
+const guestQuotaRetry = document.getElementById('retry-guest-result-quota');
+
+async function refreshGuestQuota() {
+  guestQuota.hidden = isLoggedIn();
+  if (guestQuota.hidden) return;
+  guestQuota.setAttribute('aria-busy', 'true');
+  guestQuotaRetry.hidden = true;
+  guestQuota.removeAttribute('data-kind');
+  guestQuotaMessage.textContent = 'Đang kiểm tra lượt dự đoán còn lại…';
+  try {
+    const quota = await getPredictionQuota();
+    guestQuotaMessage.textContent = quota.remaining === 0
+      ? `Bạn đã dùng hết ${quota.limit} lượt trong 24 giờ trượt. Lượt tiếp theo mở lại vào ${new Date(quota.resets_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}. Đăng nhập hoặc tạo tài khoản để tiếp tục.`
+      : `Bạn còn ${quota.remaining}/${quota.limit} lượt dự đoán trong mỗi 24 giờ trượt. Khách xem được kết quả; đăng nhập để lưu lịch sử.`;
+  } catch (error) {
+    guestQuota.dataset.kind = 'error';
+    guestQuotaMessage.textContent = error.detail || 'Không tải được trạng thái lượt dự đoán.';
+    guestQuotaRetry.hidden = false;
+  } finally {
+    guestQuota.setAttribute('aria-busy', 'false');
+  }
+}
 
 if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
   location.href = 'predict.html';
@@ -73,6 +97,8 @@ if (draft?.warnings) {
   box.append(el('p', 'Khoảng giá được hiệu chỉnh ở mức mục tiêu 90% trên dữ liệu độc lập; không phải cam kết giá bán hoặc xác suất đúng của tài sản này.'));
   document.querySelector('.result-summary').append(box);
 }
+guestQuotaRetry.addEventListener('click', refreshGuestQuota);
+if (draft?.input && !isLoggedIn()) refreshGuestQuota();
 document.getElementById('compare-models').addEventListener('click', async event => {
   if (!isLoggedIn()) { requireLogin(); return; }
   const button = event.currentTarget; button.disabled = true;

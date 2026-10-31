@@ -60,8 +60,8 @@ Statuses describe the delivered frontend against the planned project scope.
 | About the Model | `about-model.html` | Completed | Mock dataset, algorithm, metrics, limitations and disclaimer with loading/error handling. |
 | Login | `login.html` | Completed | Demo credentials, validation, invalid-login feedback and return navigation. |
 | Register | `register.html` | Completed | Account form, password confirmation, duplicate-email feedback and local mock account persistence. |
-| Prediction form | `predict.html` | Partially Completed | Six property fields and browser validation; the full planned form and quota states are incomplete. |
-| Prediction result | `predict-result.html` | Completed | Mock price, interval, model version, input summary and disclaimer, accessible to guests; login is required only to save. |
+| Prediction form | `predict.html` | Completed | Property validation plus guest quota status; guests get five predictions per rolling 24-hour window per IP. |
+| Prediction result | `predict-result.html` | Completed | Price, interval, model version, input summary, disclaimer and remaining guest quota; login is required only to save. |
 | Save prediction | `predict-result.html` | Completed | Optional label and local saved-history entry for the signed-in user. |
 | My Predictions | `predictions.html` | Completed | User-specific history, search, empty state, detail links and delete confirmation in the demo. |
 | Saved prediction detail | `detail.html?id=...` | Completed | Saved inputs, price, interval, model version, disclaimer and delete action; legacy records without an interval explicitly disclose missing data. |
@@ -72,7 +72,7 @@ Statuses describe the delivered frontend against the planned project scope.
 | Error pages | `404.html`, `500.html` | Completed | Error messages and recovery links. |
 | Legacy history entry | `list.html` | Completed | Redirects into the current history experience. |
 | Shared layout | `css/`, `js/components/` | Completed | Shared header/footer, responsive styles, role-aware admin links and navigation between implemented pages. |
-| Quota displays; advanced validation | No completed dedicated UI | Not Implemented | Remaining work is tracked for follow-up, not presented as finished M2 functionality. |
+| Guest quota | `predict.html`, `predict-result.html` | Completed | Server-enforced five-per-rolling-24-hour IP limit, visible state, and registration recovery path. |
 | Insights/charts, comparison, datasets/users/reports management, FAQ, CSV export, password reset | No implemented screens | Not Implemented | Planned later work; the presence of mock data or adapters does not mean these screens exist. |
 
 ## 3. Instructions to Open / Run
@@ -108,6 +108,10 @@ files use ES modules and require a static server, for example
 `python -m http.server 8000` from `source/frontend/`, followed by
 `http://localhost:8000/index.html`. The repository equivalent is `frontend/`.
 Python is only an optional development server; it is not needed to view the ZIP.
+
+To review the guest quota flow without a running backend, start `python scripts/preview.py`
+and open `http://127.0.0.1:4173/predict.html?demo=1`. Demo quota use is stored in
+that browser's local storage; use `?demo=0` to return to the live API.
 
 The review copy bundles the existing page modules and embeds the shipped JSON
 fixtures so it can run over `file://`. Application behavior is unchanged.

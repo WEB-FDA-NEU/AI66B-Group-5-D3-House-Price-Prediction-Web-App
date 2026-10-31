@@ -97,6 +97,7 @@ class Prediction(Base):
     __tablename__ = "predictions"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    guest_ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
     payload: Mapped[dict] = mapped_column(JSON)
     label: Mapped[str] = mapped_column(String(80), default="")
     saved: Mapped[bool] = mapped_column(Boolean, default=False)

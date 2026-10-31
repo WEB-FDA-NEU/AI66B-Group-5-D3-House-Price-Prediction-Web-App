@@ -1,6 +1,7 @@
 ﻿"""HomeVal model registry, inference, history, training and sandbox billing."""
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
+import ipaddress
 from pathlib import Path
 from typing import Literal
 import csv
@@ -12,7 +13,7 @@ import os
 import threading
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, Request, UploadFile, File
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
@@ -27,6 +28,8 @@ from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifa
 router=APIRouter(prefix="/api",tags=["HomeVal"])
 training_lock=threading.Lock()
 publication_lock=threading.Lock()
+GUEST_PREDICTION_LIMIT = 5
+GUEST_PREDICTION_WINDOW = timedelta(hours=24)
 
 def premium(user,db):
     if not user:return False
@@ -63,6 +66,42 @@ def locations():return {"locations":dataset_cached()["locations"]}
 @router.get("/me/entitlements")
 def my_entitlements(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     return entitlement(user,db)
+
+def guest_ip_hash(request: Request) -> str:
+    if request.client is None or not request.client.host:
+        raise HTTPException(503, "Không xác định được địa chỉ kết nối để kiểm tra quota.")
+    address = request.client.host
+    try:
+        address = ipaddress.ip_address(address).compressed
+    except ValueError:
+        address = address.strip().lower()
+    return hmac.new(SECRET.encode(), ("guest-ip:" + address).encode(), hashlib.sha256).hexdigest()
+
+def guest_quota_state(ip_hash: str, db: Session, now: datetime | None = None):
+    now = now or utcnow()
+    cutoff = now - GUEST_PREDICTION_WINDOW
+    recent = select(Prediction.created_at).where(
+        Prediction.guest_ip_hash == ip_hash,
+        Prediction.created_at >= cutoff,
+    ).order_by(Prediction.created_at.asc())
+    used = db.scalar(select(func.count()).select_from(recent.subquery())) or 0
+    reset_at = None
+    if used:
+        release_index = max(0, used - GUEST_PREDICTION_LIMIT)
+        next_release = db.scalar(recent.offset(release_index).limit(1))
+        if next_release:
+            if next_release.tzinfo is None:
+                next_release = next_release.replace(tzinfo=timezone.utc)
+            reset_at = (next_release + GUEST_PREDICTION_WINDOW).isoformat()
+    return dict(is_guest=True, limit=GUEST_PREDICTION_LIMIT, used=used,
+        remaining=max(0, GUEST_PREDICTION_LIMIT - used), window_hours=24,
+        resets_at=reset_at)
+
+@router.get("/prediction-quota")
+def prediction_quota(request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
+    if user:
+        return dict(is_guest=False,limit=None,used=0,remaining=None,window_hours=24,resets_at=None)
+    return guest_quota_state(guest_ip_hash(request),db)
 
 @router.get("/admin/models")
 def models(user:User=Depends(get_admin),db:Session=Depends(get_db)):
@@ -298,7 +337,7 @@ def draft_proof(id):
     return hmac.new(SECRET.encode(),("prediction:"+id).encode(),hashlib.sha256).hexdigest()
 
 @router.post("/predictions")
-def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
+def predict(payload:PredictIn,request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
     if payload.property_type in ["Đất nền","Thửa đất"]:
         raise HTTPException(422,"Chưa có mô hình đất được kiểm định. Dataset Kaggle không có nhãn đất hoặc ranh thửa. Xem trang nguồn dữ liệu.")
     if payload.model_id:m=db.get(ModelVersion,payload.model_id)
@@ -309,6 +348,12 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     pairs=m.report["support"]["pairs"]
     if [inputs["city"],inputs["district"]] not in pairs:
         raise HTTPException(422,"Khu vực chưa có trong tập huấn luyện của mô hình này. Hãy chọn lại từ danh sách được hỗ trợ.")
+    guest_hash = None
+    if user is None:
+        guest_hash = guest_ip_hash(request)
+        quota = guest_quota_state(guest_hash,db)
+        if quota["remaining"] == 0:
+            raise HTTPException(429,"Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.")
     try:value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
     except ValueError as error:raise HTTPException(503,str(error))
     warnings=["Ước tính theo giá rao 2024, không phải giá giao dịch hoặc cập nhật thị trường hiện tại.",
@@ -324,7 +369,7 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
         input=inputs,created_at=utcnow().isoformat(),is_mock=False,warnings=warnings,
         disclaimer="Ước tính bằng mô hình được huấn luyện trên dữ liệu rao bán 2024; không phải khuyến nghị đầu tư.",
         draft_token=draft_proof(id))
-    db.add(Prediction(id=id,owner_id=user.id if user else None,payload=result))
+    db.add(Prediction(id=id,owner_id=user.id if user else None,guest_ip_hash=guest_hash,payload=result))
     db.commit()
     return result
 
