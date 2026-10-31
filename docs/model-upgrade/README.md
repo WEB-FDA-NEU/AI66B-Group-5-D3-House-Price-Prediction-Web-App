@@ -34,7 +34,7 @@ cũng chưa có trong bản này; bản đồ hiện tại là dữ liệu minh 
 
 ## Chạy và kiểm tra
 
-Từ thư mục gốc, chạy `python backend/run.py`, mở http://127.0.0.1:8000.
+Từ thư mục gốc, chạy `python backend/run.py`, mở <http://127.0.0.1:8000>.
 Nếu chưa có dữ liệu: cài `backend/requirements.txt`, chạy `python scripts/download_dataset.py`,
 sau đó `python backend/bootstrap.py`. Bootstrap huấn luyện và phát hành ba mô hình lần đầu;
 các lần sau bỏ qua thuật toán đã có phiên bản Active.
@@ -83,7 +83,10 @@ Không có mô hình đất được kiểm định. Mức sai số hiện tại
 
 ## API và lưu trữ
 
-- Public: `GET /api/models`, `/api/locations`, `/api/map-listings`, `POST /api/predictions`.
+- Công khai: `GET /api/models`, `/api/locations`, `/api/map-listings`, `POST /api/predictions`.
+  Mặc định, mỗi địa chỉ IP được gửi tối đa 10 yêu cầu dự đoán trong mỗi cửa sổ trượt 60 giây.
+  Khi vượt giới hạn, API trả HTTP 429 cùng header `Retry-After`; yêu cầu có dữ liệu không hợp lệ
+  vẫn được tính vào giới hạn.
 - Tài khoản: `/api/auth/register`, `/api/auth/login`, `/api/me`, `/api/me/password`.
 - Quyền: `GET /api/me/entitlements`; role được đọc từ database, không tin role phía trình duyệt.
 - Lịch sử: `GET/POST /api/me/predictions`, `GET/DELETE /api/me/predictions/{id}`.
@@ -100,9 +103,15 @@ Các file dữ liệu, model, DB và secret local đều không đưa vào Git. 
 không nhận pickle/joblib của người dùng. Kiểm tra hash artifact trước inference.
 
 Biến môi trường: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRE_MINUTES`, `CORS_ORIGINS`,
-`HOUSING_DATASET_PATH`, `MODEL_ARTIFACT_DIR`, `HOMEVAL_DEMO_BILLING`, `PORT` (local runner).
+`HOUSING_DATASET_PATH`, `MODEL_ARTIFACT_DIR`, `HOMEVAL_DEMO_BILLING`,
+`PREDICTION_RATE_LIMIT` (mặc định 10), `PREDICTION_RATE_LIMIT_WINDOW_SECONDS` (mặc định 60),
+`PORT` (cổng chạy ứng dụng local).
 `run.py` bật sandbox mặc định; dùng `HOMEVAL_DEMO_BILLING=0` để tắt. File `.env` không được nạp tự động.
 Chạy một worker: tác vụ huấn luyện dùng BackgroundTasks và khóa trong process, chưa có hàng đợi phân tán.
+Bộ đếm giới hạn tần suất cũng lưu trong process; khi chạy nhiều worker hoặc nhiều phiên bản ứng dụng,
+cần dùng kho lưu trữ dùng chung như Redis. Nếu ứng dụng chạy sau reverse proxy, cần cấu hình proxy
+đáng tin cậy để `request.client.host` phản ánh đúng IP người dùng; API không tin header
+`X-Forwarded-For` do client tự gửi.
 Nếu tắt máy giữa lúc train, tác vụ có thể dang dở; đây là bản local review, chưa phải hệ thống vận hành production.
 
 ## Kiểm chứng
