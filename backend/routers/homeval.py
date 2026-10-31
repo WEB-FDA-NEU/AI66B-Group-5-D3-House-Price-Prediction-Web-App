@@ -18,7 +18,7 @@ from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
-from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, utcnow
+from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, utcnow
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
@@ -76,11 +76,10 @@ DATASET_REQUIRED_COLUMNS = ["Address", "Area", "Price", "Bedrooms", "Bathrooms",
 DATASET_MAX_BYTES = 20 * 1024 * 1024
 DATASET_MAX_ROWS = 100_000
 
-@router.post("/admin/datasets/preview", response_model=schemas.DatasetPreview)
-def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin)):
-    # FE-07: validate + preview an uploaded training CSV. Stateless: the file
-    # is never promoted to training data. Switching the training dataset is
-    # a separate decision (retrain + re-evaluate), out of scope here.
+def _validate_dataset_upload(file: UploadFile):
+    # Shared by preview (stateless) and save (AD-6): extension, size,
+    # encoding, header and row cap. Raises 422 with a "field: message"
+    # detail the frontend shows as-is.
     name = file.filename or ""
     if not name.lower().endswith(".csv"):
         raise HTTPException(422, "file: Chỉ chấp nhận file .csv")
@@ -103,9 +102,46 @@ def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin
             raise HTTPException(422, "file: File vượt quá 100.000 dòng")
         if len(preview) < 5:
             preview.append({k: (v or "") for k, v in record.items() if k})
-    return schemas.DatasetPreview(filename=name, size_bytes=len(raw), rows=rows,
+    return dict(filename=name, size_bytes=len(raw), rows=rows,
         columns=columns, required_columns=DATASET_REQUIRED_COLUMNS,
         missing_columns=missing, preview=preview)
+
+@router.post("/admin/datasets/preview", response_model=schemas.DatasetPreview)
+def dataset_preview(file: UploadFile = File(...), user: User = Depends(get_admin)):
+    # FE-07: validate + preview only. Nothing is stored.
+    return schemas.DatasetPreview(**_validate_dataset_upload(file))
+
+DATASET_UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads" / "datasets"
+
+@router.post("/admin/datasets/uploads", response_model=schemas.DatasetUploadOut, status_code=201)
+def dataset_save(file: UploadFile = File(...), user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    # AD-6: persist a validated CSV for traceability. The file is
+    # NEVER auto-promoted to training data; switching the training dataset
+    # stays a retrain + re-evaluate decision.
+    checked = _validate_dataset_upload(file)
+    DATASET_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    stored = f"dataset-{uuid.uuid4().hex}.csv"
+    # _validate_dataset_upload already consumed the stream; rewind and store.
+    file.file.seek(0)
+    (DATASET_UPLOAD_DIR / stored).write_bytes(file.file.read())
+    record = DatasetUpload(id="du-" + uuid.uuid4().hex[:12], filename=checked["filename"],
+        stored_filename=stored, size_bytes=checked["size_bytes"], rows=checked["rows"],
+        columns=checked["columns"], missing_columns=checked["missing_columns"], owner_id=user.id)
+    db.add(record)
+    db.commit()
+    db.refresh(record)
+    return record
+
+@router.get("/admin/datasets/uploads")
+def dataset_uploads(user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    records = db.scalars(select(DatasetUpload).order_by(DatasetUpload.created_at.desc())).all()
+    emails = dict(db.execute(select(User.id, User.email)
+        .where(User.id.in_([r.owner_id for r in records]))).all()) if records else {}
+    return {"items": [dict(id=r.id, filename=r.filename, stored_filename=r.stored_filename,
+        size_bytes=r.size_bytes, rows=r.rows, columns=r.columns,
+        missing_columns=r.missing_columns, owner_id=r.owner_id,
+        uploader_email=emails.get(r.owner_id, ""), created_at=r.created_at) for r in records],
+        "total": len(records)}
 
 USER_SORTS = ("newest", "oldest", "name", "predictions")
 
