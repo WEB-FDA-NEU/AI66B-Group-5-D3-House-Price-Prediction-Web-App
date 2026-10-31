@@ -8,12 +8,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
-from database import Base, engine, get_db
+from database import Base, engine, ensure_guest_ip_hash_column, get_db
 from models import Item
 from routers import auth, homeval
 from request_stats import record
 
 Base.metadata.create_all(engine)   # Mốc 3 dùng tạm. Dự án thật dùng Alembic migration.
+ensure_guest_ip_hash_column()
 
 app = FastAPI(
     title="HomeVal API",

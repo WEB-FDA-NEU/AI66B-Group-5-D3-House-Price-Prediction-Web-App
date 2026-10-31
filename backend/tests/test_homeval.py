@@ -23,7 +23,7 @@ os.environ['HOMEVAL_DEMO_BILLING'] = '1'
 from fastapi.testclient import TestClient
 from main import app
 from database import SessionLocal, engine
-from models import ModelVersion, Subscription, TrainingJob, utcnow
+from models import ModelVersion, Prediction, Subscription, TrainingJob, utcnow
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
 
@@ -67,6 +67,34 @@ def test_real_prediction_catalog_and_validation(client):
     assert client.post('/api/predictions',json=INPUT,headers={'Authorization':'Bearer invalid'}).status_code==401
     assert client.get('/docs').status_code==200
     assert '/api/admin/training' in client.get('/openapi.json').json()['paths']
+
+def test_guest_quota_is_rolling_and_scoped_to_ip(client,monkeypatch):
+    import routers.homeval as homeval_router
+    monkeypatch.setattr(homeval_router,"predict_artifact",
+        lambda *args:(4_850_000_000,4_460_000_000,5_240_000_000,{"area_min":15,"area_max":1000}))
+    guest=TestClient(app,client=("198.51.100.14",8000))
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota=={"is_guest":True,"limit":5,"used":0,"remaining":5,"window_hours":24,"resets_at":None}
+    prediction_ids=[]
+    for _ in range(5):
+        response=guest.post('/api/predictions',json=INPUT)
+        assert response.status_code==200
+        prediction_ids.append(response.json()["id"])
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota["used"]==5 and quota["remaining"]==0 and quota["resets_at"]
+    limited=guest.post('/api/predictions',json=INPUT)
+    assert limited.status_code==429
+    assert "Đăng ký" in limited.json()["detail"]
+    with SessionLocal() as db:
+        matching=db.query(Prediction).filter(Prediction.id.in_(prediction_ids)).order_by(Prediction.created_at.asc()).all()
+        assert len(matching)==5 and all(len(p.guest_ip_hash)==64 for p in matching)
+        matching[0].created_at=utcnow()-timedelta(days=1,minutes=1)
+        db.commit()
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota["used"]==4 and quota["remaining"]==1
+    assert guest.post('/api/predictions',json=INPUT).status_code==200
+    other_ip=TestClient(app,client=("198.51.100.15",8000))
+    assert other_ip.get('/api/prediction-quota').json()["remaining"]==5
 
 def test_premium_payment_permissions_and_expiry(client,users):
     user,other,admin=users
