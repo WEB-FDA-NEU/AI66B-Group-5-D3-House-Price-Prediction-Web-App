@@ -138,3 +138,27 @@ class AdminDatasetUploadOut(DatasetUploadOut):
 class DatasetUploadPage(BaseModel):
     items: list[AdminDatasetUploadOut]
     total: int
+
+
+class EstimateReportCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prediction_id: str = Field(min_length=1, max_length=64)
+    draft_token: str = Field(min_length=1, max_length=128)
+    expected_price: int = Field(ge=1, le=1_000_000_000_000)
+    comment: str = Field(min_length=10, max_length=1000)
+
+
+class EstimateReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    prediction_id: str
+    estimated_price: int
+    expected_price: int
+    comment: str
+    property_snapshot: dict
+    created_at: datetime
+
+
+class EstimateReportPage(BaseModel):
+    items: list[EstimateReportOut]
+    total: int

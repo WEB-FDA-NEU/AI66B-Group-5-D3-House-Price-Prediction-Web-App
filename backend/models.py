@@ -103,6 +103,18 @@ class Prediction(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class EstimateReport(Base):
+    __tablename__ = "estimate_reports"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    prediction_id: Mapped[str] = mapped_column(ForeignKey("predictions.id"), index=True)
+    estimated_price: Mapped[int] = mapped_column(Integer)
+    expected_price: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(Text)
+    property_snapshot: Mapped[dict] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Checkout(Base):
     __tablename__ = "checkouts"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
