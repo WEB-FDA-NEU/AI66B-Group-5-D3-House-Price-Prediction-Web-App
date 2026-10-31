@@ -15,6 +15,7 @@
 <body>
 <site-header active="predict"></site-header>
 <main class="container page" style="max-width:1100px">
+  <div id="result-error" class="service-notice" hidden role="alert"><span>Kết quả dự đoán chưa đầy đủ hoặc đã hết hạn. Hãy tạo một dự đoán mới để xem đầy đủ giá, khoảng ước tính và thông tin mô hình.</span><a class="btn" href="predict.html">Tạo dự đoán mới</a></div>
   <div id="result" class="stack" hidden>
     <div>
       <p class="eyebrow">THÊM MỘT GÓC NHÌN CHO QUYẾT ĐỊNH CỦA BẠN</p><h1>Giá nhà ước tính</h1>
@@ -24,7 +25,9 @@
       <p class="result-summary__price" id="estimated-price"></p>
       <p id="confidence-interval"></p>
       <p class="field__hint" id="model-version"></p>
+      <p class="field__hint" id="result-disclaimer"></p>
     </section>
+    <section id="feature-importance"><h2>Yếu tố ảnh hưởng đến ước tính</h2><p class="field__hint">Phiên bản mô hình hiện tại chưa cung cấp mức đóng góp của từng đặc trưng. Không có biểu đồ giả lập trong kết quả này.</p></section>
     <section>
       <h2>Thông tin bất động sản</h2>
       <dl class="facts" id="input-summary"></dl>

@@ -3,16 +3,19 @@ import { savePrediction, getModels, getEntitlements, createPrediction } from '..
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast } from '../ui.js';
 import { propertyFacts, isLand } from '../property.js';
+import { hasCompletePrediction, predictionDisclaimer } from '../prediction-summary.js';
 
 let draft;
 try { draft = JSON.parse(sessionStorage.getItem('homeval_prediction_draft') || 'null'); }
 catch { draft = null; }
 const result = document.getElementById('result');
+const resultError = document.getElementById('result-error');
 const saveForm = document.getElementById('save-form');
 const historyLink = document.getElementById('history-link');
 
-if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
-  location.href = 'predict.html';
+if (!hasCompletePrediction(draft)) {
+  resultError.hidden = false;
+  document.querySelector('.model-section').hidden = true;
 } else {
   const loggedIn = isLoggedIn();
 
@@ -24,14 +27,9 @@ if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
     `Khoảng ước tính: ${formatPrice(draft.confidence_interval.lower)} - ${formatPrice(draft.confidence_interval.upper)}`;
   document.getElementById('model-version').textContent =
     `Model ${draft.model.version} - ${draft.model.algorithm}`;
+  document.getElementById('result-disclaimer').textContent = draft.disclaimer || predictionDisclaimer;
 
   if (isLand(draft.input.property_type)) document.querySelector('h1').textContent = 'Giá đất ước tính';
-  if (draft.disclaimer) {
-    const note = document.createElement('p');
-    note.className = 'field__hint';
-    note.textContent = draft.disclaimer;
-    document.querySelector('.result-summary').append(note);
-  }
   const fields = propertyFacts(draft.input);
   const summary = document.getElementById('input-summary');
   for (const [label, value] of fields) {
@@ -67,11 +65,22 @@ saveForm.addEventListener('submit', async event => {
   }
 });
 
-if (draft?.warnings) {
-  const box = el('div', null, 'result-warnings'); box.append(el('strong', 'Đọc cùng kết quả'));
-  const list = el('ul'); draft.warnings.forEach(w => list.append(el('li', w))); box.append(list);
-  box.append(el('p', 'Khoảng giá được hiệu chỉnh ở mức mục tiêu 90% trên dữ liệu độc lập; không phải cam kết giá bán hoặc xác suất đúng của tài sản này.'));
-  document.querySelector('.result-summary').append(box);
+if (hasCompletePrediction(draft) && (Array.isArray(draft.warnings) || draft.low_confidence === true)) {
+  const warnings = Array.isArray(draft.warnings)
+    ? draft.warnings.filter(warning => typeof warning === 'string' && warning.trim())
+    : [];
+  const lowConfidence = draft.low_confidence === true
+    || warnings.some(warning => /low.?confidence|độ tin cậy thấp/i.test(warning));
+  if (lowConfidence) {
+    const warning = el('p', 'Độ tin cậy thấp: hãy xem khoảng giá và các giới hạn trước khi sử dụng kết quả.', 'low-confidence-warning');
+    document.querySelector('.result-summary').append(warning);
+  }
+  if (warnings.length) {
+    const box = el('div', null, 'result-warnings'); box.append(el('strong', 'Đọc cùng kết quả'));
+    const list = el('ul'); warnings.forEach(w => list.append(el('li', w))); box.append(list);
+    box.append(el('p', 'Khoảng giá được hiệu chỉnh ở mức mục tiêu 90% trên dữ liệu độc lập; không phải cam kết giá bán hoặc xác suất đúng của tài sản này.'));
+    document.querySelector('.result-summary').append(box);
+  }
 }
 document.getElementById('compare-models').addEventListener('click', async event => {
   if (!isLoggedIn()) { requireLogin(); return; }
