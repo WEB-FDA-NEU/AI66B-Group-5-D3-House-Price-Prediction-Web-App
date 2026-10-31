@@ -567,7 +567,7 @@ function filterMock(data, { q = '', sort = 'newest', category = '',
   return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
 }
 
-export function updateProfile(payload) {
+export async function updateProfile(payload) {
   if (USE_MOCK) {
     const user = getUser();
     if (!user) return Promise.reject(new ApiError(401, 'Bạn cần đăng nhập để tiếp tục.'));
