@@ -10,12 +10,12 @@ python backend/bootstrap.py
 python backend/run.py
 ```
 
-Mở **http://127.0.0.1:8000**. Khi clone mới, chạy đủ bốn lệnh trên để tải dataset và tạo mô hình local.
+Mở **<http://127.0.0.1:8000>**. Khi clone mới, chạy đủ bốn lệnh trên để tải dataset và tạo mô hình local.
 Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối để mở ứng dụng.
 
 - Tài khoản thường: `anh@example.com` / `password123`.
 - Admin local: `admin@homeval.vn` / `admin123`.
-- API docs: http://127.0.0.1:8000/docs.
+- API docs: <http://127.0.0.1:8000/docs>.
 - [Hướng dẫn kiểm tra, sai số và giới hạn](docs/model-upgrade/README.md).
 - [Bản tối ưu UX: quận/huyện, Premium tại chỗ, chuyển động](docs/ux-polish/README.md).
 
@@ -27,7 +27,7 @@ Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối đ�
 Nội dung dưới đây được giữ để bảo toàn lịch sử đóng góp; không mô tả backend mới.
 
 > **Giao diện mới:** chạy `python scripts/preview.py` từ thư mục gốc, rồi mở
-> http://127.0.0.1:4173. Mã nguồn mới nằm trong `frontend/`.
+> <http://127.0.0.1:4173>. Mã nguồn mới nằm trong `frontend/`.
 > Chỉ cần Python để chạy app; các script test UI trong `scripts/` là tùy chọn
 > và cần Node.js + Playwright nếu muốn chạy.
 > Xem [bản V2: giao diện, bản đồ, Premium và đất nền](docs/redesign-v2/README.md).
@@ -63,6 +63,7 @@ Statuses describe the delivered frontend against the planned project scope.
 | Prediction form | `predict.html` | Partially Completed | Six property fields and browser validation; the full planned form and quota states are incomplete. |
 | Prediction result | `predict-result.html` | Completed | Mock price, interval, model version, input summary and disclaimer, accessible to guests; login is required only to save. |
 | Save prediction | `predict-result.html` | Completed | Optional label and local saved-history entry for the signed-in user. |
+| Report a wrong estimate | `report-estimate.html` | Completed | Submit an expected price and comment for a prediction; reports are private to the signed-in user. Use `report-estimate.html?demo=1` to exercise the screen and local browser-storage adapter without a backend. |
 | My Predictions | `predictions.html` | Completed | User-specific history, search, empty state, detail links and delete confirmation in the demo. |
 | Saved prediction detail | `detail.html?id=...` | Completed | Saved inputs, price, interval, model version, disclaimer and delete action; legacy records without an interval explicitly disclose missing data. |
 | Profile / Settings | `profile.html` | Partially Completed | Edit display name/phone and change mock password; email editing is not implemented. |
@@ -73,7 +74,7 @@ Statuses describe the delivered frontend against the planned project scope.
 | Legacy history entry | `list.html` | Completed | Redirects into the current history experience. |
 | Shared layout | `css/`, `js/components/` | Completed | Shared header/footer, responsive styles, role-aware admin links and navigation between implemented pages. |
 | Quota displays; advanced validation | No completed dedicated UI | Not Implemented | Remaining work is tracked for follow-up, not presented as finished M2 functionality. |
-| Insights/charts, comparison, datasets/users/reports management, FAQ, CSV export, password reset | No implemented screens | Not Implemented | Planned later work; the presence of mock data or adapters does not mean these screens exist. |
+| Insights/charts, comparison, datasets/users/admin reports management, FAQ, CSV export, password reset | No implemented screens | Not Implemented | Planned later work; the presence of mock data or adapters does not mean these screens exist. |
 
 ## 3. Instructions to Open / Run
 
