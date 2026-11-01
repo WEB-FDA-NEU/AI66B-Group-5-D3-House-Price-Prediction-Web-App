@@ -169,3 +169,21 @@ class EstimateReportOut(BaseModel):
 class EstimateReportPage(BaseModel):
     items: list[EstimateReportOut]
     total: int
+
+
+class AdminEstimateReportOut(EstimateReportOut):
+    """Hàng báo cáo trong hàng đợi duyệt của admin (AD-11)."""
+    owner_id: int
+    status: str = "open"
+    admin_note: str = ""
+    closed_at: datetime | None = None
+    closed_by: int | None = None
+    reporter_email: str = ""
+    reporter_name: str = ""
+
+
+class AdminEstimateReportPage(BaseModel):
+    items: list[AdminEstimateReportOut]
+    total: int
+    page: int
+    page_size: int

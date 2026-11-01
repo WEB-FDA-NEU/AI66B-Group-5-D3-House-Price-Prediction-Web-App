@@ -149,6 +149,38 @@ def test_estimate_reports_require_auth_validate_and_stay_private(client,users):
     assert client.post('/api/me/estimate-reports',json=foreign_payload,headers=other).status_code==404
     assert client.post('/api/me/estimate-reports',json={**payload,'draft_token':'forged'},headers=user).status_code==403
 
+def test_admin_estimate_report_review(client,users):
+    user,_,admin=users
+    prediction=client.post('/api/predictions',json=INPUT).json()
+    payload={
+        'prediction_id':prediction['id'],
+        'draft_token':prediction['draft_token'],
+        'expected_price':prediction['estimated_price']+250_000_000,
+        'comment':'Giá thực tế cao hơn vì nhà mới sửa và hẻm thông thoáng.',
+    }
+    assert client.post('/api/me/estimate-reports',json=payload,headers=user).status_code==201
+
+    assert client.get('/api/admin/reports').status_code==401
+    assert client.get('/api/admin/reports',headers=user).status_code==403
+    assert client.get('/api/admin/reports?status=bogus',headers=admin).status_code==422
+
+    queue=client.get('/api/admin/reports?status=open',headers=admin)
+    assert queue.status_code==200,queue.text
+    data=queue.json()
+    assert data['total']>=1 and data['page']==1 and data['page_size']==20
+    report=data['items'][0]
+    assert report['status']=='open' and report['admin_note']==''
+    assert report['reporter_email'] and report['reporter_name']
+    assert report['estimated_price']==prediction['estimated_price']
+    assert report['expected_price']==payload['expected_price']
+    assert report['property_snapshot']==prediction['input']
+
+    detail=client.get('/api/admin/reports/'+report['id'],headers=admin)
+    assert detail.status_code==200 and detail.json()['id']==report['id']
+    assert client.get('/api/admin/reports/'+report['id'],headers=user).status_code==403
+    assert client.get('/api/admin/reports/missing',headers=admin).status_code==404
+    assert client.get('/api/admin/reports?status=closed',headers=admin).json()['total']==0
+
 def test_training_publish_archive_lifecycle(client,users):
     _,_,admin=users
     assert client.post('/api/admin/training',json={'algorithm':'ridge','weights':[1]},headers=admin).status_code==422

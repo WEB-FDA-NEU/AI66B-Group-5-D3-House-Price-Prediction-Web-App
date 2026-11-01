@@ -39,6 +39,35 @@ def _ensure_user_status_column():
 _ensure_user_status_column()
 
 
+def _ensure_estimate_report_review_columns():
+    # Lightweight migration for AD-11: homeval.db files created while testing
+    # US-9 (#37) already have estimate_reports without the review columns.
+    # Postgres deployments never had that pre-release table, so skip them.
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+    from sqlalchemy import inspect, text
+    if "estimate_reports" not in inspect(engine).get_table_names():
+        return
+    columns = [c["name"] for c in inspect(engine).get_columns("estimate_reports")]
+    additions = {
+        "status": "VARCHAR(20) DEFAULT 'open'",
+        "admin_note": "TEXT DEFAULT ''",
+        "closed_at": "DATETIME",
+        "closed_by": "INTEGER",
+    }
+    missing = {name: ddl for name, ddl in additions.items() if name not in columns}
+    if not missing:
+        return
+    with engine.begin() as conn:
+        for name, ddl in missing.items():
+            conn.execute(text(f"ALTER TABLE estimate_reports ADD COLUMN {name} {ddl}"))
+        if "status" in missing:
+            conn.execute(text("UPDATE estimate_reports SET status='open' WHERE status IS NULL"))
+
+
+_ensure_estimate_report_review_columns()
+
+
 def get_db():
     db = SessionLocal()
     try:
