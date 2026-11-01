@@ -200,6 +200,8 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .badge[data-state="Archived"] { background: var(--c-muted); }
 .badge[data-state="Rejected"] { background: var(--c-danger); }
 .badge[data-state="Inactive"] { background: var(--c-danger); }
+.badge[data-state="open"] { background: var(--c-warning); }
+.badge[data-state="closed"] { background: var(--c-muted); }
 /* Biến thể ngữ nghĩa dùng cho badge ngoài phạm vi Admin (Hải - FE-01/GU-1/GU-5) */
 .badge[data-variant="info"]    { background: #e8f1fb; color: var(--c-primary); }
 .badge[data-variant="success"] { background: #e7f5ec; color: var(--c-success); }

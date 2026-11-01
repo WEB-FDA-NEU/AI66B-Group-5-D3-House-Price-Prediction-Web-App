@@ -536,6 +536,41 @@ export function createEstimateReport(payload, { demo = false, prediction = null 
   return request(`${API_BASE}/me/estimate-reports`, { method: 'POST', body: payload });
 }
 
+export function getAdminReports({ status = '', page = 1, pageSize = 20, demo = false } = {}) {
+  if (demo) {
+    let reports = readMockEstimateReports().map((report, index) => ({
+      owner_id: index + 1,
+      status: 'open',
+      admin_note: '',
+      closed_at: null,
+      closed_by: null,
+      reporter_email: report.reporter_email ?? 'demo@homeval.vn',
+      reporter_name: report.reporter_name ?? 'Tài khoản demo',
+      ...report,
+    }));
+    if (status) reports = reports.filter(report => report.status === status);
+    const start = (Math.max(1, page) - 1) * Math.max(1, pageSize);
+    return Promise.resolve({
+      items: reports.slice(start, start + pageSize),
+      total: reports.length,
+      page,
+      page_size: pageSize,
+    });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  if (status) qs.set('status', status);
+  return request(`${API_BASE}/admin/reports?${qs}`);
+}
+
+export function getAdminReport(id, { demo = false } = {}) {
+  if (demo) {
+    const report = readMockEstimateReports().find(item => item.id === id);
+    if (!report) return Promise.reject(new ApiError(404, 'Không tìm thấy báo cáo.'));
+    return Promise.resolve({ status: 'open', admin_note: '', ...report });
+  }
+  return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}`);
+}
+
 // ══════════ NGƯỜI 4 - TODO: thêm vùng của em ở đây ══════════
 
 // ══════════ NGƯỜI 5 - TODO: thêm vùng của em ở đây ══════════

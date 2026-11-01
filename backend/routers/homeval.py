@@ -413,6 +413,57 @@ def estimate_reports(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1
     return {"items": records[start:start + page_size], "total": len(records)}
 
 
+def _admin_report_dict(report: EstimateReport, reporter):
+    email, name = reporter or ("", "")
+    return dict(
+        id=report.id,
+        owner_id=report.owner_id,
+        prediction_id=report.prediction_id,
+        estimated_price=report.estimated_price,
+        expected_price=report.expected_price,
+        comment=report.comment,
+        property_snapshot=report.property_snapshot,
+        status=report.status,
+        admin_note=report.admin_note or "",
+        closed_at=report.closed_at,
+        closed_by=report.closed_by,
+        created_at=report.created_at,
+        reporter_email=email,
+        reporter_name=name,
+    )
+
+
+@router.get("/admin/reports", response_model=schemas.AdminEstimateReportPage)
+def admin_estimate_reports(status: Literal["", "open", "closed"] = "",
+        page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+        admin: User = Depends(get_admin), db: Session = Depends(get_db)):
+    base = select(EstimateReport)
+    if status:
+        base = base.where(EstimateReport.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+    records = db.scalars(
+        base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)
+    ).all()
+    people = {}
+    if records:
+        people = {u.id: (u.email, u.display_name) for u in db.scalars(
+            select(User).where(User.id.in_([r.owner_id for r in records]))
+        ).all()}
+    return {"items": [_admin_report_dict(r, people.get(r.owner_id)) for r in records],
+            "total": total, "page": page, "page_size": page_size}
+
+
+@router.get("/admin/reports/{report_id}", response_model=schemas.AdminEstimateReportOut)
+def admin_estimate_report(report_id: str, admin: User = Depends(get_admin),
+        db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    owner = db.get(User, report.owner_id)
+    return _admin_report_dict(report, (owner.email, owner.display_name) if owner else None)
+
+
 class CheckoutIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     plan:Literal["premium-monthly"]="premium-monthly"
