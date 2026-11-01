@@ -22,6 +22,7 @@ from models import User, ModelVersion, TrainingJob, Prediction, EstimateReport, 
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
+from rate_limit import limit_prediction_requests
 from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
@@ -320,7 +321,21 @@ class PredictIn(BaseModel):
 def draft_proof(id):
     return hmac.new(SECRET.encode(),("prediction:"+id).encode(),hashlib.sha256).hexdigest()
 
-@router.post("/predictions")
+@router.post(
+    "/predictions",
+    dependencies=[Depends(limit_prediction_requests)],
+    responses={
+        429: {
+            "description": "Rate limit exceeded",
+            "headers": {
+                "Retry-After": {
+                    "description": "Seconds until another request is accepted",
+                    "schema": {"type": "integer"},
+                }
+            },
+        }
+    },
+)
 def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
     if payload.property_type in ["Đất nền","Thửa đất"]:
         raise HTTPException(422,"Chưa có mô hình đất được kiểm định. Dataset Kaggle không có nhãn đất hoặc ranh thửa. Xem trang nguồn dữ liệu.")
