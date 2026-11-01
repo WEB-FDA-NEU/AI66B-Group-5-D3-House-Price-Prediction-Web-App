@@ -478,6 +478,78 @@ export const MOCK_UI_STATES = Object.freeze({
   notFound: 'Không tìm thấy nội dung bạn yêu cầu.',
 });
 
+const MOCK_ESTIMATE_REPORTS_KEY = 'homeval_mock_estimate_reports';
+
+function readMockEstimateReports() {
+  try {
+    const stored = localStorage.getItem(MOCK_ESTIMATE_REPORTS_KEY);
+    const reports = stored ? JSON.parse(stored) : [];
+    if (!Array.isArray(reports)) throw new Error('Dữ liệu báo cáo không hợp lệ.');
+    return reports;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new ApiError(0, 'Không thể đọc báo cáo demo trong bộ nhớ trình duyệt.');
+  }
+}
+
+export function getDemoPrediction() {
+  return getMock('prediction-result').then(prediction => ({
+    ...prediction,
+    id: `demo-${Date.now()}`,
+    draft_token: 'demo-draft',
+    is_mock: true,
+  }));
+}
+
+export function getEstimateReports({ demo = false, page = 1, pageSize = 20 } = {}) {
+  if (demo) {
+    const reports = readMockEstimateReports();
+    const start = (Math.max(1, page) - 1) * Math.max(1, pageSize);
+    return Promise.resolve({
+      items: reports.slice(start, start + pageSize),
+      total: reports.length,
+    });
+  }
+  const qs = new URLSearchParams({ page, page_size: pageSize });
+  return request(`${API_BASE}/me/estimate-reports?${qs}`);
+}
+
+export function createEstimateReport(payload, { demo = false, prediction = null } = {}) {
+  if (demo) {
+    const comment = payload.comment.trim();
+    if (!Number.isSafeInteger(payload.expected_price) || payload.expected_price < 1 ||
+        payload.expected_price > 1_000_000_000_000) {
+      return Promise.reject(new ApiError(422, 'expected_price: Giá kỳ vọng phải là số nguyên dương hợp lệ.'));
+    }
+    if (comment.length < 10 || comment.length > 1000) {
+      return Promise.reject(new ApiError(422, 'comment: Bình luận cần có từ 10 đến 1.000 ký tự.'));
+    }
+    if (payload.expected_price === prediction?.estimated_price) {
+      return Promise.reject(new ApiError(422, 'expected_price: Giá kỳ vọng cần khác giá ước tính để báo sai lệch.'));
+    }
+
+    try {
+      const reports = readMockEstimateReports();
+      const report = {
+        id: `report-${Date.now()}`,
+        prediction_id: payload.prediction_id,
+        estimated_price: prediction?.estimated_price ?? 0,
+        expected_price: payload.expected_price,
+        comment,
+        property_snapshot: { ...(prediction?.input ?? {}) },
+        created_at: new Date().toISOString(),
+      };
+      reports.unshift(report);
+      localStorage.setItem(MOCK_ESTIMATE_REPORTS_KEY, JSON.stringify(reports));
+      return Promise.resolve(report);
+    } catch (error) {
+      if (error instanceof ApiError) return Promise.reject(error);
+      return Promise.reject(new ApiError(0, 'Không thể lưu báo cáo demo trong bộ nhớ trình duyệt.'));
+    }
+  }
+  return request(`${API_BASE}/me/estimate-reports`, { method: 'POST', body: payload });
+}
+
 // ══════════ NGƯỜI 4 - TODO: thêm vùng của em ở đây ══════════
 
 // ══════════ NGƯỜI 5 - TODO: thêm vùng của em ở đây ══════════

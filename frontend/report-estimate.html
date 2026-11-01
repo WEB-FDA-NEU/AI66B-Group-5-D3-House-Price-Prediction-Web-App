@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Báo ước tính chưa sát - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/design.css">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/models.css">
+<link rel="stylesheet" href="css/estimate-report.css">
+<link rel="stylesheet" href="css/ux.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<site-header active="predict"></site-header>
+<main class="container page estimate-report" id="main-content">
+  <header class="estimate-report__intro">
+    <p class="eyebrow">GIÚP HOMEVAL CẢI THIỆN</p>
+    <h1>Báo ước tính chưa sát</h1>
+    <p>Chia sẻ mức giá bạn cho là hợp lý cùng một vài thông tin về căn nhà. Phản hồi giúp đội ngũ đánh giá lại chất lượng ước tính.</p>
+  </header>
+
+  <p id="demo-notice" class="report-notice" role="status" hidden>
+    Bạn đang ở chế độ demo. Báo cáo chỉ được lưu trong trình duyệt này, không gửi lên máy chủ.
+  </p>
+
+  <section id="prediction-context" class="report-context" aria-labelledby="context-heading" hidden>
+    <div>
+      <p class="eyebrow">ƯỚC TÍNH ĐANG ĐƯỢC GÓP Ý</p>
+      <h2 id="context-heading">Thông tin dự đoán</h2>
+      <strong id="report-estimated-price" class="report-context__price"></strong>
+    </div>
+    <dl id="report-property" class="report-property"></dl>
+  </section>
+
+  <section id="missing-prediction" class="report-state" hidden>
+    <h2>Không tìm thấy kết quả dự đoán</h2>
+    <p>Hãy mở biểu mẫu này từ trang kết quả sau khi hoàn tất một dự đoán.</p>
+    <a class="btn btn--primary" href="predict.html">Tạo dự đoán</a>
+  </section>
+
+  <section id="login-required" class="report-state" aria-labelledby="login-required-heading" hidden>
+    <h2 id="login-required-heading">Bạn cần đăng nhập để gửi báo cáo</h2>
+    <p>Báo cáo thật được lưu gắn với tài khoản của bạn. Bạn cũng có thể thử giao diện bằng dữ liệu mẫu mà không cần backend.</p>
+    <div class="row__actions">
+      <button id="report-login" class="btn btn--primary" type="button">Đăng nhập để tiếp tục</button>
+      <a id="report-demo" class="btn" href="report-estimate.html?demo=1">Dùng thử với dữ liệu mẫu</a>
+    </div>
+  </section>
+
+  <div id="report-workspace" class="report-workspace" hidden>
+    <section class="report-panel" aria-labelledby="report-form-heading">
+      <h2 id="report-form-heading">Giá bạn kỳ vọng</h2>
+      <p class="field__hint">Ước tính của HomeVal: <strong id="report-estimate-hint"></strong>. Vui lòng nhập mức giá khác với ước tính.</p>
+      <form id="report-form" class="stack" novalidate>
+        <div class="field">
+          <label class="field__label" for="expected-price">Giá kỳ vọng (VND)</label>
+          <input class="input" id="expected-price" name="expected_price" type="number" min="1" max="1000000000000" step="1" inputmode="numeric" required aria-describedby="expected-price-hint expected-price-error">
+          <p id="expected-price-hint" class="field__hint">Nhập số nguyên dương, tối đa 1.000 tỷ đồng.</p>
+          <p id="expected-price-error" class="field__error"></p>
+        </div>
+        <div class="field">
+          <label class="field__label" for="report-comment">Bình luận</label>
+          <textarea class="textarea" id="report-comment" name="comment" rows="5" minlength="10" maxlength="1000" required aria-describedby="report-comment-hint report-comment-error"></textarea>
+          <p id="report-comment-hint" class="field__hint">Nêu lý do mức giá thực tế có thể khác, chẳng hạn tình trạng nhà hoặc giá giao dịch gần đây. Từ 10 đến 1.000 ký tự.</p>
+          <p id="report-comment-error" class="field__error"></p>
+        </div>
+        <p id="report-submit-error" class="report-error" role="alert" hidden></p>
+        <p id="report-submit-success" class="report-success" role="status" hidden></p>
+        <button id="report-submit" class="btn btn--primary" type="submit">Gửi báo cáo</button>
+      </form>
+    </section>
+
+    <section class="report-panel" aria-labelledby="reports-heading">
+      <h2 id="reports-heading">Báo cáo của bạn</h2>
+      <p id="reports-loading" class="field__hint" role="status" aria-live="polite" hidden>Đang tải báo cáo…</p>
+      <div id="reports-error" class="report-error" role="alert" hidden>
+        <p id="reports-error-message"></p>
+        <button id="reports-retry" class="btn" type="button">Thử tải lại</button>
+      </div>
+      <div id="reports-empty" class="empty" hidden>
+        <p class="empty__title">Chưa có báo cáo nào</p>
+        <p class="empty__hint">Báo cáo bạn gửi sẽ xuất hiện ở đây.</p>
+      </div>
+      <div id="reports-list" class="report-list" aria-live="polite"></div>
+    </section>
+  </div>
+</main>
+<site-footer></site-footer>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/report-estimate.js"></script>
+</body>
+</html>

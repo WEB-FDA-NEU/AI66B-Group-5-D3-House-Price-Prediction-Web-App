@@ -18,7 +18,7 @@ from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
-from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, utcnow
+from models import User, ModelVersion, TrainingJob, Prediction, EstimateReport, Checkout, Subscription, DatasetUpload, utcnow
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
@@ -390,6 +390,51 @@ def delete(prediction_id:str,user:User=Depends(get_current_user),db:Session=Depe
     p=db.get(Prediction,prediction_id)
     if not p or p.owner_id!=user.id or not p.saved:raise HTTPException(404,"Không tìm thấy dự đoán.")
     p.saved=False;db.commit()
+
+@router.post("/me/estimate-reports", response_model=schemas.EstimateReportOut, status_code=201)
+def create_estimate_report(payload: schemas.EstimateReportCreate,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not hmac.compare_digest(payload.draft_token, draft_proof(payload.prediction_id)):
+        raise HTTPException(403, "Kết quả không có chữ ký hợp lệ.")
+    prediction = db.get(Prediction, payload.prediction_id)
+    if not prediction or (prediction.owner_id is not None and prediction.owner_id != user.id):
+        raise HTTPException(404, "Không tìm thấy dự đoán.")
+    if prediction.owner_id is None and (utcnow() - prediction.created_at.replace(tzinfo=timezone.utc)).total_seconds() > 86400:
+        raise HTTPException(410, "Dự đoán khách đã hết hạn, vui lòng tạo lại.")
+
+    snapshot = prediction.payload
+    estimated_price = snapshot["estimated_price"]
+    comment = payload.comment.strip()
+    if not comment:
+        raise HTTPException(422, "comment: Vui lòng nhập bình luận.")
+    if payload.expected_price == estimated_price:
+        raise HTTPException(422, "expected_price: Giá kỳ vọng cần khác giá ước tính để báo sai lệch.")
+
+    report = EstimateReport(
+        id="report-" + uuid.uuid4().hex,
+        owner_id=user.id,
+        prediction_id=prediction.id,
+        estimated_price=estimated_price,
+        expected_price=payload.expected_price,
+        comment=comment,
+        property_snapshot=snapshot["input"],
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+@router.get("/me/estimate-reports", response_model=schemas.EstimateReportPage)
+def estimate_reports(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    records = db.scalars(
+        select(EstimateReport).where(EstimateReport.owner_id == user.id)
+        .order_by(EstimateReport.created_at.desc())
+    ).all()
+    start = (page - 1) * page_size
+    return {"items": records[start:start + page_size], "total": len(records)}
+
 
 class CheckoutIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
