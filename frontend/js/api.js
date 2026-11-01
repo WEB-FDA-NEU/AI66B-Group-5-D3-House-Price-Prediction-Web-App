@@ -585,6 +585,24 @@ export function getAdminReport(id, { demo = false } = {}) {
   return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}`);
 }
 
+export function closeAdminReport(id, note, { demo = false } = {}) {
+  const trimmed = note.trim();
+  if (!trimmed) return Promise.reject(new ApiError(422, 'note: Ghi chú không được để trống.'));
+  if (demo) {
+    const reports = readMockEstimateReports();
+    const target = reports.find(item => String(item.id) === String(id));
+    if (!target) return Promise.reject(new ApiError(404, 'Không tìm thấy báo cáo.'));
+    if (target.status === 'closed') return Promise.reject(new ApiError(409, 'Báo cáo này đã được đóng.'));
+    target.status = 'closed';
+    target.admin_note = trimmed;
+    target.closed_at = new Date().toISOString();
+    target.closed_by = null;
+    localStorage.setItem(MOCK_ESTIMATE_REPORTS_KEY, JSON.stringify(reports));
+    return Promise.resolve(target);
+  }
+  return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}/close`, { method: 'POST', body: { note: trimmed } });
+}
+
 // ══════════ NGƯỜI 4 - TODO: thêm vùng của em ở đây ══════════
 
 // ══════════ NGƯỜI 5 - TODO: thêm vùng của em ở đây ══════════

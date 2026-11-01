@@ -487,6 +487,27 @@ def admin_estimate_report(report_id: str, admin: User = Depends(get_admin),
     return _admin_report_dict(report, (owner.email, owner.display_name) if owner else None)
 
 
+@router.post("/admin/reports/{report_id}/close", response_model=schemas.AdminEstimateReportOut)
+def close_admin_estimate_report(report_id: str, payload: schemas.EstimateReportCloseIn,
+        admin: User = Depends(get_admin), db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    if report.status == "closed":
+        raise HTTPException(409, "Báo cáo này đã được đóng.")
+    note = payload.note.strip()
+    if not note:
+        raise HTTPException(422, "note: Ghi chú không được để trống.")
+    report.status = "closed"
+    report.admin_note = note
+    report.closed_at = utcnow()
+    report.closed_by = admin.id
+    db.commit()
+    db.refresh(report)
+    owner = db.get(User, report.owner_id)
+    return _admin_report_dict(report, (owner.email, owner.display_name) if owner else None)
+
+
 class CheckoutIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     plan:Literal["premium-monthly"]="premium-monthly"
