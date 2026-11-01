@@ -180,6 +180,21 @@ def test_admin_users_and_dataset_preview(client,users):
     assert client.post('/api/admin/datasets/preview',files=txt,headers=admin).status_code==422
     assert client.post('/api/admin/datasets/preview',files=good).status_code==401
 
+def test_dataset_upload_save_and_history(client,users):
+    _,_,admin=users
+    good={'file':('housing.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n"Quan 1, HCM",50,5,2,2,1\n','text/csv')}
+    saved=client.post('/api/admin/datasets/uploads',files=good,headers=admin)
+    assert saved.status_code==201,saved.text
+    assert saved.json()['rows']==1 and not saved.json()['missing_columns']
+    history=client.get('/api/admin/datasets/uploads',headers=admin).json()
+    assert history['total']>=1 and history['items'][0]['filename']=='housing.csv'
+    assert history['items'][0]['uploader_email']=='admin@homeval.vn'
+    partial={'file':('partial.csv','Address,Area\nQ1,50\n','text/csv')}
+    kept=client.post('/api/admin/datasets/uploads',files=partial,headers=admin)
+    assert kept.status_code==201 and len(kept.json()['missing_columns'])==4
+    assert client.post('/api/admin/datasets/uploads',files=good).status_code==401
+    assert client.post('/api/admin/datasets/uploads',files=good,headers=users[0]).status_code==403
+
 def test_admin_users_filter_and_sort(client,users):
     _,_,admin=users
     extra=client.post('/api/auth/register',json={'email':'zebra@example.com','password':'secure-password','display_name':'Zebra User'})
@@ -209,3 +224,18 @@ def test_admin_user_role_change(client,users):
     assert client.post(f"/api/admin/users/{me['id']}/role",json={'role':'user'},headers=admin).status_code==422
     assert client.post(f'/api/admin/users/{zid}/role',json={'role':'user'},headers=admin).status_code==200
     assert client.post('/api/admin/users/999999/role',json={'role':'user'},headers=admin).status_code==404
+
+def test_admin_user_deactivate_reactivate(client,users):
+    _,_,admin=users
+    victim=client.post('/api/auth/register',json={'email':'victim-reactivate@example.com','password':'secure-password','display_name':'Victim User'}).json()
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==200
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==200
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==401
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/deactivate",headers=admin).status_code==409
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/reactivate",headers=admin).status_code==200
+    assert client.post('/api/auth/login',json={'email':'victim-reactivate@example.com','password':'secure-password'}).status_code==200
+    assert client.post(f"/api/admin/users/{victim['user']['id']}/reactivate",headers=admin).status_code==409
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/deactivate",headers=admin).status_code==422
+    assert client.post('/api/admin/users/999999/deactivate',headers=admin).status_code==404
+    assert client.post('/api/admin/users/999999/reactivate',headers=admin).status_code==404
