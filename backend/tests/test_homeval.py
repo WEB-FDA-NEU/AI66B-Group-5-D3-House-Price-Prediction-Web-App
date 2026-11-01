@@ -181,6 +181,33 @@ def test_admin_estimate_report_review(client,users):
     assert client.get('/api/admin/reports/missing',headers=admin).status_code==404
     assert client.get('/api/admin/reports?status=closed',headers=admin).json()['total']==0
 
+def test_admin_estimate_report_close(client,users):
+    user,_,admin=users
+    prediction=client.post('/api/predictions',json=INPUT).json()
+    created=client.post('/api/me/estimate-reports',json={
+        'prediction_id':prediction['id'],
+        'draft_token':prediction['draft_token'],
+        'expected_price':prediction['estimated_price']-150_000_000,
+        'comment':'Giá thực tế thấp hơn vì hẻm nhỏ và nhà cũ.',
+    },headers=user)
+    assert created.status_code==201,created.text
+    rid=created.json()['id']
+
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'ok'},headers=user).status_code==403
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':''},headers=admin).status_code==422
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'   '},headers=admin).status_code==422
+
+    closed=client.post(f'/api/admin/reports/{rid}/close',
+        json={'note':'Đã ghi nhận, hẻm nhỏ nên giá thấp hơn.'},headers=admin)
+    assert closed.status_code==200,closed.text
+    body=closed.json()
+    assert body['status']=='closed' and body['closed_by'] is not None and body['closed_at']
+    assert body['admin_note'].startswith('Đã ghi nhận') and body['reporter_email']
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'again'},headers=admin).status_code==409
+    assert client.post('/api/admin/reports/missing/close',json={'note':'x'},headers=admin).status_code==404
+    done=client.get('/api/admin/reports?status=closed',headers=admin).json()
+    assert done['total']>=1 and all(item['status']=='closed' for item in done['items'])
+
 def test_training_publish_archive_lifecycle(client,users):
     _,_,admin=users
     assert client.post('/api/admin/training',json={'algorithm':'ridge','weights':[1]},headers=admin).status_code==422

@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
-import { getAdminReports } from '../api.js';
-import { showEmpty, showError } from '../ui.js';
+import { getAdminReports, closeAdminReport } from '../api.js';
+import { showEmpty, showError, setFieldError, clearFieldErrors, toast } from '../ui.js';
 import { el, money } from '../model-catalog.js';
 import { propertyFacts } from '../property.js';
 
@@ -20,7 +20,10 @@ const prevBtn = document.getElementById('prev');
 const nextBtn = document.getElementById('next');
 const dialog = document.getElementById('report-dialog');
 const detailEl = document.getElementById('report-detail');
+const closeForm = document.getElementById('close-form');
+const noteInput = document.getElementById('note');
 let page = 1;
+let current = null;
 
 async function load() {
   listEl.innerHTML = '<p class="field__hint">Đang tải…</p>';
@@ -68,7 +71,7 @@ function render(data) {
     tr.append(state);
     tr.append(td(r.created_at ? new Date(r.created_at).toLocaleDateString('vi-VN') : '—'));
     const act = document.createElement('td');
-    const btn = el('button', 'Xem chi tiết', 'btn');
+    const btn = el('button', r.status === 'open' ? 'Xem & đóng' : 'Xem chi tiết', 'btn');
     btn.type = 'button';
     btn.onclick = () => openDetail(r);
     act.append(btn);
@@ -100,7 +103,10 @@ function factsBlock(rows) {
 }
 
 function openDetail(r) {
+  current = r;
   alertBox.innerHTML = '';
+  clearFieldErrors(closeForm);
+  closeForm.reset();
   detailEl.innerHTML = '';
   detailEl.append(factsBlock([
     ['Người gửi', `${r.reporter_name || ''} ${r.reporter_email || ''}`.trim() || `#${r.owner_id}`],
@@ -123,9 +129,34 @@ function openDetail(r) {
       ['Ghi chú admin', r.admin_note || '—'],
       ['Đóng lúc', r.closed_at ? new Date(r.closed_at).toLocaleString('vi-VN') : '—'],
     ]));
+    closeForm.hidden = true;
+  } else {
+    closeForm.hidden = false;
+    closeForm.querySelector('button[type=submit]').disabled = false;
   }
   dialog.showModal();
 }
+
+closeForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  clearFieldErrors(closeForm);
+  const note = noteInput.value.trim();
+  if (!note) {
+    setFieldError(noteInput, 'Ghi chú không được để trống.');
+    return;
+  }
+  const btn = closeForm.querySelector('button[type=submit]');
+  btn.disabled = true;
+  try {
+    await closeAdminReport(current.id, note);
+    dialog.close();
+    toast('Đã đóng báo cáo.', 'success');
+    load();
+  } catch (err) {
+    setFieldError(noteInput, err.detail ?? 'Đóng báo cáo thất bại.');
+    btn.disabled = false;
+  }
+});
 
 document.getElementById('cancel-close').onclick = () => dialog.close();
 filterForm.status.addEventListener('change', () => { page = 1; load(); });
