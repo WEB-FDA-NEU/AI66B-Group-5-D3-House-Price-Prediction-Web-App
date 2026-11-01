@@ -386,6 +386,20 @@ export function deactivateUser(id) {
   return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/deactivate`, { method: 'POST' });
 }
 
+export function setUserRole(id, role) {
+  if (USE_MOCK) {
+    return getMockUsers().then(data => {
+      const target = data.items.find(user => String(user.id) === String(id));
+      if (!target) throw new ApiError(404, 'Không tìm thấy người dùng.');
+      const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+      overrides[target.id] = { ...overrides[target.id], role };
+      localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+      return { ...target, role };
+    });
+  }
+  return request(`${API_BASE}/admin/users/${encodeURIComponent(id)}/role`, { method: 'POST', body: { role } });
+}
+
 export function reactivateUser(id) {
   if (USE_MOCK) {
     return getMockUsers().then(data => {
