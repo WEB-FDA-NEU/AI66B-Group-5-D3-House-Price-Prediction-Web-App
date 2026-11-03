@@ -20,12 +20,14 @@ os.environ['DATABASE_URL'] = 'sqlite:///' + (TEST_ROOT/'test.db').as_posix()
 os.environ['MODEL_ARTIFACT_DIR'] = str(TEST_ROOT/'artifacts')
 os.environ['JWT_SECRET'] = 'isolated-test-secret-never-use-in-production'
 os.environ['HOMEVAL_DEMO_BILLING'] = '1'
+os.environ['PREDICTION_RATE_LIMIT'] = '1000'
 from fastapi.testclient import TestClient
 from main import app
 from database import SessionLocal, engine
 from models import ModelVersion, Prediction, Subscription, TrainingJob, utcnow
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
+from rate_limit import prediction_rate_limiter
 
 @pytest.fixture(scope='module')
 def client():
@@ -50,6 +52,14 @@ def users(client):
         result.append({'Authorization':'Bearer '+response.json()['access_token']})
     admin=client.post('/api/auth/login',json={'email':'admin@homeval.vn','password':'admin123'}).json()
     return *result,{'Authorization':'Bearer '+admin['access_token']}
+
+
+@pytest.fixture(autouse=True)
+def reset_guest_quota():
+    with SessionLocal() as db:
+        db.query(Prediction).filter(Prediction.owner_id.is_(None)).delete(synchronize_session=False)
+        db.commit()
+
 
 INPUT={'city':'Hồ Chí Minh','district':'Bình Thạnh','property_type':'Nhà phố','area_m2':72,'bedrooms':3,'bathrooms':2,'floors':2}
 
@@ -95,6 +105,21 @@ def test_guest_quota_is_rolling_and_scoped_to_ip(client,monkeypatch):
     assert guest.post('/api/predictions',json=INPUT).status_code==200
     other_ip=TestClient(app,client=("198.51.100.15",8000))
     assert other_ip.get('/api/prediction-quota').json()["remaining"]==5
+
+
+def test_prediction_rate_limit(client,monkeypatch):
+    prediction_rate_limiter.clear()
+    monkeypatch.setattr(prediction_rate_limiter,'max_requests',2)
+    try:
+        assert client.post('/api/predictions',json={**INPUT,'area_m2':0}).status_code==422
+        assert client.post('/api/predictions',json=INPUT).status_code==200
+        limited=client.post('/api/predictions',json=INPUT)
+        assert limited.status_code==429
+        assert int(limited.headers['Retry-After'])>=1
+        assert client.get('/api/health').status_code==200
+        assert '429' in client.get('/openapi.json').json()['paths']['/api/predictions']['post']['responses']
+    finally:
+        prediction_rate_limiter.clear()
 
 def test_premium_payment_permissions_and_expiry(client,users):
     user,other,admin=users
@@ -145,6 +170,96 @@ def test_saved_result_cannot_be_forged_or_read_by_other_users(client,users):
     assert client.get('/api/me/predictions',headers=other).json()['total']==0
     assert client.delete(url,headers=user).status_code==204
     assert client.get(url,headers=user).status_code==404
+
+def test_estimate_reports_require_auth_validate_and_stay_private(client,users):
+    user,other,_=users
+    prediction=client.post('/api/predictions',json=INPUT).json()
+    payload={
+        'prediction_id':prediction['id'],
+        'draft_token':prediction['draft_token'],
+        'expected_price':prediction['estimated_price']+100_000_000,
+        'comment':'Nhà đã sửa mới, giá giao dịch gần đây cao hơn.',
+    }
+
+    assert client.get('/api/me/estimate-reports').status_code==401
+    assert client.post('/api/me/estimate-reports',json=payload).status_code==401
+    assert client.post('/api/me/estimate-reports',json={**payload,'comment':'Ngắn'},headers=user).status_code==422
+    assert client.post('/api/me/estimate-reports',json={
+        **payload,'expected_price':prediction['estimated_price']},headers=user).status_code==422
+
+    created=client.post('/api/me/estimate-reports',json=payload,headers=user)
+    assert created.status_code==201,created.text
+    report=created.json()
+    assert report['prediction_id']==prediction['id']
+    assert report['estimated_price']==prediction['estimated_price']
+    assert report['expected_price']==payload['expected_price']
+    assert report['property_snapshot']==prediction['input']
+    assert client.get('/api/me/estimate-reports',headers=user).json()['total']==1
+    assert client.get('/api/me/estimate-reports',headers=other).json()['total']==0
+
+    owned_prediction=client.post('/api/predictions',json=INPUT,headers=user).json()
+    foreign_payload={**payload,'prediction_id':owned_prediction['id'],'draft_token':owned_prediction['draft_token']}
+    assert client.post('/api/me/estimate-reports',json=foreign_payload,headers=other).status_code==404
+    assert client.post('/api/me/estimate-reports',json={**payload,'draft_token':'forged'},headers=user).status_code==403
+
+def test_admin_estimate_report_review(client,users):
+    user,_,admin=users
+    prediction=client.post('/api/predictions',json=INPUT).json()
+    payload={
+        'prediction_id':prediction['id'],
+        'draft_token':prediction['draft_token'],
+        'expected_price':prediction['estimated_price']+250_000_000,
+        'comment':'Giá thực tế cao hơn vì nhà mới sửa và hẻm thông thoáng.',
+    }
+    assert client.post('/api/me/estimate-reports',json=payload,headers=user).status_code==201
+
+    assert client.get('/api/admin/reports').status_code==401
+    assert client.get('/api/admin/reports',headers=user).status_code==403
+    assert client.get('/api/admin/reports?status=bogus',headers=admin).status_code==422
+
+    queue=client.get('/api/admin/reports?status=open',headers=admin)
+    assert queue.status_code==200,queue.text
+    data=queue.json()
+    assert data['total']>=1 and data['page']==1 and data['page_size']==20
+    report=data['items'][0]
+    assert report['status']=='open' and report['admin_note']==''
+    assert report['reporter_email'] and report['reporter_name']
+    assert report['estimated_price']==prediction['estimated_price']
+    assert report['expected_price']==payload['expected_price']
+    assert report['property_snapshot']==prediction['input']
+
+    detail=client.get('/api/admin/reports/'+report['id'],headers=admin)
+    assert detail.status_code==200 and detail.json()['id']==report['id']
+    assert client.get('/api/admin/reports/'+report['id'],headers=user).status_code==403
+    assert client.get('/api/admin/reports/missing',headers=admin).status_code==404
+    assert client.get('/api/admin/reports?status=closed',headers=admin).json()['total']==0
+
+def test_admin_estimate_report_close(client,users):
+    user,_,admin=users
+    prediction=client.post('/api/predictions',json=INPUT).json()
+    created=client.post('/api/me/estimate-reports',json={
+        'prediction_id':prediction['id'],
+        'draft_token':prediction['draft_token'],
+        'expected_price':prediction['estimated_price']-150_000_000,
+        'comment':'Giá thực tế thấp hơn vì hẻm nhỏ và nhà cũ.',
+    },headers=user)
+    assert created.status_code==201,created.text
+    rid=created.json()['id']
+
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'ok'},headers=user).status_code==403
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':''},headers=admin).status_code==422
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'   '},headers=admin).status_code==422
+
+    closed=client.post(f'/api/admin/reports/{rid}/close',
+        json={'note':'Đã ghi nhận, hẻm nhỏ nên giá thấp hơn.'},headers=admin)
+    assert closed.status_code==200,closed.text
+    body=closed.json()
+    assert body['status']=='closed' and body['closed_by'] is not None and body['closed_at']
+    assert body['admin_note'].startswith('Đã ghi nhận') and body['reporter_email']
+    assert client.post(f'/api/admin/reports/{rid}/close',json={'note':'again'},headers=admin).status_code==409
+    assert client.post('/api/admin/reports/missing/close',json={'note':'x'},headers=admin).status_code==404
+    done=client.get('/api/admin/reports?status=closed',headers=admin).json()
+    assert done['total']>=1 and all(item['status']=='closed' for item in done['items'])
 
 def test_training_publish_archive_lifecycle(client,users):
     _,_,admin=users
@@ -239,6 +354,19 @@ def test_admin_users_filter_and_sort(client,users):
     byname=client.get('/api/admin/users?sort=name&order=asc',headers=admin).json()
     names=[u['display_name'] for u in byname['items']]
     assert names==sorted(names)
+
+def test_admin_user_role_change(client,users):
+    _,_,admin=users
+    extra=client.post('/api/auth/register',json={'email':'victim-role@example.com','password':'secure-password','display_name':'Victim Role'}).json()
+    zid=extra['user']['id']
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==200
+    assert client.get('/api/admin/users?role=admin',headers=admin).json()['total']>=2
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'admin'},headers=admin).status_code==409
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'super'},headers=admin).status_code==422
+    me=client.get('/api/me',headers=admin).json()
+    assert client.post(f"/api/admin/users/{me['id']}/role",json={'role':'user'},headers=admin).status_code==422
+    assert client.post(f'/api/admin/users/{zid}/role',json={'role':'user'},headers=admin).status_code==200
+    assert client.post('/api/admin/users/999999/role',json={'role':'user'},headers=admin).status_code==404
 
 def test_admin_user_deactivate_reactivate(client,users):
     _,_,admin=users

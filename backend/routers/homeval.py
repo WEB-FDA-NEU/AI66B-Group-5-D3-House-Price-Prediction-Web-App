@@ -19,10 +19,11 @@ from sqlalchemy import select, func, update, or_
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
-from models import User, ModelVersion, TrainingJob, Prediction, Checkout, Subscription, DatasetUpload, utcnow
+from models import User, ModelVersion, TrainingJob, Prediction, EstimateReport, Checkout, Subscription, DatasetUpload, utcnow
 from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
+from rate_limit import limit_prediction_requests
 from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
@@ -239,6 +240,29 @@ def deactivate_user(user_id: int, user: User = Depends(get_admin), db: Session =
     db.refresh(target)
     return target
 
+@router.post("/admin/users/{user_id}/role", response_model=schemas.UserOut)
+def change_user_role(user_id: int, payload: schemas.RoleUpdateIn,
+        user: User = Depends(get_admin), db: Session = Depends(get_db)):
+    # AD-9: promote/demote. Self-change is blocked so an admin can never
+    # lock themselves out by accident; demoting the last active admin too.
+    target = db.get(User, user_id)
+    if not target:
+        raise HTTPException(404, "Không tìm thấy người dùng.")
+    if target.id == user.id:
+        raise HTTPException(422, "Không thể tự đổi vai trò của chính mình.")
+    if target.role == payload.role:
+        raise HTTPException(409, f"Tài khoản này đã là {payload.role}.")
+    if target.role == "admin" and payload.role == "user":
+        remaining = db.scalar(select(func.count(User.id)).where(
+            User.role == "admin", User.status != "Inactive", User.id != target.id))
+        if not remaining:
+            raise HTTPException(409, "Không thể hạ cấp admin cuối cùng còn hoạt động.")
+    target.role = payload.role
+    db.commit()
+    db.refresh(target)
+    return target
+
+
 @router.post("/admin/users/{user_id}/reactivate", response_model=schemas.UserOut)
 def reactivate_user(user_id: int, user: User = Depends(get_admin), db: Session = Depends(get_db)):
     target = db.get(User, user_id)
@@ -336,7 +360,21 @@ class PredictIn(BaseModel):
 def draft_proof(id):
     return hmac.new(SECRET.encode(),("prediction:"+id).encode(),hashlib.sha256).hexdigest()
 
-@router.post("/predictions")
+@router.post(
+    "/predictions",
+    dependencies=[Depends(limit_prediction_requests)],
+    responses={
+        429: {
+            "description": "Rate limit exceeded",
+            "headers": {
+                "Retry-After": {
+                    "description": "Seconds until another request is accepted",
+                    "schema": {"type": "integer"},
+                }
+            },
+        }
+    },
+)
 def predict(payload:PredictIn,request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
     if payload.property_type in ["Đất nền","Thửa đất"]:
         raise HTTPException(422,"Chưa có mô hình đất được kiểm định. Dataset Kaggle không có nhãn đất hoặc ranh thửa. Xem trang nguồn dữ liệu.")
@@ -412,6 +450,123 @@ def delete(prediction_id:str,user:User=Depends(get_current_user),db:Session=Depe
     p=db.get(Prediction,prediction_id)
     if not p or p.owner_id!=user.id or not p.saved:raise HTTPException(404,"Không tìm thấy dự đoán.")
     p.saved=False;db.commit()
+
+@router.post("/me/estimate-reports", response_model=schemas.EstimateReportOut, status_code=201)
+def create_estimate_report(payload: schemas.EstimateReportCreate,
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not hmac.compare_digest(payload.draft_token, draft_proof(payload.prediction_id)):
+        raise HTTPException(403, "Kết quả không có chữ ký hợp lệ.")
+    prediction = db.get(Prediction, payload.prediction_id)
+    if not prediction or (prediction.owner_id is not None and prediction.owner_id != user.id):
+        raise HTTPException(404, "Không tìm thấy dự đoán.")
+    if prediction.owner_id is None and (utcnow() - prediction.created_at.replace(tzinfo=timezone.utc)).total_seconds() > 86400:
+        raise HTTPException(410, "Dự đoán khách đã hết hạn, vui lòng tạo lại.")
+
+    snapshot = prediction.payload
+    estimated_price = snapshot["estimated_price"]
+    comment = payload.comment.strip()
+    if not comment:
+        raise HTTPException(422, "comment: Vui lòng nhập bình luận.")
+    if payload.expected_price == estimated_price:
+        raise HTTPException(422, "expected_price: Giá kỳ vọng cần khác giá ước tính để báo sai lệch.")
+
+    report = EstimateReport(
+        id="report-" + uuid.uuid4().hex,
+        owner_id=user.id,
+        prediction_id=prediction.id,
+        estimated_price=estimated_price,
+        expected_price=payload.expected_price,
+        comment=comment,
+        property_snapshot=snapshot["input"],
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+@router.get("/me/estimate-reports", response_model=schemas.EstimateReportPage)
+def estimate_reports(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+        user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    records = db.scalars(
+        select(EstimateReport).where(EstimateReport.owner_id == user.id)
+        .order_by(EstimateReport.created_at.desc())
+    ).all()
+    start = (page - 1) * page_size
+    return {"items": records[start:start + page_size], "total": len(records)}
+
+
+def _admin_report_dict(report: EstimateReport, reporter):
+    email, name = reporter or ("", "")
+    return dict(
+        id=report.id,
+        owner_id=report.owner_id,
+        prediction_id=report.prediction_id,
+        estimated_price=report.estimated_price,
+        expected_price=report.expected_price,
+        comment=report.comment,
+        property_snapshot=report.property_snapshot,
+        status=report.status,
+        admin_note=report.admin_note or "",
+        closed_at=report.closed_at,
+        closed_by=report.closed_by,
+        created_at=report.created_at,
+        reporter_email=email,
+        reporter_name=name,
+    )
+
+
+@router.get("/admin/reports", response_model=schemas.AdminEstimateReportPage)
+def admin_estimate_reports(status: Literal["", "open", "closed"] = "",
+        page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, le=100),
+        admin: User = Depends(get_admin), db: Session = Depends(get_db)):
+    base = select(EstimateReport)
+    if status:
+        base = base.where(EstimateReport.status == status)
+    total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
+    records = db.scalars(
+        base.order_by(EstimateReport.created_at.desc(), EstimateReport.id.desc())
+        .offset((page - 1) * page_size).limit(page_size)
+    ).all()
+    people = {}
+    if records:
+        people = {u.id: (u.email, u.display_name) for u in db.scalars(
+            select(User).where(User.id.in_([r.owner_id for r in records]))
+        ).all()}
+    return {"items": [_admin_report_dict(r, people.get(r.owner_id)) for r in records],
+            "total": total, "page": page, "page_size": page_size}
+
+
+@router.get("/admin/reports/{report_id}", response_model=schemas.AdminEstimateReportOut)
+def admin_estimate_report(report_id: str, admin: User = Depends(get_admin),
+        db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    owner = db.get(User, report.owner_id)
+    return _admin_report_dict(report, (owner.email, owner.display_name) if owner else None)
+
+
+@router.post("/admin/reports/{report_id}/close", response_model=schemas.AdminEstimateReportOut)
+def close_admin_estimate_report(report_id: str, payload: schemas.EstimateReportCloseIn,
+        admin: User = Depends(get_admin), db: Session = Depends(get_db)):
+    report = db.get(EstimateReport, report_id)
+    if not report:
+        raise HTTPException(404, "Không tìm thấy báo cáo.")
+    if report.status == "closed":
+        raise HTTPException(409, "Báo cáo này đã được đóng.")
+    note = payload.note.strip()
+    if not note:
+        raise HTTPException(422, "note: Ghi chú không được để trống.")
+    report.status = "closed"
+    report.admin_note = note
+    report.closed_at = utcnow()
+    report.closed_by = admin.id
+    db.commit()
+    db.refresh(report)
+    owner = db.get(User, report.owner_id)
+    return _admin_report_dict(report, (owner.email, owner.display_name) if owner else None)
+
 
 class CheckoutIn(BaseModel):
     model_config=ConfigDict(extra="forbid")

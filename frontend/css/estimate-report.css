@@ -1,0 +1,44 @@
+.estimate-report { max-width: 1040px; }
+.estimate-report__intro { max-width: 720px; margin-bottom: var(--sp-5); }
+.estimate-report__intro h1 { margin-block: var(--sp-2); }
+.estimate-report__intro > p:last-child { color: var(--c-muted); line-height: 1.7; }
+.report-notice, .report-state, .report-panel, .report-context {
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-bg);
+  padding: var(--sp-4);
+}
+.report-notice { margin-bottom: var(--sp-4); background: var(--c-surface); }
+.report-context {
+  display: grid;
+  grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+  gap: var(--sp-4);
+  margin-bottom: var(--sp-4);
+}
+.report-context h2, .report-panel h2 { margin-bottom: var(--sp-2); }
+.report-context__price { display: block; color: var(--c-primary); font-size: clamp(1.35rem, 3vw, 2rem); overflow-wrap: anywhere; }
+.report-property { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-2) var(--sp-4); }
+.report-property dt { color: var(--c-muted); font-size: .85rem; }
+.report-property dd { font-weight: 600; overflow-wrap: anywhere; }
+.report-state { margin-bottom: var(--sp-4); }
+.report-state p { margin-block: var(--sp-2) var(--sp-4); color: var(--c-muted); }
+.report-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
+.report-panel { min-width: 0; }
+.report-panel .field { margin-top: var(--sp-3); }
+.report-list { display: grid; gap: var(--sp-3); }
+.report-card { min-width: 0; border-top: 1px solid var(--c-border); padding-top: var(--sp-3); overflow-wrap: anywhere; }
+.report-card__prices { display: grid; gap: var(--sp-1); }
+.report-card__prices strong { color: var(--c-primary); }
+.report-card__meta { color: var(--c-muted); font-size: .8rem; margin-top: var(--sp-2); }
+.report-card__comment { margin-top: var(--sp-2); white-space: pre-wrap; }
+.report-error, .report-success { padding: var(--sp-3); border-radius: var(--radius-s); }
+.report-error { color: var(--c-danger); background: color-mix(in srgb, var(--c-danger) 9%, var(--c-bg)); }
+.report-success { color: var(--c-primary-d); background: var(--c-surface); }
+#report-form [hidden], .estimate-report [hidden] { display: none; }
+@media (max-width: 760px) {
+  .report-context, .report-workspace { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 480px) {
+  .report-context, .report-state, .report-panel { padding: var(--sp-3); }
+  .report-property { grid-template-columns: minmax(0, 1fr); gap: var(--sp-1); }
+}

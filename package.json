@@ -9,7 +9,8 @@
     "test:models-ui": "node scripts/model-smoke.mjs && node scripts/model-workflows.mjs",
     "test:ux": "node scripts/ux-qa.mjs",
     "test:design": "node scripts/design-qa.mjs",
-    "test:experience": "node scripts/experience-qa.mjs"
+    "test:experience": "node scripts/experience-qa.mjs",
+    "test:estimate-report": "node scripts/estimate-report-workflow.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

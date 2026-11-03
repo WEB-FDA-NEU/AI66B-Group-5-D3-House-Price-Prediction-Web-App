@@ -10,6 +10,7 @@ VÌ SAO TÁCH KHỎI models.py: bảng users có cột password_hash, nhưng JSO
 internet KHÔNG được có nó. Model nằm trong DB, schema đi ra ngoài.
 """
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 
@@ -118,6 +119,12 @@ class ChangePasswordIn(BaseModel):
     new_password: str = Field(min_length=8)
 
 
+class RoleUpdateIn(BaseModel):
+    """Đổi vai trò user <-> admin (AD-9). extra=forbid để không lọt trường lạ."""
+    model_config = ConfigDict(extra="forbid")
+    role: Literal["admin", "user"]
+
+
 class DatasetUploadOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
@@ -138,3 +145,51 @@ class AdminDatasetUploadOut(DatasetUploadOut):
 class DatasetUploadPage(BaseModel):
     items: list[AdminDatasetUploadOut]
     total: int
+
+
+class EstimateReportCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    prediction_id: str = Field(min_length=1, max_length=64)
+    draft_token: str = Field(min_length=1, max_length=128)
+    expected_price: int = Field(ge=1, le=1_000_000_000_000)
+    comment: str = Field(min_length=10, max_length=1000)
+
+
+class EstimateReportOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    prediction_id: str
+    estimated_price: int
+    expected_price: int
+    comment: str
+    property_snapshot: dict
+    created_at: datetime
+
+
+class EstimateReportPage(BaseModel):
+    items: list[EstimateReportOut]
+    total: int
+
+
+class AdminEstimateReportOut(EstimateReportOut):
+    """Hàng báo cáo trong hàng đợi duyệt của admin (AD-11)."""
+    owner_id: int
+    status: str = "open"
+    admin_note: str = ""
+    closed_at: datetime | None = None
+    closed_by: int | None = None
+    reporter_email: str = ""
+    reporter_name: str = ""
+
+
+class AdminEstimateReportPage(BaseModel):
+    items: list[AdminEstimateReportOut]
+    total: int
+    page: int
+    page_size: int
+
+
+class EstimateReportCloseIn(BaseModel):
+    """Đóng báo cáo kèm ghi chú admin (AD-12). note bắt buộc có nội dung."""
+    model_config = ConfigDict(extra="forbid")
+    note: str = Field(min_length=1, max_length=1000)

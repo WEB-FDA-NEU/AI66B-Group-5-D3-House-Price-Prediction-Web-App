@@ -104,6 +104,23 @@ class Prediction(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
+class EstimateReport(Base):
+    __tablename__ = "estimate_reports"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    prediction_id: Mapped[str] = mapped_column(ForeignKey("predictions.id"), index=True)
+    estimated_price: Mapped[int] = mapped_column(Integer)
+    expected_price: Mapped[int] = mapped_column(Integer)
+    comment: Mapped[str] = mapped_column(Text)
+    property_snapshot: Mapped[dict] = mapped_column(JSON)
+    # AD-11/AD-12: hàng đợi duyệt của admin. Báo cáo mới luôn "open".
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)
+    admin_note: Mapped[str] = mapped_column(Text, default="")
+    closed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, default=None)
+    closed_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, default=None)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class Checkout(Base):
     __tablename__ = "checkouts"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
