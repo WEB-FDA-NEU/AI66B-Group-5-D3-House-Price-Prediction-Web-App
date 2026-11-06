@@ -11,7 +11,8 @@
 <link rel="stylesheet" href="css/design.css">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/experience.css">
-<link rel="stylesheet" href="css/ux.css"></head>
+<link rel="stylesheet" href="css/ux.css">
+<link rel="stylesheet" href="css/compare.css"></head>
 <body>
 <site-header active="predictions"></site-header>
 <main class="container page stack">
@@ -20,7 +21,10 @@
       <p class="eyebrow">KHÔNG GIAN CỦA BẠN</p><h1>Dự đoán đã lưu</h1>
       <p class="field__hint">Mỗi ngôi nhà bạn quan tâm, được lưu lại ở một nơi.</p>
     </div>
-    <a class="btn btn--primary" href="predict.html">Dự đoán mới</a>
+    <div class="row__actions">
+      <button class="btn" id="export-history" type="button">Xuất CSV</button>
+      <a class="btn btn--primary" href="predict.html">Dự đoán mới</a>
+    </div>
   </div>
   <form id="history-search" class="history-search" role="search">
     <label class="visually-hidden" for="history-q">Tìm dự đoán</label>
@@ -28,6 +32,13 @@
     <button class="btn" type="submit">Tìm</button>
   </form>
   <div id="history-list" class="stack" aria-live="polite"></div>
+  <div class="compare-bar" id="compare-bar" hidden>
+    <p id="compare-status" aria-live="polite"></p>
+    <div class="row__actions">
+      <button class="btn" id="compare-clear" type="button">Bỏ chọn</button>
+      <a class="btn btn--primary" id="compare-go" href="compare.html">So sánh</a>
+    </div>
+  </div>
 </main>
 <site-footer></site-footer>
 <template id="tpl-empty-state">
