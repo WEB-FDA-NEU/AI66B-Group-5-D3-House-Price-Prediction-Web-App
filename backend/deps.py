@@ -19,6 +19,11 @@ def get_current_user(
     user = db.get(User, uid) if uid else None
     if user is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Phiên đăng nhập đã hết hạn.")
+    # SY-8: deactivation (AD-10) must end sessions that were issued before it,
+    # not only block the next login. Checked on every request, so reactivation
+    # restores access without issuing a new token.
+    if (user.status or "Active") != "Active":
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Tài khoản đã bị vô hiệu hoá.")
     return user
 
 

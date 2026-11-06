@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from deps import get_current_user
 from models import User
-from security import hash_password, verify_password, create_token
+from rate_limit import ensure_login_allowed, record_failed_login, reset_login_failures
+from security import hash_password, verify_password, create_token, spend_password_check
 import schemas
 
 router = APIRouter(prefix="/api", tags=["auth"])
@@ -32,15 +33,27 @@ def register(payload: schemas.RegisterIn, db: Session = Depends(get_db)):
     return {"access_token": create_token(user.id), "user": user}
 
 
-@router.post("/auth/login", response_model=schemas.TokenOut)
-def login(payload: schemas.LoginIn, db: Session = Depends(get_db)):
+@router.post(
+    "/auth/login",
+    response_model=schemas.TokenOut,
+    responses={429: {"description": "Too many failed attempts",
+                     "headers": {"Retry-After": {"schema": {"type": "integer"}}}}},
+)
+def login(payload: schemas.LoginIn, request: Request, db: Session = Depends(get_db)):
+    ensure_login_allowed(request, payload.email)
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
+    if user is None:
+        # SY-8: tốn đúng một lần bcrypt như email có thật, để thời gian phản hồi
+        # không tiết lộ email nào tồn tại.
+        spend_password_check(payload.password)
     if user is None or not verify_password(payload.password, user.password_hash):
         # Cùng một thông điệp cho cả hai trường hợp - không tiết lộ email nào tồn tại.
+        record_failed_login(request, payload.email)
         raise HTTPException(401, "Email hoặc mật khẩu không đúng.")
     if (user.status or "Active") != "Active":
         # Tài khoản bị vô hiệu hoá: cùng message 401, không tiết lộ thêm.
         raise HTTPException(401, "Email hoặc mật khẩu không đúng.")
+    reset_login_failures(request, payload.email)
     return {"access_token": create_token(user.id), "user": user}
 
 

@@ -27,7 +27,7 @@ from database import SessionLocal, engine
 from models import ModelVersion, Subscription, TrainingJob, utcnow
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
-from rate_limit import prediction_rate_limiter
+from rate_limit import prediction_rate_limiter, login_rate_limiter
 
 @pytest.fixture(scope='module')
 def client():
@@ -345,3 +345,41 @@ def test_admin_user_deactivate_reactivate(client,users):
     assert client.post(f"/api/admin/users/{me['id']}/deactivate",headers=admin).status_code==422
     assert client.post('/api/admin/users/999999/deactivate',headers=admin).status_code==404
     assert client.post('/api/admin/users/999999/reactivate',headers=admin).status_code==404
+
+
+def test_deactivation_revokes_existing_tokens(client,users):
+    # SY-8 (#98): a token issued before deactivation must stop working at once.
+    _,_,admin=users
+    created=client.post('/api/auth/register',json={'email':'revoked-token@example.com','password':'secure-password','display_name':'Revoked'}).json()
+    token={'Authorization':'Bearer '+created['access_token']}
+    assert client.get('/api/me',headers=token).status_code==200
+    assert client.post(f"/api/admin/users/{created['user']['id']}/deactivate",headers=admin).status_code==200
+    for path in ['/api/me','/api/me/predictions','/api/me/entitlements']:
+        assert client.get(path,headers=token).status_code==401
+    assert client.post('/api/predictions',json=INPUT,headers=token).status_code==401
+    assert client.post(f"/api/admin/users/{created['user']['id']}/reactivate",headers=admin).status_code==200
+    assert client.get('/api/me',headers=token).status_code==200
+
+def test_login_failures_are_throttled_per_account(client,monkeypatch):
+    # SY-8 (#98): only FAILED attempts count; success clears the counter.
+    login_rate_limiter.clear()
+    monkeypatch.setattr(login_rate_limiter,'max_requests',3)
+    email='throttle@example.com'
+    assert client.post('/api/auth/register',json={'email':email,'password':'secure-password','display_name':'Throttle'}).status_code==201
+    try:
+        for _ in range(5):
+            assert client.post('/api/auth/login',json={'email':email,'password':'secure-password'}).status_code==200
+        for _ in range(3):
+            assert client.post('/api/auth/login',json={'email':email,'password':'wrong-password'}).status_code==401
+        blocked=client.post('/api/auth/login',json={'email':email,'password':'secure-password'})
+        assert blocked.status_code==429 and int(blocked.headers['Retry-After'])>=1
+        # Other accounts from the same client are unaffected.
+        assert client.post('/api/auth/login',json={'email':'admin@homeval.vn','password':'admin123'}).status_code==200
+        # Unknown emails get the same 401 and are throttled the same way.
+        for _ in range(3):
+            assert client.post('/api/auth/login',json={'email':'nobody@example.com','password':'x'}).status_code==401
+        assert client.post('/api/auth/login',json={'email':'nobody@example.com','password':'x'}).status_code==429
+        login_rate_limiter.clear()
+        assert client.post('/api/auth/login',json={'email':email,'password':'secure-password'}).status_code==200
+    finally:
+        login_rate_limiter.clear()

@@ -43,6 +43,18 @@ def verify_password(password: str, hashed: str) -> bool:
         return False
 
 
+_DUMMY_HASH = None
+
+
+def spend_password_check(password: str) -> None:
+    """SY-8: run one bcrypt comparison for an unknown email so the response
+    time does not reveal whether the account exists."""
+    global _DUMMY_HASH
+    if _DUMMY_HASH is None:
+        _DUMMY_HASH = hash_password(secrets.token_urlsafe(16))
+    verify_password(password, _DUMMY_HASH)
+
+
 def create_token(user_id: int) -> str:
     payload = {
         "sub": str(user_id),
