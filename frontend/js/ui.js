@@ -37,6 +37,26 @@ export function showError(container, err, onRetry) {
   container.replaceChildren(node);
 }
 
+/**
+ * SY-10: page-level alert built with textContent. API messages are data and
+ * must never be parsed as HTML.
+ * @param {HTMLElement} container
+ * @param {string} message
+ * @param {{type?: 'error'|'success'|'warning', link?: {href: string, text: string}}} [opts]
+ */
+export function showAlert(container, message, { type = 'error', link } = {}) {
+  const box = document.createElement('p');
+  box.className = `alert alert--${type}`;
+  box.textContent = message;
+  if (link) {
+    const anchor = document.createElement('a');
+    anchor.href = link.href;
+    anchor.textContent = link.text;
+    box.append(' ', anchor);
+  }
+  container.replaceChildren(box);
+}
+
 let toastTimer;
 export function toast(message, type = 'success') {
   let box = document.getElementById('toast');
