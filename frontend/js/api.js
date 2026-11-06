@@ -69,6 +69,18 @@ const MOCK_DEFAULT_CREDENTIALS = Object.freeze({
   'anh@example.com': 'password123',
   'admin@homeval.vn': 'admin123',
 });
+// GU-4 mock: same shape as the backend's one-at-a-time explanation.
+const MOCK_EXPLANATION = Object.freeze({
+  method: 'Dữ liệu minh họa: mỗi thanh là mức thay đổi của giá khi chỉ đặc điểm đó được đưa về mức điển hình.',
+  items: [
+    { feature: 'area_m2', label: 'Diện tích', unit: 'm²', value: 72, baseline: 56, impact_vnd: 820000000, impact_percent: 16.9 },
+    { feature: 'district', label: 'Quận/huyện', unit: '', value: 'Thủ Đức', baseline: 'Gò Vấp', impact_vnd: -310000000, impact_percent: -6.4 },
+    { feature: 'floors', label: 'Số tầng', unit: '', value: 2, baseline: 3, impact_vnd: -260000000, impact_percent: -5.4 },
+    { feature: 'bathrooms', label: 'Số phòng tắm', unit: '', value: 2, baseline: 3, impact_vnd: -100000000, impact_percent: -2.1 },
+    { feature: 'bedrooms', label: 'Số phòng ngủ', unit: '', value: 3, baseline: 3, impact_vnd: 0, impact_percent: 0 },
+  ],
+  not_provided: ['Mặt tiền', 'Đường tiếp cận'],
+});
 const INLINE_MOCKS = Object.freeze({
   users: {
     items: [
@@ -81,6 +93,7 @@ const INLINE_MOCKS = Object.freeze({
     confidence_interval: { lower: 4460000000, upper: 5240000000, confidence_level: 0.9 },
     confidence: 0.86, model: { version: 'v2.3.0', algorithm: 'Gradient Boosting' },
     input: { district: 'Thủ Đức', property_type: 'Nhà phố', area_m2: 72, bedrooms: 3, bathrooms: 2, floors: 2 },
+    explanation: MOCK_EXPLANATION,
   },
   'prediction-history': {
     items: [
@@ -334,9 +347,17 @@ export function deletePrediction(id) {
   return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
-export function getMarketInsights() {
-  if (USE_MOCK) return getMock('market-insights');
-  return request(`${API_BASE}/insights`);
+/** GU-6: descriptive statistics of the listing dataset; public, no login. */
+export function getMarketInsights({ city = '' } = {}) {
+  if (USE_MOCK) {
+    return getMock('market-insights').then(data => {
+      if (city && city !== data.city) throw new ApiError(404, 'Tỉnh/thành chưa đủ tin rao để thống kê.');
+      return data;
+    });
+  }
+  const qs = new URLSearchParams();
+  if (city) qs.set('city', city);
+  return request(`${API_BASE}/insights${qs.size ? `?${qs}` : ''}`);
 }
 
 // Existing admin screens use the model functions below. These two functions

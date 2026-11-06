@@ -418,3 +418,44 @@ def test_admin_stats_counts_recent_predictions(client,users):
     assert after['predictions_week']==before['predictions_week']+1
     assert after['predictions_per_day'][-1]['count']==after['predictions_today']
     assert after['predictions_per_day'][-1]['date']==utcnow().strftime('%m-%d')
+
+
+def test_prediction_explains_which_inputs_moved_the_estimate(client,users):
+    # GU-4 (#32): every real estimate carries a per-input contribution list.
+    p=client.post('/api/predictions',json={**INPUT,'frontage_m':5}).json()
+    e=p['explanation']
+    assert e['method'] and e['not_provided']==['Đường tiếp cận']
+    features=[i['feature'] for i in e['items']]
+    assert set(features)=={'area_m2','bedrooms','bathrooms','floors','frontage_m','district'}
+    impacts=[abs(i['impact_vnd']) for i in e['items']]
+    assert impacts==sorted(impacts,reverse=True)
+    for item in e['items']:
+        assert item['label'] and isinstance(item['impact_vnd'],int)
+        assert abs(item['impact_percent']-item['impact_vnd']/p['estimated_price']*100)<0.11
+        if item['value']==item['baseline']:assert item['impact_vnd']==0
+    district=next(i for i in e['items'] if i['feature']=='district')
+    assert district['value']=='Bình Thạnh' and district['baseline']
+    # Saved records keep the explanation for the detail page.
+    user=users[0]
+    saved=client.post('/api/me/predictions',json={'prediction':p},headers=user).json()
+    assert client.get(f"/api/me/predictions/{saved['id']}",headers=user).json()['explanation']==e
+
+def test_market_insights_are_public_and_validated(client):
+    # GU-6 (#33): aggregate statistics computed from the training dataset.
+    r=client.get('/api/insights')
+    assert r.status_code==200,r.text
+    data=r.json()
+    assert data['city']==data['cities'][0]['city']
+    assert all(c['count']>=data['min_listings'] for c in data['cities'])
+    assert sum(b['count'] for b in data['price_per_m2']['bins'])==data['summary']['listings']
+    assert sum(b['count'] for b in data['area']['bins'])==data['summary']['listings']
+    assert data['district_stats'] and all(d['count']>=data['min_listings'] for d in data['district_stats'])
+    ppm2=[d['median_price_per_m2'] for d in data['district_stats']]
+    assert ppm2==sorted(ppm2,reverse=True)
+    points=data['price_vs_area']['points']
+    assert 0<len(points)<=400 and len(points)==data['price_vs_area']['shown']
+    assert 'RAO BÁN' in data['disclaimer']
+    other=data['cities'][1]['city']
+    assert client.get('/api/insights',params={'city':other}).json()['city']==other
+    assert client.get('/api/insights',params={'city':'Atlantis'}).status_code==404
+    assert client.get('/api/insights',params={'city':'x'*81}).status_code==422

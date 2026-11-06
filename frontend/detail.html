@@ -3,7 +3,7 @@
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Chi tiết dự đoán - HomeVal</title><link rel="stylesheet" href="css/reset.css"><link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/design.css">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/experience.css">
-<link rel="stylesheet" href="css/ux.css"></head>
+<link rel="stylesheet" href="css/ux.css"><link rel="stylesheet" href="css/charts.css"></head>
 <body>
 <site-header active="predictions"></site-header>
 <main class="container page" style="max-width:760px">
@@ -11,6 +11,7 @@
     <div><a class="field__hint" href="predictions.html">Quay lại lịch sử</a><h1 id="title"></h1></div>
     <section class="result-summary"><p class="result-summary__price" id="estimated-price"></p><p id="confidence-interval"></p><p class="field__hint" id="model-version"></p><p class="field__hint" id="prediction-disclaimer"></p></section>
     <section><h2>Thông tin bất động sản</h2><dl class="facts" id="input-summary"></dl></section>
+    <div id="explanation-slot"></div>
     <div class="row__actions"><a class="btn" href="predict.html">Dự đoán mới</a><button class="btn btn--danger" id="delete-prediction" type="button">Xóa dự đoán</button></div>
   </article>
 </main>

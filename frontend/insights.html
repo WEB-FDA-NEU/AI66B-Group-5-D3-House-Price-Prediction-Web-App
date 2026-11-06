@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Thống kê giá rao bán 2024 theo quận/huyện: giá trung vị, giá mỗi m², phân bố diện tích và quan hệ giá - diện tích.">
+<title>Thị trường theo khu vực - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css">
+<link rel="stylesheet" href="css/charts.css">
+</head>
+<body>
+<site-header active="insights"></site-header>
+<main class="container page stack insights-page">
+  <div class="page-heading">
+    <p class="eyebrow">THỊ TRƯỜNG · GIÁ RAO BÁN 2024</p>
+    <h1>Thị trường theo khu vực</h1>
+    <p>Giá trung vị, giá mỗi mét vuông và diện tích của các tin rao trong cùng bộ dữ liệu dùng để huấn luyện mô hình. Dùng để đặt ước tính của bạn vào bối cảnh, không phải để dự báo giá.</p>
+  </div>
+  <form class="insights-filters" id="insights-filters">
+    <label class="field">
+      <span class="field__label">Tỉnh/thành</span>
+      <select class="select" id="insights-city" name="city" disabled>
+        <option>Đang tải…</option>
+      </select>
+    </label>
+    <p class="field__hint" id="insights-source" aria-live="polite"></p>
+  </form>
+  <div class="kpi-grid insights-kpis" id="insights-summary" aria-live="polite"></div>
+  <div class="insights-grid" id="insights-charts"></div>
+  <p class="field__hint" id="insights-disclaimer"></p>
+  <div class="row__actions">
+    <a class="btn btn--primary" href="predict.html">Định giá một tài sản</a>
+    <a class="btn" href="about-model.html">Dữ liệu &amp; giới hạn mô hình</a>
+  </div>
+</main>
+<site-footer></site-footer>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/insights.js"></script>
+</body>
+</html>

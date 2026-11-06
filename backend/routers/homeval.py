@@ -23,7 +23,7 @@ from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
 from rate_limit import limit_prediction_requests
-from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
+from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact, explain_artifact, market_insights
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
 training_lock=threading.Lock()
@@ -347,7 +347,9 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     pairs=m.report["support"]["pairs"]
     if [inputs["city"],inputs["district"]] not in pairs:
         raise HTTPException(422,"Khu vực chưa có trong tập huấn luyện của mô hình này. Hãy chọn lại từ danh sách được hỗ trợ.")
-    try:value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
+    try:
+        value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
+        explanation=explain_artifact(m.artifact,m.report["artifact_sha256"],inputs,value)
     except ValueError as error:raise HTTPException(503,str(error))
     warnings=["Ước tính theo giá rao 2024, không phải giá giao dịch hoặc cập nhật thị trường hiện tại.",
         "Dataset không có nhãn loại hình; lựa chọn nhà phố/căn hộ/biệt thự được lưu nhưng chưa dùng làm đặc trưng."]
@@ -359,7 +361,7 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     result=dict(id=id,estimated_price=round(value),currency="VND",
         confidence_interval=dict(lower=round(lower),upper=round(upper),confidence_level=.9,method="Split conformal trên tập calibration riêng"),
         model=dict(id=m.id,version=m.id,algorithm=m.report["algorithm"]),
-        input=inputs,created_at=utcnow().isoformat(),is_mock=False,warnings=warnings,
+        input=inputs,created_at=utcnow().isoformat(),is_mock=False,warnings=warnings,explanation=explanation,
         disclaimer="Ước tính bằng mô hình được huấn luyện trên dữ liệu rao bán 2024; không phải khuyến nghị đầu tư.",
         draft_token=draft_proof(id))
     db.add(Prediction(id=id,owner_id=user.id if user else None,payload=result))
@@ -576,6 +578,13 @@ def stats(user:User=Depends(get_admin),db:Session=Depends(get_db)):
         published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=day.strftime("%m-%d"),count=per_day[day]) for day in days],
         recent_activity=[dict(text="Đã huấn luyện "+x.report["name"],created_at=x.created_at.isoformat()) for x in db.scalars(select(ModelVersion).order_by(ModelVersion.created_at.desc()).limit(5))],
         **error_snapshot())
+
+@router.get("/insights")
+def insights(city:str|None=Query(default=None,max_length=80)):
+    """GU-6: descriptive market statistics of the 2024 listing dataset. Public."""
+    try:return market_insights(city.strip() if city and city.strip() else None)
+    except LookupError as error:raise HTTPException(404,str(error))
+    except ValueError as error:raise HTTPException(503,str(error))
 
 @router.get("/map-listings")
 def map_listings():

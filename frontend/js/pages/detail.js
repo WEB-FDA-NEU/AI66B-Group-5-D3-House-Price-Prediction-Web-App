@@ -3,6 +3,7 @@ import { isLoggedIn, requireLogin } from '../auth.js';
 import { confirmAction, toast } from '../ui.js';
 import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
 import { propertyFacts } from '../property.js';
+import { renderExplanation } from '../components/estimate-explanation.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
@@ -34,6 +35,7 @@ async function load() {
     const input = prediction.input ?? prediction;
     const facts = document.getElementById('input-summary');
     for (const [label, value] of propertyFacts(input)) addFact(facts, label, value);
+    document.getElementById('explanation-slot').replaceChildren(renderExplanation(prediction));
     detail.hidden = false;
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) location.href = '404.html';
