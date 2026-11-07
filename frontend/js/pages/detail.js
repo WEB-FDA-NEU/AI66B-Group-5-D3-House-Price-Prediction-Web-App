@@ -4,6 +4,7 @@ import { confirmAction, toast } from '../ui.js';
 import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
 import { propertyFacts } from '../property.js';
 import { renderExplanation } from '../components/estimate-explanation.js';
+import { exportPredictions } from '../csv.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
@@ -11,6 +12,7 @@ if (!isLoggedIn()) requireLogin();
 
 const id = new URLSearchParams(location.search).get('id');
 const detail = document.getElementById('detail');
+let loaded = null;
 const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
 
 function addFact(container, label, value) {
@@ -25,6 +27,7 @@ async function load() {
   if (!id) { location.href = '404.html'; return; }
   try {
     const prediction = await getPrediction(id);
+    loaded = prediction;
     const title = prediction.label || `${prediction.property_type} tại ${prediction.district}`;
     document.title = `${title} - HomeVal`;
     document.getElementById('title').textContent = title;
@@ -42,6 +45,13 @@ async function load() {
     else toast(error.detail ?? 'Không thể tải dự đoán.', 'error');
   }
 }
+
+// US-8 (#49): export this one prediction.
+document.getElementById('export-prediction').addEventListener('click', () => {
+  if (!loaded) return;
+  exportPredictions([loaded], `homeval-du-doan-${String(loaded.id).replace(/[^\w-]/g, '')}.csv`);
+  toast('Đã xuất dự đoán ra CSV.');
+});
 
 document.getElementById('delete-prediction').addEventListener('click', async () => {
   const approved = await confirmAction({

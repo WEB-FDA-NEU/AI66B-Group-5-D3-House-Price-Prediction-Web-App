@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>So sánh dự đoán - HomeVal</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/design.css">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/experience.css">
+<link rel="stylesheet" href="css/ux.css">
+<link rel="stylesheet" href="css/charts.css">
+<link rel="stylesheet" href="css/compare.css">
+</head>
+<body>
+<site-header active="predictions"></site-header>
+<main class="container page stack">
+  <div class="history-heading">
+    <div>
+      <a class="field__hint" href="predictions.html">Quay lại dự đoán đã lưu</a>
+      <p class="eyebrow">KHÔNG GIAN CỦA BẠN</p>
+      <h1>So sánh dự đoán</h1>
+      <p class="field__hint">Đặt 2–3 ước tính đã lưu cạnh nhau. Ô khác nhau được đánh dấu; giá cao nhất và thấp nhất có nhãn riêng.</p>
+    </div>
+    <button class="btn" id="export-compare" type="button" hidden>Xuất CSV</button>
+  </div>
+  <p class="alert alert--info" id="compare-notice" hidden></p>
+  <div id="compare-content" class="stack" aria-live="polite"></div>
+</main>
+<site-footer></site-footer>
+<template id="tpl-empty-state">
+  <div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a></div>
+</template>
+<script type="module" src="js/components/site-header.js"></script>
+<script type="module" src="js/components/site-footer.js"></script>
+<script type="module" src="js/pages/compare.js"></script>
+</body>
+</html>

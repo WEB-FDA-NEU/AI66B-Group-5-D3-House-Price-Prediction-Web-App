@@ -3,10 +3,13 @@
 //  LƯU Ý: token để trong localStorage sẽ đọc được nếu trang dính XSS.
 //  Đó là lý do trong render.js ta luôn dùng textContent, không innerHTML.
 // ============================================================
+import { USE_MOCK } from './config.js';
+
 const TOKEN_KEY = 'app_token';
 const USER_KEY  = 'app_user';
 // Retire browser-only demo sessions when switching to the real backend.
-if (localStorage.getItem(TOKEN_KEY) === 'mock-token') { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
+// In mock mode that token IS the session, so keep it.
+if (!USE_MOCK && localStorage.getItem(TOKEN_KEY) === 'mock-token') { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem(USER_KEY); }
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
 export const getUser = () => { try { return JSON.parse(localStorage.getItem(USER_KEY) || 'null'); } catch { return null; } };
