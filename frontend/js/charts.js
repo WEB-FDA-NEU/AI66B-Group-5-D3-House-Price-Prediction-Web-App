@@ -170,6 +170,7 @@ export function barChart(opts) {
     const track = el('span', 'viz-bars__track');
     const bar = el('span', 'viz-bars__bar');
     bar.style.width = `${Math.max(0, datum[value]) / max * 100}%`;
+    if (datum[value] <= 0) bar.hidden = true;  // a zero must not look like a small value
     track.append(bar);
     row.append(name, track, el('span', 'viz-bars__value', format(datum[value])));
     bindTip(tip, row, () => [[format(datum[value]), label(datum)], ...(details?.(datum) ?? [])]);

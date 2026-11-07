@@ -459,3 +459,24 @@ def test_market_insights_are_public_and_validated(client):
     assert client.get('/api/insights',params={'city':other}).json()['city']==other
     assert client.get('/api/insights',params={'city':'Atlantis'}).status_code==404
     assert client.get('/api/insights',params={'city':'x'*81}).status_code==422
+
+
+def test_property_type_usage_counts_homeval_predictions(client,users):
+    # GU-6 (#33): the dataset has no type column, so type counts come from
+    # HomeVal's own predictions table. Public aggregate, no personal data.
+    user=users[0]
+    before=client.get('/api/insights/property-types').json()
+    assert [i['property_type'] for i in before['items']]==['Nhà phố','Căn hộ','Biệt thự']
+    count=lambda data,kind,key='predictions':next(i[key] for i in data['items'] if i['property_type']==kind)
+    p=client.post('/api/predictions',json={**INPUT,'property_type':'Căn hộ'}).json()
+    client.post('/api/predictions',json={**INPUT,'property_type':'Biệt thự','city':'Hồ Chí Minh'})
+    assert client.post('/api/me/predictions',json={'prediction':p},headers=user).status_code==200
+    after=client.get('/api/insights/property-types').json()
+    assert count(after,'Căn hộ')==count(before,'Căn hộ')+1
+    assert count(after,'Căn hộ','saved')==count(before,'Căn hộ','saved')+1
+    assert count(after,'Biệt thự')==count(before,'Biệt thự')+1
+    assert after['total']==sum(i['predictions'] for i in after['items'])
+    assert set(after['items'][0])=={'property_type','predictions','saved'}
+    other=client.get('/api/insights/property-types',params={'city':'Không có tỉnh này'}).json()
+    assert other['total']==0 and all(i['predictions']==0 for i in other['items'])
+    assert client.get('/api/insights/property-types',params={'city':'x'*81}).status_code==422

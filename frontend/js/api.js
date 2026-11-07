@@ -360,6 +360,14 @@ export function getMarketInsights({ city = '' } = {}) {
   return request(`${API_BASE}/insights${qs.size ? `?${qs}` : ''}`);
 }
 
+/** GU-6: HomeVal's own estimates per property type (predictions table). */
+export function getPropertyTypeUsage({ city = '' } = {}) {
+  if (USE_MOCK) return getMock('insights-property-types');
+  const qs = new URLSearchParams();
+  if (city) qs.set('city', city);
+  return request(`${API_BASE}/insights/property-types${qs.size ? `?${qs}` : ''}`);
+}
+
 // Existing admin screens use the model functions below. These two functions
 // reserve the same adapter boundary for Dataset and User screens.
 export function listDatasets() {

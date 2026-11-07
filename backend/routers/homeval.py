@@ -14,7 +14,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, UploadFile, File
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import select, func, update, or_
+from sqlalchemy import select, func, update, or_, case
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
@@ -585,6 +585,26 @@ def insights(city:str|None=Query(default=None,max_length=80)):
     try:return market_insights(city.strip() if city and city.strip() else None)
     except LookupError as error:raise HTTPException(404,str(error))
     except ValueError as error:raise HTTPException(503,str(error))
+
+HOUSE_TYPES=("Nhà phố","Căn hộ","Biệt thự")
+
+@router.get("/insights/property-types")
+def property_type_usage(city:str|None=Query(default=None,max_length=80),db:Session=Depends(get_db)):
+    """GU-6: HomeVal's OWN usage, from the predictions table.
+
+    The 2024 dataset has no property-type column, so the market charts cannot
+    split by type. This counts the estimates people ran on HomeVal instead.
+    Aggregates only: no user, input or price data leaves the database."""
+    kind=Prediction.payload["input"]["property_type"].as_string()
+    query=select(kind,func.count(Prediction.id),
+        func.sum(case((Prediction.saved==True,1),else_=0))).group_by(kind)
+    city=city.strip() if city else ""
+    if city:query=query.where(Prediction.payload["input"]["city"].as_string()==city)
+    counts={name:(int(total),int(saved or 0)) for name,total,saved in db.execute(query) if name}
+    items=[dict(property_type=name,predictions=counts.get(name,(0,0))[0],saved=counts.get(name,(0,0))[1]) for name in HOUSE_TYPES]
+    return dict(city=city or None,items=items,total=sum(i["predictions"] for i in items),
+        source="Bảng predictions của HomeVal",
+        note="Số lượt định giá người dùng đã chạy trên HomeVal (gồm cả lượt chưa lưu), không phải số tin rao trên thị trường.")
 
 @router.get("/map-listings")
 def map_listings():

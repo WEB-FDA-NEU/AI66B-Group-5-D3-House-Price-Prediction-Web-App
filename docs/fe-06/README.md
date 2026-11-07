@@ -16,6 +16,13 @@ city list (cities with ≥ 30 listings), summary medians, per-district median pr
 listings for price vs. area (1st–98th percentile view, disclosed in the response). The dataset has no
 property-type column, so a house-type breakdown is **not** shown; the page says so instead of inventing it.
 
+### Property types: `/api/insights/property-types`
+The dataset has no type column, so the page does **not** split market data by type. Instead the last chart
+counts the estimates people ran on HomeVal per type (Nhà phố / Căn hộ / Biệt thự), straight from the
+`predictions` table with one SQL `GROUP BY` on the JSON input (`JSON_EXTRACT` on SQLite, `->>` on Postgres),
+plus how many were saved. Aggregates only; it is labelled as HomeVal usage, not market listings, and it loads
+independently so its failure never hides the market charts.
+
 ### Estimate explanation
 Model-agnostic, one-at-a-time explanation: for each input the user provided, the model is re-run with only
 that input reset to the training median (district: the city's most common district). The bar is the
@@ -54,3 +61,5 @@ Sign is never colour-only: values carry `+`/`−`, and a legend is always shown.
 | ![Explanation desktop](explain-desktop.png) | ![Explanation mobile](explain-mobile.png) |
 
 ![Scatter with tooltip](scatter.png) ![Error state](insights-error.png)
+
+![Property-type usage](usage-desktop.png)

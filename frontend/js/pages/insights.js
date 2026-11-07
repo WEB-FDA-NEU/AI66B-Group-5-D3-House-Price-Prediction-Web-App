@@ -1,6 +1,6 @@
 // GU-6 (#33): Market Insights — district medians, price per m², area and
 // price-vs-area, all computed by /api/insights from the 2024 listing dataset.
-import { getMarketInsights, ApiError } from '../api.js';
+import { getMarketInsights, getPropertyTypeUsage, ApiError } from '../api.js';
 import { barChart, histogram, scatterChart, chartLoading, chartError } from '../charts.js';
 import { billions, perM2, area, count, axisBillions, axisArea } from '../format.js';
 
@@ -18,6 +18,7 @@ const TITLES = {
   ppm2Dist: 'Phân bố giá mỗi m²',
   areaDist: 'Phân bố diện tích',
   scatter: 'Giá rao so với diện tích',
+  usage: 'Lượt định giá trên HomeVal theo loại hình',
 };
 
 function kpi(label, value, sub) {
@@ -104,6 +105,10 @@ function render(data) {
     }),
   ];
   figures[4].classList.add('insights-grid__wide');
+  const usageSlot = chartLoading({ title: TITLES.usage });
+  usageSlot.classList.add('insights-grid__wide');
+  figures.push(usageSlot);
+  loadUsage(data.city, usageSlot);
   charts.classList.remove('is-refreshing');
   charts.replaceChildren(...figures);
   const link = document.createElement('a');
@@ -114,6 +119,34 @@ function render(data) {
   source.replaceChildren(...(notice ? [notice, ' · '] : []), 'Nguồn: ', link);
   notice = '';
   disclaimer.textContent = data.disclaimer;
+}
+
+// The dataset has no property-type column, so this chart counts the
+// estimates people ran on HomeVal (our predictions table) instead.
+// Loaded on its own so a failure here never hides the market charts.
+async function loadUsage(city, slot) {
+  let figure;
+  try {
+    const usage = await getPropertyTypeUsage({ city });
+    figure = barChart({
+      title: TITLES.usage,
+      description: `${usage.note} Nguồn: ${usage.source}.`,
+      data: usage.total ? usage.items : [],
+      label: d => d.property_type, value: 'predictions', format: count,
+      details: d => [[count(d.saved), 'đã được lưu']],
+      labelHeading: 'Loại hình', valueHeading: 'Lượt định giá',
+      columns: [
+        { label: 'Loại hình', value: d => d.property_type },
+        { label: 'Lượt định giá', value: d => count(d.predictions), numeric: true },
+        { label: 'Đã lưu', value: d => count(d.saved), numeric: true },
+      ],
+      emptyText: `Chưa có lượt định giá nào cho ${city} trên HomeVal. Hãy thử định giá một tài sản.`,
+    });
+  } catch (error) {
+    figure = chartError({ title: TITLES.usage, message: error.detail, onRetry: () => loadUsage(city, figure) });
+  }
+  figure.classList.add('insights-grid__wide');
+  if (slot.isConnected) slot.replaceWith(figure);
 }
 
 async function load(city = '') {
