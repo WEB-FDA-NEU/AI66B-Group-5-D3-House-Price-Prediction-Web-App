@@ -24,11 +24,68 @@
     "frontage_m": 4,
     "legal_status": "Sổ hồng"
   },
-  "feature_importance": [
-    { "name": "Diện tích", "impact": 0.29 },
-    { "name": "Quận/huyện", "impact": 0.23 },
-    { "name": "Loại hình", "impact": 0.17 },
-    { "name": "Số phòng ngủ", "impact": 0.08 }
-  ],
-  "created_at": "2026-09-27T09:30:00Z"
+  "created_at": "2026-09-27T09:30:00Z",
+  "explanation": {
+    "method": "Dữ liệu minh họa: mỗi thanh là mức thay đổi của giá khi chỉ đặc điểm đó được đưa về mức điển hình của tập huấn luyện.",
+    "items": [
+      {
+        "feature": "area_m2",
+        "label": "Diện tích",
+        "unit": "m²",
+        "value": 72,
+        "baseline": 56,
+        "impact_vnd": 820000000,
+        "impact_percent": 16.9
+      },
+      {
+        "feature": "district",
+        "label": "Quận/huyện",
+        "unit": "",
+        "value": "Thủ Đức",
+        "baseline": "Gò Vấp",
+        "impact_vnd": -310000000,
+        "impact_percent": -6.4
+      },
+      {
+        "feature": "floors",
+        "label": "Số tầng",
+        "unit": "",
+        "value": 2,
+        "baseline": 3,
+        "impact_vnd": -260000000,
+        "impact_percent": -5.4
+      },
+      {
+        "feature": "bathrooms",
+        "label": "Số phòng tắm",
+        "unit": "",
+        "value": 2,
+        "baseline": 3,
+        "impact_vnd": -100000000,
+        "impact_percent": -2.1
+      },
+      {
+        "feature": "frontage_m",
+        "label": "Mặt tiền",
+        "unit": "m",
+        "value": 4,
+        "baseline": 4.2,
+        "impact_vnd": -40000000,
+        "impact_percent": -0.8
+      },
+      {
+        "feature": "bedrooms",
+        "label": "Số phòng ngủ",
+        "unit": "",
+        "value": 3,
+        "baseline": 3,
+        "impact_vnd": 0,
+        "impact_percent": 0
+      }
+    ],
+    "not_provided": [
+      "Đường tiếp cận"
+    ]
+  },
+  "disclaimer": "Dữ liệu minh họa; không phải định giá."
 }
