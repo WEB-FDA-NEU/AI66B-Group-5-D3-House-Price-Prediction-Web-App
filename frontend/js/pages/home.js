@@ -67,7 +67,7 @@ function renderModelStats(info) {
     : Number.isFinite(mape) ? `±${mape.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%` : '—';
   modelStatsBody.replaceChildren(
     metric('Phiên bản mô hình', info.model_version || '—'),
-    metric('R² trên tập kiểm tra', Number.isFinite(r2) ? `${(r2 * 100).toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%` : '—'),
+    metric('R² trên tập kiểm tra', Number.isFinite(r2) ? r2.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '—'),
     metric('Sai số tuyệt đối trung bình', Number.isFinite(mae) ? money(mae) : '—'),
     metric(withinLabel, withinValue),
   );

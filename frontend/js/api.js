@@ -249,7 +249,7 @@ export const getModels = () => request(`${API_BASE}/models`);
 export function getHomeModelStats() {
   if (USE_MOCK) return getMock('model');
   return getModels().then(data => {
-    const activeModel = data.items?.[0];
+    const activeModel = data.items?.find(model => model.tier === 'free') ?? data.items?.[0];
     if (!activeModel) throw new ApiError(404, 'Chưa có mô hình đang phát hành.');
     return {
       model_version: activeModel.version,
