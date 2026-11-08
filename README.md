@@ -1,5 +1,7 @@
 # HomeVal — Model & Premium upgrade
 
+[![CI](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/actions/workflows/ci.yml/badge.svg)](https://github.com/WEB-FDA-NEU/AI66B-Group-5-D3-House-Price-Prediction-Web-App/actions/workflows/ci.yml)
+
 Phiên bản đang làm chạy **backend thật**: huấn luyện ba mô hình từ Vietnam Housing
 Dataset 2024, kiểm định độc lập, phân quyền admin/Premium và thanh toán giả lập.
 
@@ -18,6 +20,17 @@ Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối đ�
 - API docs: <http://127.0.0.1:8000/docs>.
 - [Hướng dẫn kiểm tra, sai số và giới hạn](docs/model-upgrade/README.md).
 - [Bản tối ưu UX: quận/huyện, Premium tại chỗ, chuyển động](docs/ux-polish/README.md).
+
+### Kiểm tra trước khi mở PR
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) chạy trên mọi PR:
+
+| Job | Nội dung | Chạy tại máy |
+| --- | --- | --- |
+| Frontend | `node --check` mọi module trong `frontend/js`, parse mọi JSON trong `frontend/mock` | `git ls-files 'frontend/js/*.js' \| xargs -n1 sh -c 'node --check --input-type=module < "$0"'` |
+| Backend | Tải dataset, `bootstrap.py` huấn luyện 3 mô hình, chạy toàn bộ `backend/tests` | `python -m pytest backend/tests -q` (sau 4 lệnh thiết lập ở trên) |
+
+PR chỉ nên merge khi cả hai job xanh.
 
 `backend/run.py` chỉ mở localhost, tự tạo tài khoản demo và bật thanh toán sandbox
 để review. Không dùng cấu hình demo này để triển khai công khai.

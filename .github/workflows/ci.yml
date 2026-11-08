@@ -1,0 +1,74 @@
+# SY-11 (#101): run the same checks reviewers run by hand on every PR.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend syntax and fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax-check every ES module
+        run: |
+          status=0
+          while IFS= read -r file; do
+            if ! node --check --input-type=module < "$file"; then
+              echo "::error file=$file::JavaScript syntax error"
+              status=1
+            fi
+          done < <(git ls-files 'frontend/js/*.js')
+          exit $status
+      - name: Parse every JSON fixture
+        run: |
+          status=0
+          for file in frontend/mock/*.json; do
+            node -e 'JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))' "$file" \
+              || { echo "::error file=$file::Invalid JSON"; status=1; }
+          done
+          exit $status
+
+  backend:
+    name: Backend API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - name: Install dependencies
+        run: python -m pip install -r backend/requirements.txt
+      - name: Restore dataset
+        id: dataset
+        uses: actions/cache@v4
+        with:
+          path: backend/data/vietnam_housing_dataset.csv
+          key: vietnam-housing-2024-${{ hashFiles('backend/data/provenance.json') }}
+      - name: Download public dataset
+        if: steps.dataset.outputs.cache-hit != 'true'
+        run: |
+          expected=$(python -c "import json;print(json.load(open('backend/data/provenance.json'))['sha256'])")
+          python scripts/download_dataset.py
+          git checkout -- backend/data/provenance.json
+          echo "$expected  backend/data/vietnam_housing_dataset.csv" | sha256sum --check
+      - name: Train and publish the three models
+        run: python backend/bootstrap.py > /dev/null
+      - name: Run tests
+        run: python -m pytest backend/tests -q
