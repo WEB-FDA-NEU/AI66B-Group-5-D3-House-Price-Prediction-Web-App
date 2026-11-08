@@ -560,12 +560,20 @@ def complete(checkout_id:str,payload:CompleteIn,user:User=Depends(get_current_us
 
 @router.get("/admin/stats")
 def stats(user:User=Depends(get_admin),db:Session=Depends(get_db)):
-    all_predictions=db.scalars(select(Prediction)).all()
-    recent=[p for p in all_predictions if p.created_at.date()==utcnow().date()]
+    # SY-9: only the timestamps of the last 7 days are read; payload JSON and
+    # older history never leave the database.
+    now=utcnow()
+    week_ago=now-timedelta(days=7)
+    days=[(now-timedelta(days=i)).date() for i in reversed(range(7))]
+    stamps=[t.replace(tzinfo=timezone.utc) if t.tzinfo is None else t.astimezone(timezone.utc)
+        for t in db.scalars(select(Prediction.created_at).where(Prediction.created_at>=week_ago))]
+    per_day={day:0 for day in days}
+    for t in stamps:
+        if t.date() in per_day:per_day[t.date()]+=1
     m=db.scalar(select(ModelVersion).where(ModelVersion.state=="Active",ModelVersion.tier=="free"))
-    return dict(users_total=db.scalar(select(func.count(User.id))),predictions_today=len(recent),predictions_week=sum(p.created_at.replace(tzinfo=timezone.utc)>=utcnow()-timedelta(days=7) for p in all_predictions),
+    return dict(users_total=db.scalar(select(func.count(User.id))),predictions_today=per_day[now.date()],predictions_week=sum(t>=week_ago for t in stamps),
         active_model=dict(version=m.id if m else "Chưa có",algorithm=m.report["algorithm"] if m else "",r2=m.report["metrics"]["r2"] if m else 0),
-        published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=(utcnow()-timedelta(days=i)).strftime("%m-%d"),count=sum(p.created_at.date()==(utcnow()-timedelta(days=i)).date() for p in all_predictions)) for i in reversed(range(7))],
+        published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=day.strftime("%m-%d"),count=per_day[day]) for day in days],
         recent_activity=[dict(text="Đã huấn luyện "+x.report["name"],created_at=x.created_at.isoformat()) for x in db.scalars(select(ModelVersion).order_by(ModelVersion.created_at.desc()).limit(5))],
         **error_snapshot())
 

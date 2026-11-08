@@ -383,3 +383,38 @@ def test_login_failures_are_throttled_per_account(client,monkeypatch):
         assert client.post('/api/auth/login',json={'email':email,'password':'secure-password'}).status_code==200
     finally:
         login_rate_limiter.clear()
+def test_artifact_hash_is_verified_once_and_tampering_is_refused(client,monkeypatch):
+    # SY-9 (#99): no artifact re-read per prediction, but a changed file is refused.
+    with SessionLocal() as db:
+        free=next(m for m in db.query(ModelVersion).all() if m.tier=='free' and m.state=='Active')
+    path=ARTIFACTS/free.artifact
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    reads=[]
+    original_read=Path.read_bytes
+    def spy(self):
+        reads.append(self.name)
+        return original_read(self)
+    monkeypatch.setattr(Path,'read_bytes',spy)
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    assert free.artifact not in reads
+    pristine=original_read(path)
+    try:
+        path.write_bytes(pristine+b'tampered')
+        refused=client.post('/api/predictions',json=INPUT)
+        assert refused.status_code==503 and 'dấu kiểm tra' in refused.json()['detail']
+    finally:
+        path.write_bytes(pristine)
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+
+def test_admin_stats_counts_recent_predictions(client,users):
+    # SY-9 (#99): SQL-backed counts keep the dashboard contract.
+    _,_,admin=users
+    before=client.get('/api/admin/stats',headers=admin).json()
+    assert len(before['predictions_per_day'])==7
+    assert before['predictions_per_day'][-1]['count']==before['predictions_today']
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    after=client.get('/api/admin/stats',headers=admin).json()
+    assert after['predictions_today']==before['predictions_today']+1
+    assert after['predictions_week']==before['predictions_week']+1
+    assert after['predictions_per_day'][-1]['count']==after['predictions_today']
+    assert after['predictions_per_day'][-1]['date']==utcnow().strftime('%m-%d')

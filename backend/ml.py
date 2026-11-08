@@ -2,6 +2,7 @@
 from pathlib import Path
 from datetime import datetime, timezone
 import hashlib
+import io
 import json
 import math
 import os
@@ -142,14 +143,31 @@ def train_model(algorithm, config=None):
     return model_id,path.name,report
 
 _MODEL_CACHE={}
-def predict_artifact(artifact, expected_sha, inputs):
+def load_verified_artifact(artifact, expected_sha):
+    """Return the deserialized artifact after checking its SHA-256.
+
+    SY-9: hashing is done once per (expected hash, size, mtime) signature
+    instead of on every prediction. Rewriting the file changes the
+    signature, so a tampered or replaced artifact is re-hashed and refused.
+    """
     path=(ARTIFACTS/artifact).resolve()
     if path.parent != ARTIFACTS.resolve() or not path.is_file(): raise ValueError("Không tìm thấy phiên bản mô hình.")
-    if hashlib.sha256(path.read_bytes()).hexdigest()!=expected_sha: raise ValueError("Tệp mô hình không khớp dấu kiểm tra.")
-    if artifact not in _MODEL_CACHE:
-        # Only artifacts built locally by this trainer may be deserialized.
-        _MODEL_CACHE[artifact]=joblib.load(path)
-    stored=_MODEL_CACHE[artifact]
+    stat=path.stat()
+    signature=(expected_sha,stat.st_size,stat.st_mtime_ns)
+    cached=_MODEL_CACHE.get(artifact)
+    if cached and cached[0]==signature: return cached[1]
+    data=path.read_bytes()
+    if hashlib.sha256(data).hexdigest()!=expected_sha:
+        _MODEL_CACHE.pop(artifact,None)
+        raise ValueError("Tệp mô hình không khớp dấu kiểm tra.")
+    # Only artifacts built locally by this trainer may be deserialized,
+    # and only the exact bytes that were just verified.
+    stored=joblib.load(io.BytesIO(data))
+    _MODEL_CACHE[artifact]=(signature,stored)
+    return stored
+
+def predict_artifact(artifact, expected_sha, inputs):
+    stored=load_verified_artifact(artifact, expected_sha)
     row={name:inputs.get(name,np.nan) for name in FEATURES}
     for name in NUMERIC:
         if row[name] is None:row[name]=np.nan
