@@ -1,55 +1,61 @@
-# UI-1: "Atelier" theme
+# UI-1: "Bản vẽ" theme (drawing sheet)
 
-A warm ivory / espresso visual system in the style of an architecture studio portfolio, applied to every
-HomeVal screen. Page structure, JS hooks and API calls are unchanged.
+A visual system modelled on how architecture studios present work, applied to every HomeVal screen.
+Page structure, JS hooks and API calls are unchanged.
 
-## How it is built
+## Why v2
+The first version (ivory + italic serif + bronze accent + spaced capitals) is the most common generated
+"luxury" template and read as such. Architecture sites studied for v2 (Koozarch, Cargo architecture
+portfolios, Smout Allen, Yellow Office, Socks Studio) share the opposite habits: one grotesk at modest
+sizes in sentence case, hairline rules instead of cards, no rounded corners or shadows, numbered indexes,
+annotations in the corners of images, and colour coming from photographs only.
 
+## Design decisions
+| | Choice | Reason |
+| --- | --- | --- |
+| Type | **Familjen Grotesk** for everything, **IBM Plex Mono** for annotations | Both ship Vietnamese glyphs (checked in the Google Fonts CSS); Familjen has more character than the usual Inter/Geist; mono labels read like drawing annotations. Offline fallback: Helvetica Neue / Arial. |
+| Colour | Plaster `#f3f1ed`, ink `#141414`, grey `#67635d`, one accent: cyanotype blue `#2a48c4` | Warm white rather than cream; blue is the colour of a blueprint. Contrast 16.3 / 5.3 / 6.6 : 1. |
+| Shape | No radius anywhere, 1 px rules, no shadows | Drawing sheet. |
+| Photography | Full-bleed; **half of the frame out of focus (white text), half sharp** | The "nửa mờ nửa rõ" motif, done on the photo itself instead of a panel on top. |
+
+## Files
 | File | Role |
 | --- | --- |
-| `frontend/css/luxe.css` | Loaded **last** on every page. Re-points the shared tokens (`--c-*`), sets the type pair (Cormorant Garamond display + Be Vietnam Pro body, both with Vietnamese glyphs, system fallbacks offline), and restyles header, buttons, forms, cards, footer, page heroes, charts and the new Home sections. |
-| `frontend/css/luxe-remap.css` | **Generated** by `python scripts/build_luxe_remap.py`. The older stylesheets hard-code 321 green colours; the script re-emits those declarations with the same selectors (and the same `@media`), re-hued warm with the same lightness/alpha. No legacy CSS file is edited, so open PRs touching them still merge. Re-run it after changing a legacy stylesheet. |
-| `frontend/js/luxe.js` | Home-only motion: hero photos follow the existing slider in `home.js`, autoplay (7 s) with a pause button, paused on hover/focus and when the tab is hidden, never with `prefers-reduced-motion`; scroll reveal; drag / arrow-key horizontal gallery. Everything is visible and usable without it. |
-| `frontend/credits.html`, `frontend/img/photos/credits.json` | Author, licence, source and changes for every photo (linked from the footer and the Home gallery). |
+| `frontend/css/luxe.css` | Loaded **last** on every page; tokens, type, header, buttons, forms, rules, charts, page heroes and the Home sections. |
+| `frontend/css/luxe-remap.css` | **Generated** by `python scripts/build_luxe_remap.py`: 321 green colours hard-coded in the legacy stylesheets become near-neutral greys with the same selectors and lightness. No legacy CSS file is edited, so open PRs still merge. |
+| `frontend/js/luxe.js` | Home-only: hero photos follow the existing `home.js` slider; autoplay 7 s with pause, paused on hover/focus/hidden tab, off with reduced motion; index hover/focus swaps the preview photo; scroll reveal; drag/arrow-key gallery. |
+| `frontend/credits.html`, `frontend/img/photos/credits.json` | Author, licence, source and changes for every photograph. |
 
-`home.js` changes by one line (the swipe target), so the Home model-accuracy PR (#97) merges cleanly.
+`home.js` changes by one line (the swipe target); PR #97 merges cleanly on top.
 
-## Home
-- **Full-bleed slider, half frosted / half clear:** the left half is blurred glass carrying the copy, the
-  right half shows the photograph sharp. Three photographs cross-fade with the three existing slides.
-- Quick estimate card floats over the hero edge.
-- Editorial split rows (image / text, alternating) for estimate → market → compare, each photo with a
-  frosted plate carrying a real number (90% target interval, 23 districts, 2–3 options).
-- Horizontal snap gallery ("Bộ sưu tập không gian"), swipe on touch, drag with a mouse, arrow keys or buttons.
-- Premium as a photo band with a frosted right half; closing CTA with a frosted left half.
-
-Other pages: the About / Premium / How it works / Data sources heroes become a photograph with the same
-frosted-half treatment (`data-photo` picks the image), login/register use a warm veil.
+## Home, top to bottom
+Hero with title-block metadata in the corners (dataset, coordinates of Ho Chi Minh City, slide caption) ·
+quick estimate as a ruled form row · (i)(ii)(iii) value strip · (01) studio-style statement ·
+(02) numbered index of the six areas of the product, preview photo follows the hovered row ·
+real figures (29.899 listings, 26 provinces, 3 models, 90% target interval) · (03) swipe gallery ·
+(04) Premium photo band · process, FAQ · (05) closing photo band.
 
 ## Photographs and licences
 Nine photographs from **Wikimedia Commons**, licence read from the Commons API at download time:
-1 × CC0, 7 × CC BY 2.0, 1 × CC BY 4.0. CC BY requires credit, the licence link and a note of changes;
-`credits.html` lists all three for each image. Changes made: resized, warm colour grade (lower saturation,
-lifted shadows, 10% cream wash) so the set reads as one series. Photos are labelled as illustrations of
-living spaces, not listings, and are unrelated to any price shown.
+1 × CC0, 7 × CC BY 2.0, 1 × CC BY 4.0. `credits.html` names author, licence link and changes
+(resized, warm colour grade) for each. Labelled as illustrations, not listings. No Pinterest images
+(pins are mostly other people's copyrighted photographs).
 
-Pinterest images were **not** used: pins are mostly other people's copyrighted photos.
+## Checks
+- Edge at 1366 px and 390 px on 9 pages: no horizontal overflow, broken images, HTTP 4xx or console errors.
+- Computed-style scan of 19 pages (guest / user / admin): no leftover green except the success status badge.
+- Motion: advances at 7 s, pause and hover stop it, next/prev/keys work, reduced motion disables it;
+  index preview follows hover and keyboard focus; gallery moves one photo per click.
+- Charts re-validated on paper `#fbfaf8`: single series `#2a48c4` (L .463, C .196, 6.6:1);
+  up/down `#2a48c4` / `#b8572e` (CVD ΔE 26.2, normal ΔE 32.6).
 
-## Accessibility and checks
-- Text contrast on ivory: ink 13.8:1, taupe 4.7:1, bronze accent 5.6:1; buttons ivory-on-espresso 11.8:1.
-- Chart colours re-validated with the dataviz checks on paper `#fffdf9`: single series `#9c5a26`
-  (L .534, C .109, 5.29:1); up/down `#2f6aa8` / `#b8572e` (CVD ΔE 18.6, normal ΔE 25.1).
-- Status colours (success badge) intentionally keep their own hue.
-- Verified in Edge at 1366 px and 390 px on 9 pages: no horizontal overflow, no broken images, no 4xx, no
-  console errors; reveal leaves nothing hidden after scrolling; autoplay advances, pause and hover stop it,
-  reduced motion disables it; gallery buttons scroll one photo.
-- A computed-style scan of 19 pages (guest, user, admin) finds no remaining green except the success badge.
+![First screen](home-first-screen.jpg)
 
 | Before | After |
 | --- | --- |
 | ![Before](before-home-full.jpg) | ![After](home-full.jpg) |
 
-![First screen](home-first-screen.jpg)
+![Index](home-index.jpg)
 
 | About | Premium | Insights |
 | --- | --- | --- |

@@ -2,14 +2,15 @@
 // every section is visible and usable without this file.
 //  - hero photographs follow the existing slider (home.js owns the copy),
 //  - autoplay with a pause button, stopped on hover/focus and when hidden,
+//  - an index whose hovered/focused row swaps the preview photograph,
 //  - scroll reveal, and a drag/arrow-key horizontal gallery.
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const INTERVAL = 7000;
 
 const CAPTIONS = [
-  ['Không gian 01 · ảnh minh họa', 'Biệt thự trên đồi, ánh chiều'],
-  ['Không gian 02 · ảnh minh họa', 'Phòng khách hướng vườn'],
-  ['Không gian 03 · ảnh minh họa', 'Góc ăn gỗ sồi, ghế nhung'],
+  '(01/03) Biệt thự trên đồi — ảnh minh họa',
+  '(02/03) Phòng khách hướng vườn — ảnh minh họa',
+  '(03/03) Góc ăn gỗ sồi — ảnh minh họa',
 ];
 
 function initHero() {
@@ -28,10 +29,8 @@ function initHero() {
     slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
     const img = slides[index]?.querySelector('img');
     if (img?.loading === 'lazy') img.loading = 'eager';
-    if (caption && CAPTIONS[index]) caption.replaceChildren(
-      Object.assign(document.createElement('small'), { textContent: CAPTIONS[index][0] }),
-      Object.assign(document.createElement('strong'), { textContent: CAPTIONS[index][1] }));
-    restartProgress();
+    if (caption && CAPTIONS[index]) caption.textContent = CAPTIONS[index];
+    schedule();
   }
   new MutationObserver(sync).observe(hero, { subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
 
@@ -44,12 +43,6 @@ function initHero() {
     clearTimeout(timer);
     hero.classList.toggle('is-paused', !playing());
     if (playing()) timer = setTimeout(() => next?.click(), INTERVAL);
-  }
-  function restartProgress() {
-    // Restart the thin progress line under the active tab with the timer.
-    const active = tabs.find(tab => tab.getAttribute('aria-pressed') === 'true');
-    active?.classList.remove('lux-restart'); void active?.offsetWidth;
-    schedule();
   }
   function renderPause() {
     pause.setAttribute('aria-pressed', String(userPaused));
@@ -114,6 +107,28 @@ function initGallery() {
   track.addEventListener('pointercancel', end);
 }
 
+// Index: the photograph beside the list follows the row under the pointer
+// or keyboard focus, like a project index on an architecture studio site.
+function initIndex() {
+  const rows = [...document.querySelectorAll('.lux-index li[data-preview]')];
+  const frames = [...document.querySelectorAll('.lux-index__frame img')];
+  const caption = document.getElementById('lux-index-cap');
+  if (!rows.length || !frames.length) return;
+  function show(index) {
+    rows.forEach((row, i) => row.classList.toggle('is-active', i === index));
+    frames.forEach((img, i) => {
+      if (i === index && img.loading === 'lazy') img.loading = 'eager';
+      img.classList.toggle('is-active', i === index);
+    });
+    if (caption) caption.textContent = frames[index]?.dataset.caption ?? '';
+  }
+  rows.forEach((row, i) => {
+    row.addEventListener('pointerenter', () => show(i));
+    row.addEventListener('focusin', () => show(i));
+  });
+}
+
 initHero();
+initIndex();
 initReveal();
 initGallery();
