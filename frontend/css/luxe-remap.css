@@ -52,7 +52,7 @@ input::file-selector-button { background: #e4e2e0; }
 .auth-story > div > p:last-child { color: #e3e1df; }
 .auth-story > p { color: #d8d6d3; }
 .auth-content .alert { background: #efedeb; border-color: #dddbd8; }
-.error-code { color: #b0aca6; }
+.error-code { color: #8f8b85; } /* large text: 3:1 on the page (WCAG AA) */
 :root { --c-primary: #423f3a; --c-primary-d: #312e2c; --c-text: #24221f; --c-muted: #73716f; --c-bg: #f9f9f9; --c-surface: #f1f0ef; --c-border: #e5e4e2; --mint: #d5d3cf; --night: #181716; }
 .nav-beta { border: 1px solid #c6c3bf; }
 .nav-star { color: #8b857d; }
@@ -109,13 +109,13 @@ input::file-selector-button { background: #e4e2e0; }
 .model-ticket.featured span,.model-ticket.featured small,.model-ticket.featured b { color: #69655e; }
 .closing-cta { background: #2b2927; }
 .mode-switch { background: #eeedec; border: 1px solid #e2e1df; }
-.mode-switch a { color: #797671; }
+.mode-switch a { color: var(--lux-grey); }
 .mode-switch .is-active { color: #393633; box-shadow: 0 2px 5px #2d2a2710; }
 .model-choice { background: #f3f2f1; }
 .model-choice a { color: #54504a; }
 .map-source { background: #eeeceb; border: 1px solid #d4d2cf; }
 .form-section-heading > span { color: #45423d; background: #e8e6e3; }
-.demo-notice { background: #eeedec; border: 1px solid #dfdddb; color: #6f6d69; }
+.demo-notice { background: #eeedec; border: 1px solid #dfdddb; color: var(--lux-grey); }
 .demo-notice .pill { background: #dedbd6; color: #615d56; }
 .map-workspace { border: 1px solid #dfdedc; }
 .map-canvas { background: #ecebe9; }
@@ -133,12 +133,12 @@ input::file-selector-button { background: #e4e2e0; }
 .listing-card:hover,.listing-card.selected { border-color: #948f87; background: #f4f3f2; }
 .listing-top { color: #868481; }
 .listing-price { color: #47443f; }
-.listing-price small { color: #8b8986; }
+.listing-price small { color: var(--lux-grey); }
 #map-selection { border-top: 1px solid #dedcd9; }
 .selection-meta span { background: #f2f1f0; }
-.map-instructions { color: #8b8986; }
+.map-instructions { color: var(--lux-grey); }
 .roadmap-inline { background: #ecebea; }
-.roadmap-inline p { color: #7b7873; }
+.roadmap-inline p { color: var(--lux-grey); }
 .premium-hero { background: radial-gradient(ellipse at 50% 100%,#423f3a55,transparent 65%),#181716; color: #f1f0ee; }
 .premium-label { border: 1px solid #c2bfbb35; color: #d5d3cf; }
 .premium-hero h1 em { color: #d5d3cf; }
@@ -146,13 +146,13 @@ input::file-selector-button { background: #e4e2e0; }
 .launch-state { color: #a39f99; }
 .plan-card { border: 1px solid #e1e0de; }
 .plan-card h2 > span { color: #8e8981; }
-.plan-card > p { color: #858380; }
-.plan-price span { color: #8a8885; }
+.plan-card > p { color: var(--lux-grey); }
+.plan-price span { color: var(--lux-grey); }
 .plan-features li::before { color: #756f67; }
 .plan-card .plan-note { border-top: 1px solid #e4e3e1; }
 .plan-premium { background: #f1f0ee; border-color: #b8b4ae; box-shadow: 0 8px 30px #3734310a; }
 .context-symbol { color: #959088; }
-.plan-context p { color: #82807c; }
+.plan-context p { color: var(--lux-grey); }
 .interest-status { color: #7e7c78; }
 .roadmap-grid article { border-top: 1px solid #d8d6d4; }
 .roadmap-state { color: #918f8b; border: 1px solid #e0dedc; }
@@ -161,7 +161,7 @@ input::file-selector-button { background: #e4e2e0; }
 .btn:hover:not(:disabled) { box-shadow: 0 6px 18px #2c2a2712; }
 button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible { outline: 3px solid #99938b; }
 .service-notice { background: #f0efed; border: 1px solid #dcdad7; }
-.prediction-steps { color: #7d7b79; }
+.prediction-steps { color: var(--lux-grey); }
 .prediction-steps b { border: 1px solid #e2e0de; }
 .prediction-steps .is-current { color: #3f3c37; }
 .prediction-steps .is-current b { background: #3f3c37; border-color: #3f3c37; }
@@ -210,9 +210,9 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,su
 .model-card { border: 1px solid #e2e1df; }
 .model-card--premium { border-top: 4px solid #3a3734; }
 .model-card p { color: #6d6b68; }
-.model-card .model-algorithm { color: #797773; }
+.model-card .model-algorithm { color: var(--lux-grey); }
 .model-card .model-score { color: #2d2a27; }
-.score-label { color: #72706c; }
+.score-label { color: var(--lux-grey); }
 .model-card .metric-bar { background: #efeeec; }
 .metric-bar span { background: #868077; }
 .model-card ul { color: #65635f; }
@@ -247,3 +247,6 @@ button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,su
 @media (max-width:760px) {
   .map-results { border-top: 1px solid #dfdedc; }
 }
+
+/* FE-09: secondary text uses the theme grey so small text keeps 4.5:1 (WCAG AA). */
+.model-option small { color: var(--lux-grey); }

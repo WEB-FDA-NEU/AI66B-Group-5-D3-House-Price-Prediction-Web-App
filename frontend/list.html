@@ -1,19 +1,16 @@
 <!doctype html>
 <html lang="vi">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lịch sử dự đoán - HomeVal</title><link rel="stylesheet" href="css/reset.css"><link rel="stylesheet" href="css/tokens.css"><link rel="stylesheet" href="css/layout.css"><link rel="stylesheet" href="css/components.css"><link rel="stylesheet" href="css/design.css">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dự đoán đã lưu - HomeVal</title>
+<!-- Legacy history URL: the current history page is predictions.html, which
+     also has Compare and CSV export. Redirect instead of keeping a stale copy. -->
+<meta http-equiv="refresh" content="0; url=predictions.html">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/experience.css">
-<link rel="stylesheet" href="css/ux.css"><link rel="stylesheet" href="css/luxe.css"></head>
+<script>location.replace('predictions.html' + location.search + location.hash);</script>
+</head>
 <body>
-<site-header active="predictions"></site-header>
-<main class="container page stack">
-  <div class="history-heading"><div><h1>Dự đoán đã lưu</h1><p class="field__hint">Lịch sử thuộc riêng tài khoản hiện tại.</p></div><a class="btn btn--primary" href="predict.html">Dự đoán mới</a></div>
-  <form id="history-search" class="history-search" role="search"><label class="visually-hidden" for="history-q">Tìm dự đoán</label><input class="input" id="history-q" name="q" placeholder="Tìm theo nhãn, quận hoặc loại hình"><button class="btn" type="submit">Tìm</button></form>
-  <div id="history-list" class="stack" aria-live="polite"></div>
-</main>
-<site-footer></site-footer>
-<template id="tpl-empty-state"><div class="empty"><p class="empty__title"></p><p class="empty__hint"></p><a class="btn empty__action"></a></div></template>
-<dialog id="confirm-dialog"><h2 class="dialog__title"></h2><p class="dialog__message"></p><div class="dialog__actions"><button class="btn" data-cancel>Hủy</button><button class="btn btn--danger" data-confirm>Xóa</button></div></dialog>
-<script type="module" src="js/components/site-header.js"></script><script type="module" src="js/components/site-footer.js"></script><script type="module" src="js/pages/predictions.js"></script>
+<p>Trang này đã chuyển. <a href="predictions.html">Mở dự đoán đã lưu</a>.</p>
 </body>
 </html>
