@@ -3,6 +3,7 @@ import { savePrediction, getModels, getEntitlements, getPredictionQuota, createP
 import { isLoggedIn, requireLogin } from '../auth.js';
 import { toast } from '../ui.js';
 import { propertyFacts, isLand } from '../property.js';
+import { renderExplanation } from '../components/estimate-explanation.js';
 
 let draft;
 try { draft = JSON.parse(sessionStorage.getItem('homeval_prediction_draft') || 'null'); }
@@ -65,6 +66,8 @@ if (!draft?.input || !draft?.confidence_interval || !draft?.model) {
     detail.textContent = value ?? 'Chưa có';
     summary.append(term, detail);
   }
+
+  document.getElementById('explanation-slot').replaceChildren(renderExplanation(draft));
 
   saveForm.hidden = false;
   historyLink.hidden = !loggedIn;

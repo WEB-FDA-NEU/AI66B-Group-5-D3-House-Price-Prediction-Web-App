@@ -1,7 +1,9 @@
 ﻿"""Reproducible training on the local Kaggle CSV. No arbitrary model uploads."""
 from pathlib import Path
 from datetime import datetime, timezone
+from functools import lru_cache
 import hashlib
+import io
 import json
 import math
 import os
@@ -142,18 +144,145 @@ def train_model(algorithm, config=None):
     return model_id,path.name,report
 
 _MODEL_CACHE={}
-def predict_artifact(artifact, expected_sha, inputs):
+def load_verified_artifact(artifact, expected_sha):
+    """Return the deserialized artifact after checking its SHA-256.
+
+    SY-9: hashing is done once per (expected hash, size, mtime) signature
+    instead of on every prediction. Rewriting the file changes the
+    signature, so a tampered or replaced artifact is re-hashed and refused.
+    """
     path=(ARTIFACTS/artifact).resolve()
     if path.parent != ARTIFACTS.resolve() or not path.is_file(): raise ValueError("Không tìm thấy phiên bản mô hình.")
-    if hashlib.sha256(path.read_bytes()).hexdigest()!=expected_sha: raise ValueError("Tệp mô hình không khớp dấu kiểm tra.")
-    if artifact not in _MODEL_CACHE:
-        # Only artifacts built locally by this trainer may be deserialized.
-        _MODEL_CACHE[artifact]=joblib.load(path)
-    stored=_MODEL_CACHE[artifact]
+    stat=path.stat()
+    signature=(expected_sha,stat.st_size,stat.st_mtime_ns)
+    cached=_MODEL_CACHE.get(artifact)
+    if cached and cached[0]==signature: return cached[1]
+    data=path.read_bytes()
+    if hashlib.sha256(data).hexdigest()!=expected_sha:
+        _MODEL_CACHE.pop(artifact,None)
+        raise ValueError("Tệp mô hình không khớp dấu kiểm tra.")
+    # Only artifacts built locally by this trainer may be deserialized,
+    # and only the exact bytes that were just verified.
+    stored=joblib.load(io.BytesIO(data))
+    _MODEL_CACHE[artifact]=(signature,stored)
+    return stored
+
+def _feature_row(inputs):
     row={name:inputs.get(name,np.nan) for name in FEATURES}
     for name in NUMERIC:
         if row[name] is None:row[name]=np.nan
+    return row
+
+def predict_artifact(artifact, expected_sha, inputs):
+    stored=load_verified_artifact(artifact, expected_sha)
+    row=_feature_row(inputs)
     with threadpool_limits(limits=2):
         value=max(1,float(stored["model"].predict(pd.DataFrame([row]))[0]))
     r=stored["log_radius"]
     return value, value*math.exp(-r),value*math.exp(r),stored["support"]
+
+# ---- GU-4: which inputs moved this estimate -------------------------------
+FEATURE_LABELS={"area_m2":"Diện tích","bedrooms":"Số phòng ngủ","bathrooms":"Số phòng tắm","floors":"Số tầng",
+    "frontage_m":"Mặt tiền","road_width_m":"Đường tiếp cận","district":"Quận/huyện"}
+FEATURE_UNITS={"area_m2":"m²","frontage_m":"m","road_width_m":"m"}
+EXPLANATION_METHOD=("Mỗi thanh cho biết giá ước tính thay đổi bao nhiêu khi CHỈ đặc điểm đó được thay bằng mức điển hình "
+    "của tập huấn luyện (trung vị; với quận/huyện là khu vực có nhiều tin rao nhất trong cùng tỉnh/thành), "
+    "các đặc điểm khác giữ nguyên. Các tác động được đo riêng lẻ nên không cộng dồn thành đúng giá ước tính.")
+
+@lru_cache(maxsize=1)
+def _typical_district_by_city():
+    data,(train,_,_),_=load_dataset()
+    counts=data.iloc[train].groupby(["city","district"]).size().reset_index(name="n")
+    best=counts.sort_values(["city","n","district"],ascending=[True,False,True]).drop_duplicates("city")
+    return dict(zip(best.city,best.district))
+
+def _numeric_medians(model):
+    # The fitted median imputer already stores the training medians the
+    # model itself falls back to for missing inputs.
+    imputer=model.regressor_.named_steps["preprocess"].named_transformers_["numeric"].named_steps["impute"]
+    return {name:float(value) for name,value in zip(NUMERIC,imputer.statistics_)}
+
+def _round_baseline(name,value):
+    return round(value,1) if name in ("frontage_m","road_width_m","area_m2") else int(round(value))
+
+def explain_artifact(artifact, expected_sha, inputs, value):
+    """One-at-a-time local explanation of a single estimate (GU-4).
+
+    For each input the user actually provided, re-run the model with only
+    that input reset to a typical training value. The difference is how much
+    this input moved the estimate relative to a typical property. Model
+    agnostic, so it works for Ridge, Random Forest and Gradient Boosting.
+    """
+    stored=load_verified_artifact(artifact, expected_sha)
+    model=stored["model"]
+    base=_feature_row(inputs)
+    medians=_numeric_medians(model)
+    variants=[]
+    for name in NUMERIC:
+        if name in inputs and inputs[name] is not None:
+            baseline=_round_baseline(name,medians[name])
+            variants.append((name,inputs[name],baseline,{**base,name:baseline}))
+    try:
+        typical=_typical_district_by_city().get(inputs.get("city"))
+    except ValueError:
+        typical=None  # Dataset unavailable: skip location, keep structural inputs.
+    if typical:
+        variants.append(("district",inputs.get("district"),typical,{**base,"district":typical}))
+    items=[]
+    if variants:
+        with threadpool_limits(limits=2):
+            preds=model.predict(pd.DataFrame([row for *_,row in variants],columns=FEATURES))
+        for (name,actual,baseline,_),without in zip(variants,preds):
+            impact=float(value-max(1,float(without)))
+            items.append(dict(feature=name,label=FEATURE_LABELS[name],unit=FEATURE_UNITS.get(name,""),
+                value=actual,baseline=baseline,impact_vnd=round(impact),
+                impact_percent=round(impact/value*100,1)))
+    items.sort(key=lambda item:-abs(item["impact_vnd"]))
+    skipped=[FEATURE_LABELS[n] for n in NUMERIC if n not in inputs or inputs[n] is None]
+    return dict(method=EXPLANATION_METHOD,items=items,not_provided=skipped)
+
+# ---- GU-6: descriptive market statistics from the same dataset -------------
+PPM2_BINS=[(0,40,"< 40"),(40,70,"40–70"),(70,100,"70–100"),(100,130,"100–130"),(130,160,"130–160"),(160,200,"160–200"),(200,math.inf,"≥ 200")]
+AREA_BINS=[(0,30,"< 30"),(30,45,"30–45"),(45,60,"45–60"),(60,80,"60–80"),(80,100,"80–100"),(100,150,"100–150"),(150,math.inf,"≥ 150")]
+INSIGHT_MIN_LISTINGS=30
+SCATTER_POINTS=400
+
+def _histogram(values,bins):
+    return [dict(range=label,lower=lower,upper=None if math.isinf(upper) else upper,
+        count=int(((values>=lower)&(values<upper)).sum())) for lower,upper,label in bins]
+
+@lru_cache(maxsize=64)
+def market_insights(city=None):
+    data,_,info=load_dataset()
+    counts=data.city.value_counts()
+    cities=[dict(city=c,count=int(n)) for c,n in counts.items() if n>=INSIGHT_MIN_LISTINGS]
+    if not cities:raise ValueError("Chưa đủ dữ liệu để tổng hợp thị trường.")
+    city=city or cities[0]["city"]
+    rows=data[data.city==city].copy()
+    if len(rows)<INSIGHT_MIN_LISTINGS:
+        raise LookupError("Tỉnh/thành chưa đủ tin rao để thống kê.")
+    rows["ppm2"]=rows.price/rows.area_m2
+    districts=[]
+    for district,group in rows.groupby("district"):
+        if len(group)>=INSIGHT_MIN_LISTINGS:
+            districts.append(dict(district=district,count=int(len(group)),
+                median_price=round(float(group.price.median())),average_price=round(float(group.price.mean())),
+                median_price_per_m2=round(float(group.ppm2.median())),median_area_m2=round(float(group.area_m2.median()),1)))
+    districts.sort(key=lambda d:-d["median_price_per_m2"])
+    # Scatter: deterministic sample inside the 1st-98th percentile view so a
+    # few extreme listings do not flatten the chart. Disclosed in the payload.
+    lo_a,hi_a=rows.area_m2.quantile([.01,.98]); lo_p,hi_p=rows.price.quantile([.01,.98])
+    view=rows[rows.area_m2.between(lo_a,hi_a)&rows.price.between(lo_p,hi_p)]
+    sample=view.sample(n=min(SCATTER_POINTS,len(view)),random_state=42)
+    return dict(city=city,cities=cities,source=info["name"],source_url=info["source"],
+        summary=dict(listings=int(len(rows)),districts=len(districts),
+            median_price=round(float(rows.price.median())),median_price_per_m2=round(float(rows.ppm2.median())),
+            median_area_m2=round(float(rows.area_m2.median()),1)),
+        district_stats=districts,
+        price_per_m2=dict(unit="triệu VNĐ/m²",bins=_histogram(rows.ppm2/1e6,PPM2_BINS)),
+        area=dict(unit="m²",bins=_histogram(rows.area_m2,AREA_BINS)),
+        price_vs_area=dict(points=[dict(area_m2=float(r.area_m2),price=round(float(r.price)),district=r.district) for r in sample.itertuples()],
+            shown=int(len(sample)),in_view=int(len(view)),total=int(len(rows)),
+            note="Mẫu ngẫu nhiên cố định; bỏ 1% tin nhỏ nhất và 2% tin lớn nhất về diện tích/giá để biểu đồ dễ đọc."),
+        min_listings=INSIGHT_MIN_LISTINGS,
+        disclaimer="Thống kê mô tả từ giá RAO BÁN năm 2024, không phải giá giao dịch hay giá hiện tại. Dataset không có cột loại hình nên không tách nhà phố/căn hộ/biệt thự.")

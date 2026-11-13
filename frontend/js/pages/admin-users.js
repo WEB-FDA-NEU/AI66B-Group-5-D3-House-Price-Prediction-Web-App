@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
 import { listUsers, deactivateUser, reactivateUser, setUserRole } from '../api.js';
-import { showEmpty, showError, confirmAction, toast } from '../ui.js';
+import { showEmpty, showError, showAlert, confirmAction, toast } from '../ui.js';
 
 const PAGE_SIZE = 10;
 
@@ -114,7 +114,7 @@ async function onDeactivate(u) {
     toast(`Đã vô hiệu hoá ${u.email}`, 'success');
     load();
   } catch (err) {
-    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Vô hiệu hoá thất bại.'}</p>`;
+    showAlert(alertBox, err.detail ?? 'Vô hiệu hoá thất bại.');
   }
 }
 
@@ -133,7 +133,7 @@ async function onRole(u) {
     toast(`Đã cập nhật vai trò của ${u.email}`, 'success');
     load();
   } catch (err) {
-    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Đổi vai trò thất bại.'}</p>`;
+    showAlert(alertBox, err.detail ?? 'Đổi vai trò thất bại.');
   }
 }
 
@@ -149,7 +149,7 @@ async function onReactivate(u) {
     toast(`Đã mở khoá ${u.email}`, 'success');
     load();
   } catch (err) {
-    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Mở khoá thất bại.'}</p>`;
+    showAlert(alertBox, err.detail ?? 'Mở khoá thất bại.');
   }
 }
 

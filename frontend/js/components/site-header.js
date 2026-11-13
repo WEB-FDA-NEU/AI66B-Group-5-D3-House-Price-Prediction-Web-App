@@ -11,6 +11,7 @@ class SiteHeader extends HTMLElement {
         <a class="site-header__link" href="index.html" data-nav="home">Trang chủ</a>
         <a class="site-header__link" href="predict.html" data-nav="predict">Định giá</a>
         <a class="site-header__link" href="explore.html" data-nav="explore">Bản đồ <small class="nav-beta">BETA</small></a>
+        <a class="site-header__link" href="insights.html" data-nav="insights">Thị trường</a>
         <a class="site-header__link" href="premium.html" data-nav="premium">Premium <span class="nav-star">✧</span></a>
         <a class="site-header__link" href="about-model.html" data-nav="about-model">Về mô hình</a>
         <a class="site-header__link" href="admin.html" data-nav="admin" data-auth="admin" hidden>Quản trị</a>

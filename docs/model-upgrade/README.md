@@ -105,6 +105,7 @@ không nhận pickle/joblib của người dùng. Kiểm tra hash artifact trư�
 Biến môi trường: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRE_MINUTES`, `CORS_ORIGINS`,
 `HOUSING_DATASET_PATH`, `MODEL_ARTIFACT_DIR`, `HOMEVAL_DEMO_BILLING`,
 `PREDICTION_RATE_LIMIT` (mặc định 10), `PREDICTION_RATE_LIMIT_WINDOW_SECONDS` (mặc định 60),
+`LOGIN_RATE_LIMIT` (mặc định 10 lần đăng nhập **sai** cho mỗi IP + email), `LOGIN_RATE_LIMIT_WINDOW_SECONDS` (mặc định 300),
 `PORT` (cổng chạy ứng dụng local).
 `run.py` bật sandbox mặc định; dùng `HOMEVAL_DEMO_BILLING=0` để tắt. File `.env` không được nạp tự động.
 Chạy một worker: tác vụ huấn luyện dùng BackgroundTasks và khóa trong process, chưa có hàng đợi phân tán.
@@ -112,6 +113,7 @@ Bộ đếm giới hạn tần suất cũng lưu trong process; khi chạy nhi�
 cần dùng kho lưu trữ dùng chung như Redis. Nếu ứng dụng chạy sau reverse proxy, cần cấu hình proxy
 đáng tin cậy để `request.client.host` phản ánh đúng IP người dùng; API không tin header
 `X-Forwarded-For` do client tự gửi.
+Tài khoản bị admin vô hiệu hoá mất quyền truy cập ngay cả với token đã cấp trước đó (SY-8).
 Nếu tắt máy giữa lúc train, tác vụ có thể dang dở; đây là bản local review, chưa phải hệ thống vận hành production.
 
 ## Kiểm chứng

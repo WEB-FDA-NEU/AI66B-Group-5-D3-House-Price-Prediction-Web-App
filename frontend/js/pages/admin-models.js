@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
 import { listModels, activateModel, archiveModel, ApiError } from '../api.js';
-import { showEmpty, showError, confirmAction, toast } from '../ui.js';
+import { showEmpty, showError, showAlert, confirmAction, toast } from '../ui.js';
 
 function initPage() {
 if (!requireAdmin()) return;
@@ -88,7 +88,7 @@ async function onActivate(m) {
     load();
   } catch (err) {
     // BR-2 conflict: list đã refresh, hiện notice.
-    alertBox.innerHTML = `<p class="alert alert--error">${err.detail ?? 'Kích hoạt thất bại.'}</p>`;
+    showAlert(alertBox, err.detail ?? 'Kích hoạt thất bại.');
     load();
   }
 }
