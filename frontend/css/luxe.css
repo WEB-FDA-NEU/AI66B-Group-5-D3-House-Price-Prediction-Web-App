@@ -202,6 +202,18 @@ site-footer { margin-top: 90px; }
 .closing-cta .eyebrow { color: #ffffffb3; }
 .closing-cta h2 { color: #fff; }
 
+/* FE-09 (#8): small secondary text in legacy components uses the theme grey so
+   it keeps WCAG AA 4.5:1 on every page background (4.9-6.0:1). Kept here, not
+   in the generated luxe-remap.css, so re-running the generator cannot undo it. */
+.mode-switch a, .demo-notice, .listing-price small, .map-instructions, .roadmap-inline p,
+.plan-card > p, .plan-price span, .plan-context p, .prediction-steps,
+.model-card .model-algorithm, .score-label, .model-option small,
+.data-strip span, .listing-top, .listing-top span { color: var(--lux-grey); }
+/* Long values (dataset URL, SHA-256) must wrap instead of widening the page on phones. */
+.facts dd { min-width: 0; overflow-wrap: anywhere; }
+.error-code { color: #8f8b85; }  /* large text: 3:1 is the AA minimum */
+.listing-top .land-tag { color: #736436; }  /* map card land label: 5.8:1 on white, 5.2:1 on plaster */
+
 /* ==========================================================================
    Home
    ========================================================================== */
