@@ -19,7 +19,6 @@ let access = { plan: 'free' };
 let modelReady = false;
 let submitting = false;
 let refreshing = false;
-let quotaReady = false;
 let quotaState = null;
 let sourceListing = null;
 let desiredModel = params.get('model') || sessionStorage.getItem('homeval_upgrade_model_id');
@@ -37,7 +36,6 @@ function renderQuota(state) {
     throw new Error('Máy chủ trả về trạng thái quota không hợp lệ.');
   }
   quotaState = state;
-  quotaReady = true;
   quotaPanel.hidden = isLoggedIn();
   quotaPanel.removeAttribute('data-kind');
   quotaPanel.setAttribute('aria-busy', 'false');
@@ -55,7 +53,6 @@ function renderQuota(state) {
 }
 function showQuotaError(error) {
   quotaState = null;
-  quotaReady = false;
   quotaPanel.hidden = isLoggedIn();
   quotaPanel.dataset.kind = 'error';
   quotaPanel.setAttribute('aria-busy', 'false');
@@ -91,9 +88,9 @@ function updatePreview() {
   document.getElementById('preview-area').textContent = (form.area_m2.value || '—') + ' m²';
   document.getElementById('preview-rooms').textContent = land ? `Mặt tiền ${form.frontage_m.value || '—'} m` : `${form.bedrooms.value || '0'} phòng ngủ`;
   document.getElementById('land-notice').hidden = !land;
-  const guestBlocked = !isLoggedIn() && (!quotaReady || quotaState?.remaining === 0);
+  const guestBlocked = !isLoggedIn() && quotaState?.remaining === 0;
   submit.disabled = land || !modelReady || submitting || guestBlocked;
-  submit.textContent = submitting ? 'Đang tính giá ước tính…' : land ? 'Chưa hỗ trợ định giá đất' : guestBlocked && quotaState?.remaining === 0 ? 'Đã hết lượt dự đoán' : guestBlocked ? 'Đang kiểm tra lượt dự đoán…' : 'Xem giá ước tính ↗';
+  submit.textContent = submitting ? 'Đang tính giá ước tính…' : land ? 'Chưa hỗ trợ định giá đất' : guestBlocked ? 'Đã hết lượt dự đoán' : 'Xem giá ước tính ↗';
   document.getElementById('form-progress').textContent = form.district.value && form.property_type.value ? 'Thông tin cơ bản đã sẵn sàng' : 'Bắt đầu với vị trí và loại tài sản';
   document.querySelectorAll('[data-model-choice]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.modelChoice === form.model_id.value)));
 }

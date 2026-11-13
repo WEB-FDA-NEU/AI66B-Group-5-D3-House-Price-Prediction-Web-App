@@ -80,7 +80,6 @@ def _ensure_estimate_report_review_columns():
             conn.execute(text("UPDATE estimate_reports SET status='open' WHERE status IS NULL"))
 
 _ensure_estimate_report_review_columns()
-_ensure_estimate_report_review_columns()
 
 
 def get_db():
