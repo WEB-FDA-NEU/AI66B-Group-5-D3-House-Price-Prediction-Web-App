@@ -300,6 +300,21 @@ export async function getMapListings() {
 
 // Live APIs: entitlements are enforced on the server.
 export const getModels = () => USE_MOCK ? getMock('prediction-models') : request(`${API_BASE}/models`);
+
+export function getHomeModelStats() {
+  if (USE_MOCK) return getMock('model');
+  return getModels().then(data => {
+    const activeModel = data.items?.find(model => model.tier === 'free') ?? data.items?.[0];
+    if (!activeModel) throw new ApiError(404, 'Chưa có mô hình đang phát hành.');
+    return {
+      model_version: activeModel.version,
+      algorithm: activeModel.algorithm,
+      last_updated: activeModel.evaluated_at ?? activeModel.upload_date,
+      metrics: activeModel.metrics,
+      disclaimer: 'Các chỉ số được đo trên tập kiểm tra độc lập, không phải cam kết chính xác cho mọi căn nhà.',
+    };
+  });
+}
 export const getLocations = () => USE_MOCK ? Promise.resolve({ locations: LOCATION_SNAPSHOT }) : request(`${API_BASE}/locations`);
 export const getPredictionQuota = () => {
   if (!USE_MOCK) return request(`${API_BASE}/prediction-quota`);

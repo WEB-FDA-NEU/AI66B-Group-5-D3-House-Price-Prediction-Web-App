@@ -1,5 +1,7 @@
 import '../components/site-header.js';
 import '../components/site-footer.js';
+import { getHomeModelStats } from '../api.js';
+import { money } from '../model-catalog.js';
 import { isLand } from '../property.js';
 
 const quickForm = document.querySelector('.quick-form');
@@ -38,3 +40,71 @@ document.querySelector('.hero-carousel-controls').addEventListener('keydown',eve
 let touchStart=null;
 heroImage.addEventListener('touchstart',event=>{const touch=event.touches[0];touchStart={x:touch.clientX,y:touch.clientY};},{passive:true});
 heroImage.addEventListener('touchend',event=>{if(!touchStart)return;const touch=event.changedTouches[0];const dx=touch.clientX-touchStart.x,dy=touch.clientY-touchStart.y;if(Math.abs(dx)>65&&Math.abs(dx)>Math.abs(dy)*1.5)showSlide(currentSlide+(dx<0?1:-1));touchStart=null;},{passive:true});
+
+const modelStatsBody = document.getElementById('model-accuracy-body');
+function metric(label, value) {
+  const item = document.createElement('div');
+  item.className = 'stat';
+  const valueNode = document.createElement('strong');
+  valueNode.className = 'stat__value';
+  valueNode.textContent = value;
+  const labelNode = document.createElement('span');
+  labelNode.className = 'stat__label';
+  labelNode.textContent = label;
+  item.append(valueNode, labelNode);
+  return item;
+}
+
+function renderModelStats(info) {
+  const metrics = info.metrics || {};
+  const r2 = Number(metrics.r2);
+  const mae = Number(metrics.mae_vnd);
+  const within = Number(metrics.within_20_percent);
+  const mape = Number(metrics.mape_percent);
+  const withinLabel = Number.isFinite(within) ? 'Mẫu có sai số không quá 20%' : 'Sai số phần trăm trung bình';
+  const withinValue = Number.isFinite(within)
+    ? `${within.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%`
+    : Number.isFinite(mape) ? `±${mape.toLocaleString('vi-VN', { maximumFractionDigits: 1 })}%` : '—';
+  modelStatsBody.replaceChildren(
+    metric('Phiên bản mô hình', info.model_version || '—'),
+    metric('R² trên tập kiểm tra', Number.isFinite(r2) ? r2.toLocaleString('vi-VN', { maximumFractionDigits: 2 }) : '—'),
+    metric('Sai số tuyệt đối trung bình', Number.isFinite(mae) ? money(mae) : '—'),
+    metric(withinLabel, withinValue),
+  );
+  const meta = document.createElement('p');
+  meta.className = 'model-accuracy__meta';
+  meta.textContent = `${info.algorithm || 'Mô hình HomeVal'} · Số liệu được cập nhật theo phiên bản đang phát hành.`;
+  modelStatsBody.before(meta);
+}
+
+function renderModelStatsMessage(message, actionText) {
+  const text = document.createElement('p');
+  text.textContent = message;
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.className = 'btn';
+  retry.textContent = actionText;
+  retry.addEventListener('click', () => { loadModelStats(); });
+  modelStatsBody.replaceChildren(text, retry);
+}
+
+async function loadModelStats() {
+  modelStatsBody.setAttribute('aria-busy', 'true');
+  modelStatsBody.replaceChildren(document.createElement('p'));
+  modelStatsBody.firstElementChild.textContent = 'Đang tải số liệu mô hình…';
+  const previousMeta = modelStatsBody.parentElement.querySelector('.model-accuracy__meta');
+  if (previousMeta) previousMeta.remove();
+  try {
+    const info = await getHomeModelStats();
+    renderModelStats(info);
+  } catch (error) {
+    const message = error?.status === 404
+      ? 'Chưa có mô hình đang phát hành để hiển thị số liệu.'
+      : error?.detail || 'Không tải được số liệu mô hình.';
+    renderModelStatsMessage(message, error?.status === 404 ? 'Tải lại' : 'Thử lại');
+  } finally {
+    modelStatsBody.removeAttribute('aria-busy');
+  }
+}
+
+loadModelStats();

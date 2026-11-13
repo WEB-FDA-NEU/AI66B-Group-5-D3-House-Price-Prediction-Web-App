@@ -259,6 +259,11 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .stat { border: 1px solid var(--c-border); border-radius: var(--radius); padding: var(--sp-4); text-align: center; }
 .stat__value { font-size: 1.5rem; font-weight: 700; color: var(--c-primary); }
 .stat__label { font-size: .85rem; color: var(--c-muted); margin-top: var(--sp-1); }
+.model-accuracy { padding-block: var(--sp-6); }
+.model-accuracy__meta, .model-accuracy__note { color: var(--c-muted); font-size: .85rem; }
+.model-accuracy__meta { margin: 0 0 var(--sp-4); }
+.model-accuracy__note { margin: var(--sp-4) 0; }
+.model-accuracy [aria-busy="true"] { opacity: .7; }
 
 .disclaimer {
   border: 1px solid var(--c-warning); background: #fdf6ea;
