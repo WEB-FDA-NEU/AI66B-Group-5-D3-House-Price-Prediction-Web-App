@@ -112,7 +112,8 @@ Python is only an optional development server; it is not needed to view the ZIP.
 
 To review the guest quota flow without a running backend, start `python scripts/preview.py`
 and open `http://127.0.0.1:4173/predict.html?demo=1`. Demo quota use is stored in
-that browser's local storage; use `?demo=0` to return to the live API.
+that tab's session storage and ends when the tab is closed; use `?demo=0` to return
+to the live API in the current tab.
 
 The review copy bundles the existing page modules and embeds the shipped JSON
 fixtures so it can run over `file://`. Application behavior is unchanged.
@@ -149,6 +150,9 @@ PR authorship alone is not conclusive proof of who wrote shared code.
 - Insights/comparison, dataset/user/report management, FAQ, export and password
   reset screens are not implemented; fixtures are not finished screens.
 - Full production API/model/database behavior is outside Milestone 2.
+- Guest quota checks use a check-then-insert flow, so simultaneous requests near
+  the limit may both be accepted; the request rate limiter is also in-process
+  and is not shared across multiple server workers.
 - Final peer review, remaining integration/QA acceptance items and upload to
   the course submission page remain the team's responsibility.
 
