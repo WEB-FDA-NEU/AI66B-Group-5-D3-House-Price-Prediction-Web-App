@@ -1,6 +1,6 @@
 import { requireAdmin } from '../auth.js';
 import { getAdminStats, ApiError } from '../api.js';
-import { showEmpty, showError, showSkeleton } from '../ui.js';
+import { showEmpty, showError, showSkeleton, showAlert } from '../ui.js';
 
 async function initPage() {
 if (!requireAdmin()) return;
@@ -63,7 +63,7 @@ try {
   }
 } catch (err) {
   const msg = err instanceof ApiError ? err.detail : 'Không tải được dashboard.';
-  alertBox.innerHTML = `<p class="alert alert--error">${msg} <a href="500.html">Chi tiết lỗi</a></p>`;
+  showAlert(alertBox, msg ?? 'Không tải được dashboard.', { link: { href: '500.html', text: 'Chi tiết lỗi' } });
   showError(kpis, err, () => location.reload());
 }
 }

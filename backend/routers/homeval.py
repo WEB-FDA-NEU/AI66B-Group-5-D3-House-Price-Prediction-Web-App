@@ -1,6 +1,7 @@
 ﻿"""HomeVal model registry, inference, history, training and sandbox billing."""
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
+import ipaddress
 from pathlib import Path
 from typing import Literal
 import csv
@@ -12,9 +13,9 @@ import os
 import threading
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query, Request, UploadFile, File
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from sqlalchemy import select, func, update, or_
+from sqlalchemy import select, func, update, or_, case
 from sqlalchemy.orm import Session
 from database import get_db, SessionLocal
 from deps import get_admin, get_current_user, optional_user
@@ -23,11 +24,13 @@ from security import SECRET
 import schemas
 from request_stats import snapshot as error_snapshot
 from rate_limit import limit_prediction_requests
-from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact
+from ml import MODEL_GUIDES, FEATURES, dataset_info, train_model, predict_artifact, explain_artifact, market_insights
 
 router=APIRouter(prefix="/api",tags=["HomeVal"])
 training_lock=threading.Lock()
 publication_lock=threading.Lock()
+GUEST_PREDICTION_LIMIT = 5
+GUEST_PREDICTION_WINDOW = timedelta(hours=24)
 
 def premium(user,db):
     if not user:return False
@@ -64,6 +67,42 @@ def locations():return {"locations":dataset_cached()["locations"]}
 @router.get("/me/entitlements")
 def my_entitlements(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     return entitlement(user,db)
+
+def guest_ip_hash(request: Request) -> str:
+    if request.client is None or not request.client.host:
+        raise HTTPException(503, "Không xác định được địa chỉ kết nối để kiểm tra quota.")
+    address = request.client.host
+    try:
+        address = ipaddress.ip_address(address).compressed
+    except ValueError:
+        address = address.strip().lower()
+    return hmac.new(SECRET.encode(), ("guest-ip:" + address).encode(), hashlib.sha256).hexdigest()
+
+def guest_quota_state(ip_hash: str, db: Session, now: datetime | None = None):
+    now = now or utcnow()
+    cutoff = now - GUEST_PREDICTION_WINDOW
+    recent = select(Prediction.created_at).where(
+        Prediction.guest_ip_hash == ip_hash,
+        Prediction.created_at >= cutoff,
+    ).order_by(Prediction.created_at.asc())
+    used = db.scalar(select(func.count()).select_from(recent.subquery())) or 0
+    reset_at = None
+    if used:
+        release_index = max(0, used - GUEST_PREDICTION_LIMIT)
+        next_release = db.scalar(recent.offset(release_index).limit(1))
+        if next_release:
+            if next_release.tzinfo is None:
+                next_release = next_release.replace(tzinfo=timezone.utc)
+            reset_at = (next_release + GUEST_PREDICTION_WINDOW).isoformat()
+    return dict(is_guest=True, limit=GUEST_PREDICTION_LIMIT, used=used,
+        remaining=max(0, GUEST_PREDICTION_LIMIT - used), window_hours=24,
+        resets_at=reset_at)
+
+@router.get("/prediction-quota")
+def prediction_quota(request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
+    if user:
+        return dict(is_guest=False,limit=None,used=0,remaining=None,window_hours=24,resets_at=None)
+    return guest_quota_state(guest_ip_hash(request),db)
 
 @router.get("/admin/models")
 def models(user:User=Depends(get_admin),db:Session=Depends(get_db)):
@@ -336,7 +375,7 @@ def draft_proof(id):
         }
     },
 )
-def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
+def predict(payload:PredictIn,request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
     if payload.property_type in ["Đất nền","Thửa đất"]:
         raise HTTPException(422,"Chưa có mô hình đất được kiểm định. Dataset Kaggle không có nhãn đất hoặc ranh thửa. Xem trang nguồn dữ liệu.")
     if payload.model_id:m=db.get(ModelVersion,payload.model_id)
@@ -347,8 +386,17 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     pairs=m.report["support"]["pairs"]
     if [inputs["city"],inputs["district"]] not in pairs:
         raise HTTPException(422,"Khu vực chưa có trong tập huấn luyện của mô hình này. Hãy chọn lại từ danh sách được hỗ trợ.")
-    try:value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
-    except ValueError as error:raise HTTPException(503,str(error))
+    guest_hash = None
+    if user is None:
+        guest_hash = guest_ip_hash(request)
+        quota = guest_quota_state(guest_hash,db)
+        if quota["remaining"] == 0:
+            raise HTTPException(429,"Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.")
+    try:
+        value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
+        explanation=explain_artifact(m.artifact,m.report["artifact_sha256"],inputs,value)
+    except ValueError as error:
+        raise HTTPException(503,str(error))
     warnings=["Ước tính theo giá rao 2024, không phải giá giao dịch hoặc cập nhật thị trường hiện tại.",
         "Dataset không có nhãn loại hình; lựa chọn nhà phố/căn hộ/biệt thự được lưu nhưng chưa dùng làm đặc trưng."]
     if not support["area_min"]<=payload.area_m2<=support["area_max"]:
@@ -359,10 +407,10 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     result=dict(id=id,estimated_price=round(value),currency="VND",
         confidence_interval=dict(lower=round(lower),upper=round(upper),confidence_level=.9,method="Split conformal trên tập calibration riêng"),
         model=dict(id=m.id,version=m.id,algorithm=m.report["algorithm"]),
-        input=inputs,created_at=utcnow().isoformat(),is_mock=False,warnings=warnings,
+        input=inputs,created_at=utcnow().isoformat(),is_mock=False,warnings=warnings,explanation=explanation,
         disclaimer="Ước tính bằng mô hình được huấn luyện trên dữ liệu rao bán 2024; không phải khuyến nghị đầu tư.",
         draft_token=draft_proof(id))
-    db.add(Prediction(id=id,owner_id=user.id if user else None,payload=result))
+    db.add(Prediction(id=id,owner_id=user.id if user else None,guest_ip_hash=guest_hash,payload=result))
     db.commit()
     return result
 
@@ -560,14 +608,49 @@ def complete(checkout_id:str,payload:CompleteIn,user:User=Depends(get_current_us
 
 @router.get("/admin/stats")
 def stats(user:User=Depends(get_admin),db:Session=Depends(get_db)):
-    all_predictions=db.scalars(select(Prediction)).all()
-    recent=[p for p in all_predictions if p.created_at.date()==utcnow().date()]
+    # SY-9: only the timestamps of the last 7 days are read; payload JSON and
+    # older history never leave the database.
+    now=utcnow()
+    week_ago=now-timedelta(days=7)
+    days=[(now-timedelta(days=i)).date() for i in reversed(range(7))]
+    stamps=[t.replace(tzinfo=timezone.utc) if t.tzinfo is None else t.astimezone(timezone.utc)
+        for t in db.scalars(select(Prediction.created_at).where(Prediction.created_at>=week_ago))]
+    per_day={day:0 for day in days}
+    for t in stamps:
+        if t.date() in per_day:per_day[t.date()]+=1
     m=db.scalar(select(ModelVersion).where(ModelVersion.state=="Active",ModelVersion.tier=="free"))
-    return dict(users_total=db.scalar(select(func.count(User.id))),predictions_today=len(recent),predictions_week=sum(p.created_at.replace(tzinfo=timezone.utc)>=utcnow()-timedelta(days=7) for p in all_predictions),
+    return dict(users_total=db.scalar(select(func.count(User.id))),predictions_today=per_day[now.date()],predictions_week=sum(t>=week_ago for t in stamps),
         active_model=dict(version=m.id if m else "Chưa có",algorithm=m.report["algorithm"] if m else "",r2=m.report["metrics"]["r2"] if m else 0),
-        published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=(utcnow()-timedelta(days=i)).strftime("%m-%d"),count=sum(p.created_at.date()==(utcnow()-timedelta(days=i)).date() for p in all_predictions)) for i in reversed(range(7))],
+        published_models=db.scalar(select(func.count(ModelVersion.id)).where(ModelVersion.state=="Active")),predictions_per_day=[dict(date=day.strftime("%m-%d"),count=per_day[day]) for day in days],
         recent_activity=[dict(text="Đã huấn luyện "+x.report["name"],created_at=x.created_at.isoformat()) for x in db.scalars(select(ModelVersion).order_by(ModelVersion.created_at.desc()).limit(5))],
         **error_snapshot())
+
+@router.get("/insights")
+def insights(city:str|None=Query(default=None,max_length=80)):
+    """GU-6: descriptive market statistics of the 2024 listing dataset. Public."""
+    try:return market_insights(city.strip() if city and city.strip() else None)
+    except LookupError as error:raise HTTPException(404,str(error))
+    except ValueError as error:raise HTTPException(503,str(error))
+
+HOUSE_TYPES=("Nhà phố","Căn hộ","Biệt thự")
+
+@router.get("/insights/property-types")
+def property_type_usage(city:str|None=Query(default=None,max_length=80),db:Session=Depends(get_db)):
+    """GU-6: HomeVal's OWN usage, from the predictions table.
+
+    The 2024 dataset has no property-type column, so the market charts cannot
+    split by type. This counts the estimates people ran on HomeVal instead.
+    Aggregates only: no user, input or price data leaves the database."""
+    kind=Prediction.payload["input"]["property_type"].as_string()
+    query=select(kind,func.count(Prediction.id),
+        func.sum(case((Prediction.saved==True,1),else_=0))).group_by(kind)
+    city=city.strip() if city else ""
+    if city:query=query.where(Prediction.payload["input"]["city"].as_string()==city)
+    counts={name:(int(total),int(saved or 0)) for name,total,saved in db.execute(query) if name}
+    items=[dict(property_type=name,predictions=counts.get(name,(0,0))[0],saved=counts.get(name,(0,0))[1]) for name in HOUSE_TYPES]
+    return dict(city=city or None,items=items,total=sum(i["predictions"] for i in items),
+        source="Bảng predictions của HomeVal",
+        note="Số lượt định giá người dùng đã chạy trên HomeVal (gồm cả lượt chưa lưu), không phải số tin rao trên thị trường.")
 
 @router.get("/map-listings")
 def map_listings():

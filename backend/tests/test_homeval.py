@@ -24,10 +24,10 @@ os.environ['PREDICTION_RATE_LIMIT'] = '1000'
 from fastapi.testclient import TestClient
 from main import app
 from database import SessionLocal, engine
-from models import ModelVersion, Subscription, TrainingJob, utcnow
+from models import ModelVersion, Prediction, Subscription, TrainingJob, utcnow
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
-from rate_limit import prediction_rate_limiter
+from rate_limit import prediction_rate_limiter, login_rate_limiter
 
 @pytest.fixture(scope='module')
 def client():
@@ -53,6 +53,14 @@ def users(client):
     admin=client.post('/api/auth/login',json={'email':'admin@homeval.vn','password':'admin123'}).json()
     return *result,{'Authorization':'Bearer '+admin['access_token']}
 
+
+@pytest.fixture(autouse=True)
+def reset_guest_quota():
+    with SessionLocal() as db:
+        db.query(Prediction).filter(Prediction.owner_id.is_(None)).delete(synchronize_session=False)
+        db.commit()
+
+
 INPUT={'city':'Hồ Chí Minh','district':'Bình Thạnh','property_type':'Nhà phố','area_m2':72,'bedrooms':3,'bathrooms':2,'floors':2}
 
 def test_real_prediction_catalog_and_validation(client):
@@ -69,6 +77,35 @@ def test_real_prediction_catalog_and_validation(client):
     assert client.post('/api/predictions',json=INPUT,headers={'Authorization':'Bearer invalid'}).status_code==401
     assert client.get('/docs').status_code==200
     assert '/api/admin/training' in client.get('/openapi.json').json()['paths']
+
+def test_guest_quota_is_rolling_and_scoped_to_ip(client,monkeypatch):
+    import routers.homeval as homeval_router
+    monkeypatch.setattr(homeval_router,"predict_artifact",
+        lambda *args:(4_850_000_000,4_460_000_000,5_240_000_000,{"area_min":15,"area_max":1000}))
+    guest=TestClient(app,client=("198.51.100.14",8000))
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota=={"is_guest":True,"limit":5,"used":0,"remaining":5,"window_hours":24,"resets_at":None}
+    prediction_ids=[]
+    for _ in range(5):
+        response=guest.post('/api/predictions',json=INPUT)
+        assert response.status_code==200
+        prediction_ids.append(response.json()["id"])
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota["used"]==5 and quota["remaining"]==0 and quota["resets_at"]
+    limited=guest.post('/api/predictions',json=INPUT)
+    assert limited.status_code==429
+    assert "Đăng ký" in limited.json()["detail"]
+    with SessionLocal() as db:
+        matching=db.query(Prediction).filter(Prediction.id.in_(prediction_ids)).order_by(Prediction.created_at.asc()).all()
+        assert len(matching)==5 and all(len(p.guest_ip_hash)==64 for p in matching)
+        matching[0].created_at=utcnow()-timedelta(days=1,minutes=1)
+        db.commit()
+    quota=guest.get('/api/prediction-quota').json()
+    assert quota["used"]==4 and quota["remaining"]==1
+    assert guest.post('/api/predictions',json=INPUT).status_code==200
+    other_ip=TestClient(app,client=("198.51.100.15",8000))
+    assert other_ip.get('/api/prediction-quota').json()["remaining"]==5
+
 
 def test_prediction_rate_limit(client,monkeypatch):
     prediction_rate_limiter.clear()
@@ -345,3 +382,138 @@ def test_admin_user_deactivate_reactivate(client,users):
     assert client.post(f"/api/admin/users/{me['id']}/deactivate",headers=admin).status_code==422
     assert client.post('/api/admin/users/999999/deactivate',headers=admin).status_code==404
     assert client.post('/api/admin/users/999999/reactivate',headers=admin).status_code==404
+
+
+def test_deactivation_revokes_existing_tokens(client,users):
+    # SY-8 (#98): a token issued before deactivation must stop working at once.
+    _,_,admin=users
+    created=client.post('/api/auth/register',json={'email':'revoked-token@example.com','password':'secure-password','display_name':'Revoked'}).json()
+    token={'Authorization':'Bearer '+created['access_token']}
+    assert client.get('/api/me',headers=token).status_code==200
+    assert client.post(f"/api/admin/users/{created['user']['id']}/deactivate",headers=admin).status_code==200
+    for path in ['/api/me','/api/me/predictions','/api/me/entitlements']:
+        assert client.get(path,headers=token).status_code==401
+    assert client.post('/api/predictions',json=INPUT,headers=token).status_code==401
+    assert client.post(f"/api/admin/users/{created['user']['id']}/reactivate",headers=admin).status_code==200
+    assert client.get('/api/me',headers=token).status_code==200
+
+def test_login_failures_are_throttled_per_account(client,monkeypatch):
+    # SY-8 (#98): only FAILED attempts count; success clears the counter.
+    login_rate_limiter.clear()
+    monkeypatch.setattr(login_rate_limiter,'max_requests',3)
+    email='throttle@example.com'
+    assert client.post('/api/auth/register',json={'email':email,'password':'secure-password','display_name':'Throttle'}).status_code==201
+    try:
+        for _ in range(5):
+            assert client.post('/api/auth/login',json={'email':email,'password':'secure-password'}).status_code==200
+        for _ in range(3):
+            assert client.post('/api/auth/login',json={'email':email,'password':'wrong-password'}).status_code==401
+        blocked=client.post('/api/auth/login',json={'email':email,'password':'secure-password'})
+        assert blocked.status_code==429 and int(blocked.headers['Retry-After'])>=1
+        # Other accounts from the same client are unaffected.
+        assert client.post('/api/auth/login',json={'email':'admin@homeval.vn','password':'admin123'}).status_code==200
+        # Unknown emails get the same 401 and are throttled the same way.
+        for _ in range(3):
+            assert client.post('/api/auth/login',json={'email':'nobody@example.com','password':'x'}).status_code==401
+        assert client.post('/api/auth/login',json={'email':'nobody@example.com','password':'x'}).status_code==429
+        login_rate_limiter.clear()
+        assert client.post('/api/auth/login',json={'email':email,'password':'secure-password'}).status_code==200
+    finally:
+        login_rate_limiter.clear()
+def test_artifact_hash_is_verified_once_and_tampering_is_refused(client,monkeypatch):
+    # SY-9 (#99): no artifact re-read per prediction, but a changed file is refused.
+    with SessionLocal() as db:
+        free=next(m for m in db.query(ModelVersion).all() if m.tier=='free' and m.state=='Active')
+    path=ARTIFACTS/free.artifact
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    reads=[]
+    original_read=Path.read_bytes
+    def spy(self):
+        reads.append(self.name)
+        return original_read(self)
+    monkeypatch.setattr(Path,'read_bytes',spy)
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    assert free.artifact not in reads
+    pristine=original_read(path)
+    try:
+        path.write_bytes(pristine+b'tampered')
+        refused=client.post('/api/predictions',json=INPUT)
+        assert refused.status_code==503 and 'dấu kiểm tra' in refused.json()['detail']
+    finally:
+        path.write_bytes(pristine)
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+
+def test_admin_stats_counts_recent_predictions(client,users):
+    # SY-9 (#99): SQL-backed counts keep the dashboard contract.
+    _,_,admin=users
+    before=client.get('/api/admin/stats',headers=admin).json()
+    assert len(before['predictions_per_day'])==7
+    assert before['predictions_per_day'][-1]['count']==before['predictions_today']
+    assert client.post('/api/predictions',json=INPUT).status_code==200
+    after=client.get('/api/admin/stats',headers=admin).json()
+    assert after['predictions_today']==before['predictions_today']+1
+    assert after['predictions_week']==before['predictions_week']+1
+    assert after['predictions_per_day'][-1]['count']==after['predictions_today']
+    assert after['predictions_per_day'][-1]['date']==utcnow().strftime('%m-%d')
+
+
+def test_prediction_explains_which_inputs_moved_the_estimate(client,users):
+    # GU-4 (#32): every real estimate carries a per-input contribution list.
+    p=client.post('/api/predictions',json={**INPUT,'frontage_m':5}).json()
+    e=p['explanation']
+    assert e['method'] and e['not_provided']==['Đường tiếp cận']
+    features=[i['feature'] for i in e['items']]
+    assert set(features)=={'area_m2','bedrooms','bathrooms','floors','frontage_m','district'}
+    impacts=[abs(i['impact_vnd']) for i in e['items']]
+    assert impacts==sorted(impacts,reverse=True)
+    for item in e['items']:
+        assert item['label'] and isinstance(item['impact_vnd'],int)
+        assert abs(item['impact_percent']-item['impact_vnd']/p['estimated_price']*100)<0.11
+        if item['value']==item['baseline']:assert item['impact_vnd']==0
+    district=next(i for i in e['items'] if i['feature']=='district')
+    assert district['value']=='Bình Thạnh' and district['baseline']
+    # Saved records keep the explanation for the detail page.
+    user=users[0]
+    saved=client.post('/api/me/predictions',json={'prediction':p},headers=user).json()
+    assert client.get(f"/api/me/predictions/{saved['id']}",headers=user).json()['explanation']==e
+
+def test_market_insights_are_public_and_validated(client):
+    # GU-6 (#33): aggregate statistics computed from the training dataset.
+    r=client.get('/api/insights')
+    assert r.status_code==200,r.text
+    data=r.json()
+    assert data['city']==data['cities'][0]['city']
+    assert all(c['count']>=data['min_listings'] for c in data['cities'])
+    assert sum(b['count'] for b in data['price_per_m2']['bins'])==data['summary']['listings']
+    assert sum(b['count'] for b in data['area']['bins'])==data['summary']['listings']
+    assert data['district_stats'] and all(d['count']>=data['min_listings'] for d in data['district_stats'])
+    ppm2=[d['median_price_per_m2'] for d in data['district_stats']]
+    assert ppm2==sorted(ppm2,reverse=True)
+    points=data['price_vs_area']['points']
+    assert 0<len(points)<=400 and len(points)==data['price_vs_area']['shown']
+    assert 'RAO BÁN' in data['disclaimer']
+    other=data['cities'][1]['city']
+    assert client.get('/api/insights',params={'city':other}).json()['city']==other
+    assert client.get('/api/insights',params={'city':'Atlantis'}).status_code==404
+    assert client.get('/api/insights',params={'city':'x'*81}).status_code==422
+
+
+def test_property_type_usage_counts_homeval_predictions(client,users):
+    # GU-6 (#33): the dataset has no type column, so type counts come from
+    # HomeVal's own predictions table. Public aggregate, no personal data.
+    user=users[0]
+    before=client.get('/api/insights/property-types').json()
+    assert [i['property_type'] for i in before['items']]==['Nhà phố','Căn hộ','Biệt thự']
+    count=lambda data,kind,key='predictions':next(i[key] for i in data['items'] if i['property_type']==kind)
+    p=client.post('/api/predictions',json={**INPUT,'property_type':'Căn hộ'}).json()
+    client.post('/api/predictions',json={**INPUT,'property_type':'Biệt thự','city':'Hồ Chí Minh'})
+    assert client.post('/api/me/predictions',json={'prediction':p},headers=user).status_code==200
+    after=client.get('/api/insights/property-types').json()
+    assert count(after,'Căn hộ')==count(before,'Căn hộ')+1
+    assert count(after,'Căn hộ','saved')==count(before,'Căn hộ','saved')+1
+    assert count(after,'Biệt thự')==count(before,'Biệt thự')+1
+    assert after['total']==sum(i['predictions'] for i in after['items'])
+    assert set(after['items'][0])=={'property_type','predictions','saved'}
+    other=client.get('/api/insights/property-types',params={'city':'Không có tỉnh này'}).json()
+    assert other['total']==0 and all(i['predictions']==0 for i in other['items'])
+    assert client.get('/api/insights/property-types',params={'city':'x'*81}).status_code==422

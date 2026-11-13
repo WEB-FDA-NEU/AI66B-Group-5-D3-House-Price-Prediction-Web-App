@@ -8,6 +8,7 @@
 import { USE_MOCK, API_BASE, MOCK_BASE } from './config.js';
 import { getToken, getUser } from './auth.js';
 import { isLand } from './property.js';
+import { LOCATION_SNAPSHOT } from './location-snapshot.js';
 
 export class ApiError extends Error {
   constructor(status, detail) {
@@ -65,9 +66,23 @@ const MOCK_USERS_KEY = 'homeval_mock_registered_users';
 const MOCK_USER_OVERRIDES_KEY = 'homeval_mock_user_overrides';
 const MOCK_CREDENTIALS_KEY = 'homeval_mock_credentials';
 const MOCK_PREDICTIONS_KEY = 'homeval_mock_predictions';
+const MOCK_GUEST_PREDICTIONS_KEY = 'homeval_mock_guest_prediction_times';
+const GUEST_PREDICTION_WINDOW_MS = 24 * 60 * 60 * 1000;
 const MOCK_DEFAULT_CREDENTIALS = Object.freeze({
   'anh@example.com': 'password123',
   'admin@homeval.vn': 'admin123',
+});
+// GU-4 mock: same shape as the backend's one-at-a-time explanation.
+const MOCK_EXPLANATION = Object.freeze({
+  method: 'Dữ liệu minh họa: mỗi thanh là mức thay đổi của giá khi chỉ đặc điểm đó được đưa về mức điển hình.',
+  items: [
+    { feature: 'area_m2', label: 'Diện tích', unit: 'm²', value: 72, baseline: 56, impact_vnd: 820000000, impact_percent: 16.9 },
+    { feature: 'district', label: 'Quận/huyện', unit: '', value: 'Thủ Đức', baseline: 'Gò Vấp', impact_vnd: -310000000, impact_percent: -6.4 },
+    { feature: 'floors', label: 'Số tầng', unit: '', value: 2, baseline: 3, impact_vnd: -260000000, impact_percent: -5.4 },
+    { feature: 'bathrooms', label: 'Số phòng tắm', unit: '', value: 2, baseline: 3, impact_vnd: -100000000, impact_percent: -2.1 },
+    { feature: 'bedrooms', label: 'Số phòng ngủ', unit: '', value: 3, baseline: 3, impact_vnd: 0, impact_percent: 0 },
+  ],
+  not_provided: ['Mặt tiền', 'Đường tiếp cận'],
 });
 const INLINE_MOCKS = Object.freeze({
   users: {
@@ -81,6 +96,7 @@ const INLINE_MOCKS = Object.freeze({
     confidence_interval: { lower: 4460000000, upper: 5240000000, confidence_level: 0.9 },
     confidence: 0.86, model: { version: 'v2.3.0', algorithm: 'Gradient Boosting' },
     input: { district: 'Thủ Đức', property_type: 'Nhà phố', area_m2: 72, bedrooms: 3, bathrooms: 2, floors: 2 },
+    explanation: MOCK_EXPLANATION,
   },
   'prediction-history': {
     items: [
@@ -110,6 +126,65 @@ function readMockStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function getMockGuestPredictionTimes() {
+  const saved = readMockStorage(MOCK_GUEST_PREDICTIONS_KEY, []);
+  const cutoff = Date.now() - GUEST_PREDICTION_WINDOW_MS;
+  return Array.isArray(saved)
+    ? saved.filter(timestamp => Number.isFinite(timestamp) && timestamp >= cutoff).sort((a, b) => a - b)
+    : [];
+}
+
+function mockGuestQuotaState(limit, times = getMockGuestPredictionTimes()) {
+  const used = times.length;
+  const resetIndex = Math.max(0, used - limit);
+  return {
+    is_guest: true,
+    limit,
+    used,
+    remaining: Math.max(0, limit - used),
+    window_hours: 24,
+    resets_at: times.length ? new Date(times[resetIndex] + GUEST_PREDICTION_WINDOW_MS).toISOString() : null,
+  };
+}
+
+async function createMockPrediction(input) {
+  const fixture = await getMock('guest-quota');
+  const quota = getToken()
+    ? { is_guest: false, limit: null, used: 0, remaining: null, window_hours: 24, resets_at: null }
+    : mockGuestQuotaState(fixture.limit);
+  if (quota.is_guest && quota.remaining === 0) {
+    throw new ApiError(429, 'Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.');
+  }
+
+  let prediction;
+  if (isLand(input.property_type)) {
+    const rate = { 'Thủ Đức': 42000000, 'Bình Thạnh': 62000000, 'Quận 7': 51000000, 'Quận 1': 95000000 }[input.district] || 42000000;
+    const estimate = Math.round(rate * input.area_m2 * (input.land_use === 'Đất nông nghiệp' ? 0.3 : 1));
+    prediction = {
+      id: `draft-${Date.now()}`, estimated_price: estimate, currency: 'VND',
+      confidence_interval: { lower: Math.round(estimate * 0.8), upper: Math.round(estimate * 1.2) },
+      model: { version: 'land-demo-0.1', algorithm: 'Công thức minh họa đất nền' },
+      input: { ...input }, is_mock: true, created_at: new Date().toISOString(),
+      disclaimer: 'Dữ liệu đất mô phỏng; khoảng giá là giả lập, chưa được kiểm định và không xác minh pháp lý/quy hoạch.',
+    };
+  } else {
+    const result = await getMock('prediction-result');
+    prediction = {
+      ...result,
+      id: `draft-${Date.now()}`,
+      input: { ...input },
+      created_at: new Date().toISOString(),
+      is_mock: true,
+    };
+  }
+  if (quota.is_guest) {
+    const times = getMockGuestPredictionTimes();
+    times.push(Date.now());
+    localStorage.setItem(MOCK_GUEST_PREDICTIONS_KEY, JSON.stringify(times));
+  }
+  return prediction;
 }
 
 function getMockUsers() {
@@ -214,27 +289,7 @@ export function getModelInfo() {
 // HomeVal prediction, history and market-insight contract.
 
 export function createPrediction(input) {
-  if (USE_MOCK) {
-    if (isLand(input.property_type)) {
-      // An explicit demo formula, not a trained model or market valuation.
-      const rate = { 'Thủ Đức': 42000000, 'Bình Thạnh': 62000000, 'Quận 7': 51000000, 'Quận 1': 95000000 }[input.district] || 42000000;
-      const estimate = Math.round(rate * input.area_m2 * (input.land_use === 'Đất nông nghiệp' ? 0.3 : 1));
-      return Promise.resolve({
-        id: `draft-${Date.now()}`, estimated_price: estimate, currency: 'VND',
-        confidence_interval: { lower: Math.round(estimate * 0.8), upper: Math.round(estimate * 1.2) },
-        model: { version: 'land-demo-0.1', algorithm: 'Công thức minh họa đất nền' },
-        input: { ...input }, is_mock: true, created_at: new Date().toISOString(),
-        disclaimer: 'Dữ liệu đất mô phỏng; khoảng giá là giả lập, chưa được kiểm định và không xác minh pháp lý/quy hoạch.',
-      });
-    }
-    return getMock('prediction-result').then(result => ({
-      ...result,
-      id: `draft-${Date.now()}`,
-      input: { ...input },
-      created_at: new Date().toISOString(),
-      is_mock: true,
-    }));
-  }
+  if (USE_MOCK) return createMockPrediction(input);
   return request(`${API_BASE}/predictions`, { method: 'POST', body: input });
 }
 
@@ -244,7 +299,7 @@ export async function getMapListings() {
 }
 
 // Live APIs: entitlements are enforced on the server.
-export const getModels = () => request(`${API_BASE}/models`);
+export const getModels = () => USE_MOCK ? getMock('prediction-models') : request(`${API_BASE}/models`);
 
 export function getHomeModelStats() {
   if (USE_MOCK) return getMock('model');
@@ -260,8 +315,16 @@ export function getHomeModelStats() {
     };
   });
 }
-export const getLocations = () => request(`${API_BASE}/locations`);
-export const getEntitlements = () => request(`${API_BASE}/me/entitlements`);
+export const getLocations = () => USE_MOCK ? Promise.resolve({ locations: LOCATION_SNAPSHOT }) : request(`${API_BASE}/locations`);
+export const getPredictionQuota = () => {
+  if (!USE_MOCK) return request(`${API_BASE}/prediction-quota`);
+  return getMock('guest-quota').then(({ limit }) => getToken()
+    ? { is_guest: false, limit: null, used: 0, remaining: null, window_hours: 24, resets_at: null }
+    : mockGuestQuotaState(limit));
+};
+export const getEntitlements = () => USE_MOCK
+  ? Promise.resolve({ plan: getUser()?.role === 'admin' ? 'premium' : 'free', role: getUser()?.role ?? 'guest' })
+  : request(`${API_BASE}/me/entitlements`);
 export const startCheckout = () => request(`${API_BASE}/billing/checkout`, { method: 'POST', body: { plan: 'premium-monthly' } });
 export const completeCheckout = (id, outcome) => request(`${API_BASE}/billing/checkout/${encodeURIComponent(id)}/complete`, { method: 'POST', body: { outcome } });
 export const startTraining = config => request(`${API_BASE}/admin/training`, { method: 'POST', body: config });
@@ -349,9 +412,25 @@ export function deletePrediction(id) {
   return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}`, { method: 'DELETE' });
 }
 
-export function getMarketInsights() {
-  if (USE_MOCK) return getMock('market-insights');
-  return request(`${API_BASE}/insights`);
+/** GU-6: descriptive statistics of the listing dataset; public, no login. */
+export function getMarketInsights({ city = '' } = {}) {
+  if (USE_MOCK) {
+    return getMock('market-insights').then(data => {
+      if (city && city !== data.city) throw new ApiError(404, 'Tỉnh/thành chưa đủ tin rao để thống kê.');
+      return data;
+    });
+  }
+  const qs = new URLSearchParams();
+  if (city) qs.set('city', city);
+  return request(`${API_BASE}/insights${qs.size ? `?${qs}` : ''}`);
+}
+
+/** GU-6: HomeVal's own estimates per property type (predictions table). */
+export function getPropertyTypeUsage({ city = '' } = {}) {
+  if (USE_MOCK) return getMock('insights-property-types');
+  const qs = new URLSearchParams();
+  if (city) qs.set('city', city);
+  return request(`${API_BASE}/insights/property-types${qs.size ? `?${qs}` : ''}`);
 }
 
 // Existing admin screens use the model functions below. These two functions

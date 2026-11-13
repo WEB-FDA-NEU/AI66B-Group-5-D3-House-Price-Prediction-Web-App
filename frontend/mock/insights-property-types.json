@@ -1,0 +1,11 @@
+{
+  "city": "Hồ Chí Minh",
+  "items": [
+    { "property_type": "Nhà phố", "predictions": 61, "saved": 24 },
+    { "property_type": "Căn hộ", "predictions": 39, "saved": 15 },
+    { "property_type": "Biệt thự", "predictions": 11, "saved": 3 }
+  ],
+  "total": 111,
+  "source": "Dữ liệu minh họa (mock)",
+  "note": "Số lượt định giá người dùng đã chạy trên HomeVal (gồm cả lượt chưa lưu), không phải số tin rao trên thị trường."
+}

@@ -1,19 +1,909 @@
 {
-  "district_averages": [
-    { "district": "Thủ Đức", "average_price": 4680000000 },
-    { "district": "Bình Thạnh", "average_price": 5130000000 },
-    { "district": "Quận 7", "average_price": 5720000000 }
+ "city": "Hồ Chí Minh",
+ "cities": [
+  {
+   "city": "Hồ Chí Minh",
+   "count": 11666
+  }
+ ],
+ "source": "Vietnam Housing Dataset 2024",
+ "source_url": "https://www.kaggle.com/datasets/nguyentiennhan/vietnam-housing-dataset-2024",
+ "summary": {
+  "listings": 11666,
+  "districts": 23,
+  "median_price": 6300000000,
+  "median_price_per_m2": 100000000,
+  "median_area_m2": 60.0
+ },
+ "district_stats": [
+  {
+   "district": "Quận 5",
+   "count": 60,
+   "median_price": 6450000000,
+   "average_price": 6467000000,
+   "median_price_per_m2": 189444444,
+   "median_area_m2": 36.2
+  },
+  {
+   "district": "Quận 1",
+   "count": 100,
+   "median_price": 7500000000,
+   "average_price": 6859000000,
+   "median_price_per_m2": 182662835,
+   "median_area_m2": 35.9
+  },
+  {
+   "district": "Quận 3",
+   "count": 214,
+   "median_price": 7125000000,
+   "average_price": 6839813084,
+   "median_price_per_m2": 167619048,
+   "median_area_m2": 39.0
+  },
+  {
+   "district": "Quận 10",
+   "count": 288,
+   "median_price": 7075000000,
+   "average_price": 7031666667,
+   "median_price_per_m2": 162048611,
+   "median_area_m2": 41.0
+  },
+  {
+   "district": "Phú Nhuận",
+   "count": 369,
+   "median_price": 7100000000,
+   "average_price": 7046666667,
+   "median_price_per_m2": 156896552,
+   "median_area_m2": 42.0
+  },
+  {
+   "district": "Quận 11",
+   "count": 134,
+   "median_price": 6650000000,
+   "average_price": 6514104478,
+   "median_price_per_m2": 149106858,
+   "median_area_m2": 44.0
+  },
+  {
+   "district": "Bình Thạnh",
+   "count": 844,
+   "median_price": 6790000000,
+   "average_price": 6663981043,
+   "median_price_per_m2": 133000000,
+   "median_area_m2": 50.0
+  },
+  {
+   "district": "Tân Bình",
+   "count": 841,
+   "median_price": 7200000000,
+   "average_price": 6948014269,
+   "median_price_per_m2": 124528302,
+   "median_area_m2": 55.0
+  },
+  {
+   "district": "Quận 6",
+   "count": 242,
+   "median_price": 6500000000,
+   "average_price": 6652190083,
+   "median_price_per_m2": 117187500,
+   "median_area_m2": 57.0
+  },
+  {
+   "district": "Quận 4",
+   "count": 135,
+   "median_price": 5000000000,
+   "average_price": 5248444444,
+   "median_price_per_m2": 113733906,
+   "median_area_m2": 40.0
+  },
+  {
+   "district": "Gò Vấp",
+   "count": 1360,
+   "median_price": 6500000000,
+   "average_price": 6486764706,
+   "median_price_per_m2": 109364919,
+   "median_area_m2": 59.0
+  },
+  {
+   "district": "Tân Phú",
+   "count": 1011,
+   "median_price": 6600000000,
+   "average_price": 6602878338,
+   "median_price_per_m2": 105263158,
+   "median_area_m2": 61.9
+  },
+  {
+   "district": "Quận 8",
+   "count": 439,
+   "median_price": 5800000000,
+   "average_price": 5744806378,
+   "median_price_per_m2": 104166667,
+   "median_area_m2": 54.6
+  },
+  {
+   "district": "Quận 7",
+   "count": 638,
+   "median_price": 6300000000,
+   "average_price": 6328746082,
+   "median_price_per_m2": 97415865,
+   "median_area_m2": 62.8
+  },
+  {
+   "district": "Quận 2",
+   "count": 193,
+   "median_price": 6900000000,
+   "average_price": 6952694301,
+   "median_price_per_m2": 88709677,
+   "median_area_m2": 75.0
+  },
+  {
+   "district": "Bình Tân",
+   "count": 1151,
+   "median_price": 5600000000,
+   "average_price": 5548505647,
+   "median_price_per_m2": 87500000,
+   "median_area_m2": 60.0
+  },
+  {
+   "district": "Thủ Đức",
+   "count": 1137,
+   "median_price": 6300000000,
+   "average_price": 6205681618,
+   "median_price_per_m2": 82177161,
+   "median_area_m2": 69.4
+  },
+  {
+   "district": "Nhà Bè",
+   "count": 357,
+   "median_price": 5600000000,
+   "average_price": 5748515406,
+   "median_price_per_m2": 80946451,
+   "median_area_m2": 73.0
+  },
+  {
+   "district": "Quận 9",
+   "count": 704,
+   "median_price": 6500000000,
+   "average_price": 6569005682,
+   "median_price_per_m2": 79800000,
+   "median_area_m2": 79.5
+  },
+  {
+   "district": "Quận 12",
+   "count": 938,
+   "median_price": 5000000000,
+   "average_price": 5137729211,
+   "median_price_per_m2": 70951325,
+   "median_area_m2": 66.0
+  },
+  {
+   "district": "Bình Chánh",
+   "count": 205,
+   "median_price": 6000000000,
+   "average_price": 5383707317,
+   "median_price_per_m2": 70833333,
+   "median_area_m2": 85.0
+  },
+  {
+   "district": "Hóc Môn",
+   "count": 243,
+   "median_price": 4500000000,
+   "average_price": 4578024691,
+   "median_price_per_m2": 43333333,
+   "median_area_m2": 92.0
+  },
+  {
+   "district": "Củ Chi",
+   "count": 43,
+   "median_price": 3600000000,
+   "average_price": 4420232558,
+   "median_price_per_m2": 16145833,
+   "median_area_m2": 141.6
+  }
+ ],
+ "price_per_m2": {
+  "unit": "triệu VNĐ/m²",
+  "bins": [
+   {
+    "range": "< 40",
+    "lower": 0,
+    "upper": 40,
+    "count": 388
+   },
+   {
+    "range": "40–70",
+    "lower": 40,
+    "upper": 70,
+    "count": 1778
+   },
+   {
+    "range": "70–100",
+    "lower": 70,
+    "upper": 100,
+    "count": 3593
+   },
+   {
+    "range": "100–130",
+    "lower": 100,
+    "upper": 130,
+    "count": 3150
+   },
+   {
+    "range": "130–160",
+    "lower": 130,
+    "upper": 160,
+    "count": 1573
+   },
+   {
+    "range": "160–200",
+    "lower": 160,
+    "upper": 200,
+    "count": 784
+   },
+   {
+    "range": "≥ 200",
+    "lower": 200,
+    "upper": null,
+    "count": 400
+   }
+  ]
+ },
+ "area": {
+  "unit": "m²",
+  "bins": [
+   {
+    "range": "< 30",
+    "lower": 0,
+    "upper": 30,
+    "count": 595
+   },
+   {
+    "range": "30–45",
+    "lower": 30,
+    "upper": 45,
+    "count": 2018
+   },
+   {
+    "range": "45–60",
+    "lower": 45,
+    "upper": 60,
+    "count": 2872
+   },
+   {
+    "range": "60–80",
+    "lower": 60,
+    "upper": 80,
+    "count": 3223
+   },
+   {
+    "range": "80–100",
+    "lower": 80,
+    "upper": 100,
+    "count": 1586
+   },
+   {
+    "range": "100–150",
+    "lower": 100,
+    "upper": 150,
+    "count": 1095
+   },
+   {
+    "range": "≥ 150",
+    "lower": 150,
+    "upper": null,
+    "count": 277
+   }
+  ]
+ },
+ "price_vs_area": {
+  "points": [
+   {
+    "area_m2": 48.0,
+    "price": 4700000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 101.1,
+    "price": 5700000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 77.0,
+    "price": 9000000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 52.0,
+    "price": 8050000000,
+    "district": "Phú Nhuận"
+   },
+   {
+    "area_m2": 72.0,
+    "price": 5500000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 56.0,
+    "price": 4800000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 55.0,
+    "price": 6200000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 3680000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 53.0,
+    "price": 5990000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 116.0,
+    "price": 5500000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 45.0,
+    "price": 5950000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 50.0,
+    "price": 6400000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 53.0,
+    "price": 4600000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 50.0,
+    "price": 3000000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 82.0,
+    "price": 7500000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 60.0,
+    "price": 8800000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 93.0,
+    "price": 7700000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 60.0,
+    "price": 7300000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 56.0,
+    "price": 5600000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 50.0,
+    "price": 5250000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 76.0,
+    "price": 7500000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 48.0,
+    "price": 6200000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 68.0,
+    "price": 8500000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 7100000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 120.0,
+    "price": 6500000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 80.0,
+    "price": 4500000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 48.0,
+    "price": 4750000000,
+    "district": "Quận 8"
+   },
+   {
+    "area_m2": 72.0,
+    "price": 6000000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 64.0,
+    "price": 5100000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 33.0,
+    "price": 6500000000,
+    "district": "Quận 8"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 4100000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 65.0,
+    "price": 2790000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 83.3,
+    "price": 7900000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 80.0,
+    "price": 8800000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 100.0,
+    "price": 9500000000,
+    "district": "Bình Chánh"
+   },
+   {
+    "area_m2": 56.0,
+    "price": 6100000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 64.0,
+    "price": 4850000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 3500000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 45.0,
+    "price": 4800000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 31.0,
+    "price": 6800000000,
+    "district": "Quận 10"
+   },
+   {
+    "area_m2": 61.0,
+    "price": 1950000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 54.0,
+    "price": 4300000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 67.0,
+    "price": 9200000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 65.0,
+    "price": 7500000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 54.0,
+    "price": 4850000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 57.2,
+    "price": 4680000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 20.0,
+    "price": 2800000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 56.0,
+    "price": 6600000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 60.0,
+    "price": 5890000000,
+    "district": "Quận 6"
+   },
+   {
+    "area_m2": 93.0,
+    "price": 3900000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 36.1,
+    "price": 3910000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 120.0,
+    "price": 8000000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 95.0,
+    "price": 8200000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 3790000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 44.0,
+    "price": 5000000000,
+    "district": "Quận 6"
+   },
+   {
+    "area_m2": 79.0,
+    "price": 8000000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 54.0,
+    "price": 7500000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 75.0,
+    "price": 8500000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 30.0,
+    "price": 3200000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 52.0,
+    "price": 1680000000,
+    "district": "Hóc Môn"
+   },
+   {
+    "area_m2": 50.0,
+    "price": 6750000000,
+    "district": "Phú Nhuận"
+   },
+   {
+    "area_m2": 41.6,
+    "price": 3000000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 58.5,
+    "price": 4300000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 150.0,
+    "price": 5400000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 59.0,
+    "price": 8600000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 42.0,
+    "price": 7800000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 64.0,
+    "price": 8500000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 51.0,
+    "price": 7700000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 134.0,
+    "price": 6800000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 139.9,
+    "price": 8800000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 57.0,
+    "price": 6300000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 83.5,
+    "price": 8500000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 43.5,
+    "price": 6200000000,
+    "district": "Quận 3"
+   },
+   {
+    "area_m2": 59.0,
+    "price": 3600000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 60.0,
+    "price": 5000000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 31.0,
+    "price": 4680000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 50.0,
+    "price": 5900000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 71.0,
+    "price": 7800000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 41.0,
+    "price": 4280000000,
+    "district": "Quận 8"
+   },
+   {
+    "area_m2": 115.0,
+    "price": 9500000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 84.0,
+    "price": 9600000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 24.0,
+    "price": 2850000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 35.0,
+    "price": 4200000000,
+    "district": "Quận 3"
+   },
+   {
+    "area_m2": 48.0,
+    "price": 4550000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 44.0,
+    "price": 5960000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 30.0,
+    "price": 3450000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 30.0,
+    "price": 3800000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 52.0,
+    "price": 3200000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 103.0,
+    "price": 8900000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 36.0,
+    "price": 5000000000,
+    "district": "Quận 10"
+   },
+   {
+    "area_m2": 70.0,
+    "price": 4000000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 52.0,
+    "price": 4000000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 42.0,
+    "price": 4330000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 100.0,
+    "price": 9900000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 70.0,
+    "price": 6800000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 82.6,
+    "price": 7390000000,
+    "district": "Gò Vấp"
+   },
+   {
+    "area_m2": 30.0,
+    "price": 2480000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 52.0,
+    "price": 5700000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 32.5,
+    "price": 3350000000,
+    "district": "Quận 10"
+   },
+   {
+    "area_m2": 58.0,
+    "price": 5050000000,
+    "district": "Quận 12"
+   },
+   {
+    "area_m2": 75.0,
+    "price": 3200000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 150.0,
+    "price": 8200000000,
+    "district": "Củ Chi"
+   },
+   {
+    "area_m2": 54.0,
+    "price": 5500000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 73.8,
+    "price": 4480000000,
+    "district": "Quận 8"
+   },
+   {
+    "area_m2": 82.0,
+    "price": 8200000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 53.0,
+    "price": 4350000000,
+    "district": "Phú Nhuận"
+   },
+   {
+    "area_m2": 109.0,
+    "price": 8500000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 24.0,
+    "price": 2800000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 90.0,
+    "price": 6000000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 40.0,
+    "price": 4250000000,
+    "district": "Bình Tân"
+   },
+   {
+    "area_m2": 76.0,
+    "price": 7200000000,
+    "district": "Tân Bình"
+   },
+   {
+    "area_m2": 58.0,
+    "price": 9500000000,
+    "district": "Quận 9"
+   },
+   {
+    "area_m2": 51.74,
+    "price": 2900000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 53.0,
+    "price": 4800000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 72.4,
+    "price": 8850000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 55.0,
+    "price": 7000000000,
+    "district": "Quận 7"
+   },
+   {
+    "area_m2": 51.0,
+    "price": 4600000000,
+    "district": "Thủ Đức"
+   },
+   {
+    "area_m2": 75.0,
+    "price": 7500000000,
+    "district": "Tân Phú"
+   },
+   {
+    "area_m2": 58.0,
+    "price": 9200000000,
+    "district": "Bình Thạnh"
+   },
+   {
+    "area_m2": 62.0,
+    "price": 6500000000,
+    "district": "Bình Tân"
+   }
   ],
-  "price_per_m2": [
-    { "range": "< 50 triệu", "count": 12 },
-    { "range": "50–80 triệu", "count": 44 },
-    { "range": "80–120 triệu", "count": 37 },
-    { "range": "> 120 triệu", "count": 18 }
-  ],
-  "property_types": [
-    { "type": "Nhà phố", "count": 61 },
-    { "type": "Căn hộ", "count": 39 },
-    { "type": "Biệt thự", "count": 11 }
-  ],
-  "updated_at": "2026-09-27T00:00:00Z"
+  "shown": 120,
+  "in_view": 11043,
+  "total": 11666,
+  "note": "Mẫu ngẫu nhiên cố định; bỏ 1% tin nhỏ nhất và 2% tin lớn nhất về diện tích/giá để biểu đồ dễ đọc."
+ },
+ "min_listings": 30,
+ "disclaimer": "Bản demo (mock) trích từ thống kê thật của Hồ Chí Minh; chỉ có một tỉnh/thành. Thống kê mô tả từ giá RAO BÁN năm 2024, không phải giá giao dịch hay giá hiện tại. Dataset không có cột loại hình nên không tách nhà phố/căn hộ/biệt thự.",
+ "is_mock": true
 }
