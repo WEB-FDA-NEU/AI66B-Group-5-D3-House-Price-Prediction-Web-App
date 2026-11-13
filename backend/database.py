@@ -39,6 +39,21 @@ def _ensure_user_status_column():
 _ensure_user_status_column()
 
 
+def ensure_guest_ip_hash_column():
+    # create_all() does not add columns to existing tables.
+    from sqlalchemy import inspect, text
+    if "predictions" not in inspect(engine).get_table_names():
+        return
+    columns = [c["name"] for c in inspect(engine).get_columns("predictions")]
+    with engine.begin() as conn:
+        if "guest_ip_hash" not in columns:
+            conn.execute(text("ALTER TABLE predictions ADD COLUMN guest_ip_hash VARCHAR(64)"))
+        conn.execute(text(
+            "CREATE INDEX IF NOT EXISTS ix_predictions_guest_ip_hash_created_at "
+            "ON predictions (guest_ip_hash, created_at)"
+        ))
+
+
 def _ensure_estimate_report_review_columns():
     # Lightweight migration for AD-11: homeval.db files created while testing
     # US-9 (#37) already have estimate_reports without the review columns.
@@ -63,7 +78,6 @@ def _ensure_estimate_report_review_columns():
             conn.execute(text(f"ALTER TABLE estimate_reports ADD COLUMN {name} {ddl}"))
         if "status" in missing:
             conn.execute(text("UPDATE estimate_reports SET status='open' WHERE status IS NULL"))
-
 
 _ensure_estimate_report_review_columns()
 

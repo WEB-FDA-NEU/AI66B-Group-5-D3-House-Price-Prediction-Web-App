@@ -19,6 +19,10 @@
   <div class="page-heading"><p class="eyebrow">MỖI TÀI SẢN, MỘT GÓC NHÌN RIÊNG</p><h1>Thêm dữ liệu. Rõ giá trị.</h1><p>Định giá nhà ở từ dữ liệu 2024. Chọn khu vực, bổ sung thông tin và đối chiếu các mô hình.</p></div>
   <nav class="mode-switch" aria-label="Cách nhập dữ liệu"><a class="is-active" href="predict.html" aria-current="page">▤ Nhập thông tin</a><a href="explore.html">⌖ Chọn trên bản đồ</a></nav><p class="map-source" id="map-source" hidden></p>
   <div class="service-notice" id="prediction-service" hidden role="status"><span id="service-message"></span><button type="button" class="btn" id="retry-prediction">Thử kết nối lại</button></div>
+  <section class="guest-quota" id="guest-quota" aria-live="polite" aria-busy="true">
+    <div><p class="eyebrow">QUYỀN DÀNH CHO KHÁCH</p><p id="guest-quota-message">Đang kiểm tra lượt dự đoán…</p></div>
+    <div class="guest-quota__actions"><a href="register.html">Tạo tài khoản miễn phí</a><a href="login.html">Đăng nhập</a><button type="button" id="retry-guest-quota" hidden>Thử lại</button></div>
+  </section>
 <div class="prediction-steps" aria-label="Các bước định giá"><span class="is-current"><b>01</b> Thông tin tài sản</span><i></i><span><b>02</b> Chọn góc nhìn</span><i></i><span><b>03</b> Đọc khoảng giá</span></div><div class="prediction-layout">
     <form id="prediction-form" class="panel prediction-panel" novalidate>
       <div class="form-section-heading"><span>01</span><div><h2>Thông tin bất động sản</h2><p class="field__hint" id="form-progress">Bắt đầu với vị trí và loại tài sản</p></div></div>
