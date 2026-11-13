@@ -35,6 +35,19 @@ PR chỉ nên merge khi cả hai job xanh.
 `backend/run.py` chỉ mở localhost, tự tạo tài khoản demo và bật thanh toán sandbox
 để review. Không dùng cấu hình demo này để triển khai công khai.
 
+## Milestone 3: tính năng đã hoàn thiện
+
+| Tính năng | Ở đâu | Tài liệu |
+| --- | --- | --- |
+| Thị trường theo khu vực (GU-6): trung vị theo quận, giá/m², diện tích, lượt định giá theo loại hình từ DB | `insights.html` | [docs/fe-06](docs/fe-06/README.md) |
+| Đặc điểm nào ảnh hưởng đến giá (GU-4) | `predict-result.html`, `detail.html` | [docs/fe-06](docs/fe-06/README.md) |
+| So sánh 2–3 dự đoán đã lưu (US-7) | `compare.html?ids=` | [docs/us-7-8](docs/us-7-8/README.md) |
+| Xuất CSV lịch sử, một dự đoán, bảng so sánh (US-8) | `predictions.html`, `detail.html`, `compare.html` | [docs/us-7-8](docs/us-7-8/README.md) |
+| Giao diện "Bản vẽ" và nguồn ảnh có giấy phép (UI-1) | toàn site, `credits.html` | [docs/ui-atelier](docs/ui-atelier/README.md) |
+| Khoá phiên tài khoản bị vô hiệu hoá, giới hạn đăng nhập sai (SY-8); lỗi API hiển thị dạng chữ (SY-10) | `backend/deps.py`, `routers/auth.py`, `js/ui.js` | [docs/model-upgrade](docs/model-upgrade/README.md) |
+| Kiểm tra file mô hình một lần, thống kê admin nhẹ hơn (SY-9); CI trên mọi PR (SY-11) | `backend/ml.py`, `.github/workflows/ci.yml` | |
+| QA phát hành (FE-09) | 26 trang × 1366/390 px | [docs/release-qa](docs/release-qa/README.md) |
+
 ## Tài liệu bản nộp Milestone 2 trước đây
 
 Nội dung dưới đây được giữ để bảo toàn lịch sử đóng góp; không mô tả backend mới.

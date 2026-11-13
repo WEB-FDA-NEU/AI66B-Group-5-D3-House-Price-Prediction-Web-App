@@ -16,7 +16,7 @@ const slides = [
 ];
 let currentSlide=0;
 const heroCopy=document.querySelector('.hero-copy');
-const heroImage=document.querySelector('.hero-visual');
+const heroImage=document.querySelector('.lux-hero') ?? document.querySelector('.hero-visual');
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
 function showSlide(index) {
   currentSlide=(index+slides.length)%slides.length;const slide=slides[currentSlide];
