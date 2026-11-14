@@ -122,6 +122,7 @@ site-header { min-height: 64px; }
 dialog::backdrop, .checkout-dialog::backdrop, .upgrade-drawer::backdrop { background: #14141473; backdrop-filter: blur(4px); }
 table th { color: var(--lux-grey); font-weight: 400; font-family: var(--lux-mono); font-size: 12px; letter-spacing: 0; }
 .empty { background: transparent; border: 1px dashed var(--lux-line); }
+.empty .row__actions { justify-content: center; margin-top: var(--sp-5); }  /* buttons follow the centred message */
 .badge { border-radius: 0; }
 
 /* Charts (FE-06), re-validated on paper #fbfaf8: single series = cyanotype
