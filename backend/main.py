@@ -4,12 +4,9 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
-from sqlalchemy.orm import Session
-from fastapi import Depends
 
-from database import Base, engine, ensure_guest_ip_hash_column, get_db
-from models import Item
+from database import Base, engine, ensure_guest_ip_hash_column
+import models  # noqa: F401  registers every table on Base before create_all
 from routers import auth, homeval
 from request_stats import record
 
@@ -35,7 +32,6 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(homeval.router)
-# TODO: thêm router của các thành viên khác ở đây
 
 
 @app.middleware("http")
@@ -61,9 +57,8 @@ def health():
 # ---- Serve frontend (Mốc 4) --------------------------------------------
 # Đặt CUỐI CÙNG, sau tất cả router API. Nếu mount ở trên thì "/" nuốt hết
 # và mọi request /api/... sẽ ra 404.
-UPLOADS = Path(__file__).resolve().parent / "uploads"
-UPLOADS.mkdir(exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOADS), name="uploads")
+# backend/uploads/ holds admin-only dataset uploads (AD-6). It is deliberately
+# NOT mounted: the files are reachable only through the admin API.
 
 FRONTEND = Path(__file__).resolve().parent.parent / "frontend"
 if FRONTEND.is_dir():

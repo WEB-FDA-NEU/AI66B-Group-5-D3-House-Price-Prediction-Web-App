@@ -337,6 +337,23 @@ def test_dataset_upload_save_and_history(client,users):
     assert kept.status_code==201 and len(kept.json()['missing_columns'])==4
     assert client.post('/api/admin/datasets/uploads',files=good).status_code==401
     assert client.post('/api/admin/datasets/uploads',files=good,headers=users[0]).status_code==403
+    # Stored uploads are admin data: never served as public static files.
+    stored=saved.json()['stored_filename']
+    assert client.get('/uploads/datasets/'+stored).status_code==404
+
+def test_dataset_upload_size_cap(client,users,monkeypatch):
+    import routers.homeval as homeval
+    _,_,admin=users
+    monkeypatch.setattr(homeval,'DATASET_MAX_BYTES',64)
+    big={'file':('big.csv','Address,Area,Price,Bedrooms,Bathrooms,Floors\n'+'"Quan 1, HCM",50,5,2,2,1\n'*10,'text/csv')}
+    too_big=client.post('/api/admin/datasets/preview',files=big,headers=admin)
+    assert too_big.status_code==422 and '20 MB' in too_big.json()['detail']
+
+def test_register_phone_matches_column_length(client):
+    long_phone=client.post('/api/auth/register',json={'email':'phone-cap@example.com','password':'secure-password','display_name':'Phone Cap','phone':'0'*21})
+    assert long_phone.status_code==422
+    ok=client.post('/api/auth/register',json={'email':'phone-cap@example.com','password':'secure-password','display_name':'Phone Cap','phone':'0'*20})
+    assert ok.status_code==201,ok.text
 
 def test_admin_users_filter_and_sort(client,users):
     _,_,admin=users

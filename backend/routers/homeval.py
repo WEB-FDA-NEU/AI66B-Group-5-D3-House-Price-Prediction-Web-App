@@ -123,7 +123,9 @@ def _validate_dataset_upload(file: UploadFile):
     name = file.filename or ""
     if not name.lower().endswith(".csv"):
         raise HTTPException(422, "file: Chỉ chấp nhận file .csv")
-    raw = file.file.read()
+    # Read at most one byte past the cap: enough to reject an oversized file
+    # without pulling all of it into memory.
+    raw = file.file.read(DATASET_MAX_BYTES + 1)
     if len(raw) > DATASET_MAX_BYTES:
         raise HTTPException(422, "file: File vượt quá 20 MB")
     try:

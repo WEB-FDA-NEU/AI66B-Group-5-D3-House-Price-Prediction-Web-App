@@ -161,6 +161,10 @@ input::file-selector-button { background: #e4e2e0; }
 .btn:hover:not(:disabled) { box-shadow: 0 6px 18px #2c2a2712; }
 button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible { outline: 3px solid #99938b; }
 .service-notice { background: #f0efed; border: 1px solid #dcdad7; }
+.guest-quota { border: 1px solid #dad8d6; background: #f1efed; }
+.guest-quota .eyebrow { color: #6c6a67; }
+.guest-quota__actions a { color: #423f3a; }
+.guest-quota__actions button { border: 1px solid #c3c1bd; color: #423f3a; }
 .prediction-steps { color: #7d7b79; }
 .prediction-steps b { border: 1px solid #e2e0de; }
 .prediction-steps .is-current { color: #3f3c37; }

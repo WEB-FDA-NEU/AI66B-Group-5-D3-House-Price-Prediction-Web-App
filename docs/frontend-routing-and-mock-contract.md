@@ -18,11 +18,11 @@ files. Browsers block `fetch()` requests to local `file://` JSON files.
 
 | User flow | Target route | Shared function / state |
 | --- | --- | --- |
-| Home | `index.html` | `getItems()` during legacy-template migration |
+| Home | `index.html` | Static content; no API call |
 | Login / Register | `login.html`, `register.html` | `login()`, `register()`, `saveSession()` |
 | New estimate | `predict.html` | `createPrediction(input)` |
 | Prediction result | `predict-result.html` | Return value of `createPrediction()` |
-| My predictions | `me-predictions.html` | `getPredictionHistory()` / `getPrediction(id)` |
+| My predictions | `predictions.html`, `detail.html` | `getPredictionHistory()` / `getPrediction(id)` |
 | Market insights | `insights.html` | `getMarketInsights()` |
 | Admin dashboard / models | `admin.html`, `admin-models*.html` | `getAdminStats()`, `listModels()` |
 | Admin datasets / users | `admin-datasets.html`, `admin-users.html` | `listDatasets()`, `listUsers()` |

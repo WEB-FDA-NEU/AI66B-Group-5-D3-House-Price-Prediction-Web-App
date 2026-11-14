@@ -1,3 +1,5 @@
+import { clearSession, requireLogin } from './auth.js';
+
 // ============================================================
 //  Ba trạng thái mọi màn hình có danh sách đều phải có:
 //  đang tải · rỗng · lỗi.
@@ -28,12 +30,21 @@ export function showEmpty(container, opts) {
 
 export function showError(container, err, onRetry) {
   const node = document.getElementById('tpl-empty-state').content.cloneNode(true);
-  node.querySelector('.empty__title').textContent = 'Không tải được dữ liệu';
-  node.querySelector('.empty__hint').textContent  = err?.detail ?? 'Vui lòng thử lại.';
   const btn = node.querySelector('.empty__action');
-  btn.textContent = 'Thử lại';
   btn.href = '#';
-  btn.addEventListener('click', e => { e.preventDefault(); onRetry?.(); });
+  if (err?.status === 401) {
+    // The token expired (or the account was deactivated). Retrying with the
+    // same token can never succeed, so offer a fresh sign-in that returns here.
+    node.querySelector('.empty__title').textContent = 'Phiên đăng nhập đã kết thúc';
+    node.querySelector('.empty__hint').textContent  = err.detail ?? 'Vui lòng đăng nhập lại để tiếp tục.';
+    btn.textContent = 'Đăng nhập lại';
+    btn.addEventListener('click', e => { e.preventDefault(); clearSession(); requireLogin(); });
+  } else {
+    node.querySelector('.empty__title').textContent = 'Không tải được dữ liệu';
+    node.querySelector('.empty__hint').textContent  = err?.detail ?? 'Vui lòng thử lại.';
+    btn.textContent = 'Thử lại';
+    btn.addEventListener('click', e => { e.preventDefault(); onRetry?.(); });
+  }
   container.replaceChildren(node);
 }
 

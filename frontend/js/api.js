@@ -210,23 +210,6 @@ function normalisePage(page, pageSize, total) {
   };
 }
 
-// ══════════ NGƯỜI 1 - danh sách & chi tiết ══════════
-// TODO: đổi getItems/getItem thành tên hợp đề tài
-//       (getListings / getConcerts / getHomestays / getRecipes …)
-
-export function getItems(params = {}) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/items.json`).then(d => filterMock(d, params));
-  const qs = new URLSearchParams(
-    Object.entries(params).filter(([, v]) => v !== '' && v != null)
-  );
-  return request(`${API_BASE}/items?${qs}`);
-}
-
-export function getItem(id) {
-  if (USE_MOCK) return request(`${MOCK_BASE}/item-${id}.json`);
-  return request(`${API_BASE}/items/${id}`);
-}
-
 // ══════════ NGƯỜI 2 - tài khoản ══════════
 
 export function login(email, password) {
@@ -682,9 +665,7 @@ export function closeAdminReport(id, note, { demo = false } = {}) {
   return request(`${API_BASE}/admin/reports/${encodeURIComponent(id)}/close`, { method: 'POST', body: { note: trimmed } });
 }
 
-// ══════════ NGƯỜI 4 - TODO: thêm vùng của em ở đây ══════════
-
-// ══════════ NGƯỜI 5 - TODO: thêm vùng của em ở đây ══════════
+// ══════════ Quản trị: dashboard, mô hình, dữ liệu ══════════
 
 export function getAdminStats() {
   if (USE_MOCK) return getMock('admin-stats');
@@ -779,25 +760,6 @@ export function archiveModel(id) {
   return request(`${API_BASE}/admin/models/${id}/archive`, { method: 'POST' });
 }
 
-
-// ---------- chỉ dùng ở chế độ mock; backend thật lọc bằng SQL ----------
-function filterMock(data, { q = '', sort = 'newest', category = '',
-                          min_price = '', max_price = '', page = 1, page_size = 0 }) {
-  let items = data.items;
-  if (q)         items = items.filter(i => i.title.toLowerCase().includes(q.toLowerCase()));
-  if (category)  items = items.filter(i => i.category === category);
-  if (min_price) items = items.filter(i => i.price >= Number(min_price));
-  if (max_price) items = items.filter(i => i.price <= Number(max_price));
-
-  if (sort === 'price_asc')  items = [...items].sort((a, b) => a.price - b.price);
-  if (sort === 'price_desc') items = [...items].sort((a, b) => b.price - a.price);
-  if (sort === 'newest')     items = [...items].sort((a, b) => b.created_at.localeCompare(a.created_at));
-
-  const total = items.length;
-  const size  = Number(page_size) || data.page_size || 20;
-  const start = (Number(page) - 1) * size;
-  return { items: items.slice(start, start + size), total, page: Number(page), page_size: size };
-}
 
 export async function updateProfile(payload) {
   if (USE_MOCK) {

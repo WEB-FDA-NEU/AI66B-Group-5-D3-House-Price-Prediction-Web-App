@@ -1,17 +1,8 @@
-"""
-Bảng trong database.
-
-TODO: đổi `Item` thành thực thể chính của đề tài:
-  Listing (chợ đồ cũ) · Concert (bán vé) · Homestay · Pitch (sân bóng)
-  Recipe (công thức) · Post (diễn đàn) · Prediction (dự đoán ML)
-
-Cả nhóm ngồi cùng làm file này ở TUẦN 6, trước khi ai viết router.
-Mọi router đều import từ đây.
-"""
+"""HomeVal database tables. Every router imports its models from here."""
 from datetime import datetime, timezone
 
 from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey, Text, JSON
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
 
@@ -31,26 +22,6 @@ class User(Base):
     role:          Mapped[str] = mapped_column(String(20), default="user")   # user | admin
     status:        Mapped[str] = mapped_column(String(20), default="Active")  # Active | Inactive
     created_at:    Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-
-    items: Mapped[list["Item"]] = relationship(back_populates="owner")
-
-
-class Item(Base):
-    """TODO: đổi tên class, tên bảng và các cột theo đề tài."""
-    __tablename__ = "items"
-    id:          Mapped[int]  = mapped_column(primary_key=True)
-    title:       Mapped[str]  = mapped_column(String(160), index=True)
-    description: Mapped[str]  = mapped_column(Text, default="")
-    price:       Mapped[int]  = mapped_column(Integer, default=0)
-    cover_url:   Mapped[str]  = mapped_column(String(255), default="img/placeholder.svg")
-
-    # TODO: liệt kê ĐÚNG các trạng thái trong state machine ở Section 3 của Mốc 1
-    status:      Mapped[str]  = mapped_column(String(20), default="active", index=True)
-
-    created_at:  Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
-    owner_id:    Mapped[int]  = mapped_column(ForeignKey("users.id"))
-
-    owner: Mapped["User"] = relationship(back_populates="items")
 
 
 class ModelVersion(Base):
@@ -135,17 +106,3 @@ class Subscription(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     source: Mapped[str] = mapped_column(String(30), default="sandbox")
-
-    # ─────────────────────────────────────────────────────────────────
-    #  TODO - NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
-    #  ghế · phòng · khung giờ · tồn kho · slot duy nhất
-    #
-    #  Ràng buộc chống trùng PHẢI đặt ở database, không phải câu if trong Python:
-    #
-    #     __table_args__ = (
-    #         UniqueConstraint("concert_id", "seat_no", name="uq_seat"),
-    #     )
-    #
-    #  Vì `if SELECT ... then INSERT` vẫn lọt khi hai request đến cùng một lúc.
-    #  Xem docs/QUY-UOC-CODE.md mục 6.
-    # ─────────────────────────────────────────────────────────────────
