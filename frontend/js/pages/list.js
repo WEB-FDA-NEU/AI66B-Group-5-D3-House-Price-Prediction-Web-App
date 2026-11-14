@@ -1,1 +1,0 @@
-import './predictions.js';
