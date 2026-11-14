@@ -1,15 +1,15 @@
-fastapi==0.136.0
-uvicorn[standard]==0.44.0
-sqlalchemy==2.0.51
-psycopg2-binary==2.9.10
-pydantic[email]==2.13.1
+fastapi==0.162.5
+uvicorn[standard]==0.54.0
+sqlalchemy==2.1.8
+psycopg2-binary==2.9.13
+pydantic[email]==2.14.3
 python-jose[cryptography]==3.5.0
-bcrypt==4.0.1
-python-multipart==0.0.26
+bcrypt==5.0.0
+python-multipart==0.0.33
 httpx==0.28.1
 httpx2==2.16.0; python_version >= "3.11"
-pandas==2.3.3
-numpy==1.26.4
-scikit-learn==1.6.1
-joblib==1.4.2
-pytest==9.0.2
+pandas==3.1.1
+numpy==2.4.6
+scikit-learn==1.9.1
+joblib==1.6.0
+pytest==9.2.0

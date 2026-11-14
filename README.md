@@ -32,6 +32,8 @@ GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) chạy t
 
 PR chỉ nên merge khi cả hai job xanh.
 
+Backend dependencies target Python 3.11 and 3.12; CI runs the backend suite on both.
+
 `backend/run.py` chỉ mở localhost, tự tạo tài khoản demo và bật thanh toán sandbox
 để review. Không dùng cấu hình demo này để triển khai công khai.
 
