@@ -32,7 +32,10 @@ GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) chạy t
 
 PR chỉ nên merge khi cả hai job xanh.
 
-Backend dependencies target Python 3.11 and 3.12; CI runs the backend suite on both.
+The backend minimum is Python 3.11; Python 3.10 is not supported. CI tests Python 3.11 and 3.12.
+Running `python backend/bootstrap.py` checks active model artifacts against their recorded Python and
+ML-library versions. If metadata is missing or versions differ, it trains replacements and archives
+the existing model records and artifacts. Predictions may change after retraining.
 
 `backend/run.py` chỉ mở localhost, tự tạo tài khoản demo và bật thanh toán sandbox
 để review. Không dùng cấu hình demo này để triển khai công khai.

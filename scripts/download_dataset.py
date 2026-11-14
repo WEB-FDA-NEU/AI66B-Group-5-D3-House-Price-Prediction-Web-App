@@ -8,15 +8,24 @@ import zipfile
 
 root = Path(__file__).resolve().parents[1] / "backend/data"
 root.mkdir(exist_ok=True)
+csv_path = root / "vietnam_housing_dataset.csv"
+if csv_path.is_file():
+    print("Dataset already exists at", csv_path, "- skipping download.")
+    raise SystemExit(0)
+
 url = "https://www.kaggle.com/api/v1/datasets/download/nguyentiennhan/vietnam-housing-dataset-2024"
-with urllib.request.urlopen(url, timeout=120) as response:
+request = urllib.request.Request(url, headers={
+    "User-Agent": "HomeValDatasetDownloader/1.0",
+    "Accept": "*/*",
+})
+with urllib.request.urlopen(request, timeout=120) as response:
     archive = response.read(30 * 1024 * 1024)
 with zipfile.ZipFile(io.BytesIO(archive)) as z:
     name = next(n for n in z.namelist() if Path(n).name == "vietnam_housing_dataset.csv")
     if z.getinfo(name).file_size > 50 * 1024 * 1024:
         raise ValueError("Dataset larger than expected; inspect before importing.")
     data = z.read(name)
-(root / "vietnam_housing_dataset.csv").write_bytes(data)
+csv_path.write_bytes(data)
 (root / "provenance.json").write_text(json.dumps({
     "source": "https://www.kaggle.com/datasets/nguyentiennhan/vietnam-housing-dataset-2024",
     "notebook": "https://www.kaggle.com/code/tranngocthienngan/house-price-prediction-dataset-vietnam-2024",

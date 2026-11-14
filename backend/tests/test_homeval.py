@@ -11,6 +11,8 @@ from contextlib import closing
 from pathlib import Path
 from datetime import timedelta
 import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
@@ -23,10 +25,11 @@ os.environ['HOMEVAL_DEMO_BILLING'] = '1'
 os.environ['PREDICTION_RATE_LIMIT'] = '1000'
 from fastapi.testclient import TestClient
 from main import app
-from database import SessionLocal, engine
+from database import Base, SessionLocal, engine
 from models import ModelVersion, Subscription, TrainingJob, utcnow
+import bootstrap
 from bootstrap import seed_accounts
-from ml import load_dataset, NUMERIC, ARTIFACTS
+from ml import load_dataset, NUMERIC, ARTIFACTS, current_runtime_versions, predict_artifact
 from rate_limit import prediction_rate_limiter, login_rate_limiter
 
 @pytest.fixture(scope='module')
@@ -52,6 +55,51 @@ def users(client):
         result.append({'Authorization':'Bearer '+response.json()['access_token']})
     admin=client.post('/api/auth/login',json={'email':'admin@homeval.vn','password':'admin123'}).json()
     return *result,{'Authorization':'Bearer '+admin['access_token']}
+
+def test_prediction_rejects_artifact_with_missing_runtime_metadata():
+    with pytest.raises(ValueError,match="thiếu thông tin tương thích"):
+        predict_artifact("legacy-model.joblib","0"*64,{},None)
+
+def test_prediction_rejects_artifact_with_different_runtime_metadata():
+    recorded_runtime=current_runtime_versions()
+    recorded_runtime["scikit-learn"]="1.6.1"
+    with pytest.raises(ValueError,match="phiên bản Python/thư viện khác"):
+        predict_artifact("legacy-model.joblib","0"*64,{},recorded_runtime)
+
+def test_bootstrap_retrains_legacy_active_model_and_archives_its_record(tmp_path,monkeypatch):
+    test_engine=create_engine("sqlite:///"+(tmp_path/"bootstrap.db").as_posix())
+    Base.metadata.create_all(test_engine)
+    test_session=sessionmaker(bind=test_engine,autoflush=False,autocommit=False)
+    with test_session() as db:
+        db.add(ModelVersion(
+            id="ridge-legacy",algorithm="ridge",tier="free",state="Active",
+            artifact="ridge-legacy.joblib",report={"metrics":{}},
+        ))
+        db.commit()
+
+    trained=[]
+    def fake_train_model(algorithm,config=None):
+        trained.append(algorithm)
+        model_id=algorithm+"-replacement"
+        tier="free" if algorithm=="ridge" else "premium"
+        return model_id,model_id+".joblib",{
+            "tier":tier,"metrics":{},"runtime_versions":current_runtime_versions(),
+        }
+
+    monkeypatch.setattr(bootstrap,"SessionLocal",test_session)
+    monkeypatch.setattr(bootstrap,"train_model",fake_train_model)
+    try:
+        bootstrap.bootstrap_models()
+        with test_session() as db:
+            legacy=db.get(ModelVersion,"ridge-legacy")
+            replacement=db.get(ModelVersion,"ridge-replacement")
+            assert legacy.state=="Archived"
+            assert legacy.artifact=="ridge-legacy.joblib"
+            assert replacement.state=="Active"
+            assert replacement.report["runtime_versions"]==current_runtime_versions()
+        assert trained==["ridge","random_forest","hist_gradient"]
+    finally:
+        test_engine.dispose()
 
 INPUT={'city':'Hồ Chí Minh','district':'Bình Thạnh','property_type':'Nhà phố','area_m2':72,'bedrooms':3,'bathrooms':2,'floors':2}
 

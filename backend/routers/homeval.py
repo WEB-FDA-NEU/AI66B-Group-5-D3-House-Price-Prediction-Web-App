@@ -348,8 +348,9 @@ def predict(payload:PredictIn,user:User|None=Depends(optional_user),db:Session=D
     if [inputs["city"],inputs["district"]] not in pairs:
         raise HTTPException(422,"Khu vực chưa có trong tập huấn luyện của mô hình này. Hãy chọn lại từ danh sách được hỗ trợ.")
     try:
-        value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
-        explanation=explain_artifact(m.artifact,m.report["artifact_sha256"],inputs,value)
+        runtime_versions=m.report.get("runtime_versions") if isinstance(m.report,dict) else None
+        value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs,runtime_versions)
+        explanation=explain_artifact(m.artifact,m.report["artifact_sha256"],inputs,value,runtime_versions)
     except ValueError as error:raise HTTPException(503,str(error))
     warnings=["Ước tính theo giá rao 2024, không phải giá giao dịch hoặc cập nhật thị trường hiện tại.",
         "Dataset không có nhãn loại hình; lựa chọn nhà phố/căn hộ/biệt thự được lưu nhưng chưa dùng làm đặc trưng."]

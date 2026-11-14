@@ -8,10 +8,13 @@ import json
 import math
 import os
 import re
+import sys
 import uuid
 import joblib
 import numpy as np
 import pandas as pd
+import scipy
+import sklearn
 from sklearn.compose import ColumnTransformer, TransformedTargetRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -140,17 +143,34 @@ def train_model(algorithm, config=None):
     report = dict(**MODEL_GUIDES[algorithm],key=algorithm,metrics=metrics,dataset=dataset,
         segments=sorted(segments,key=lambda s:-s["count"]),config=config,support=support,
         evaluated_at=datetime.now(timezone.utc).isoformat(),
+        runtime_versions=current_runtime_versions(),
         artifact_sha256=hashlib.sha256(path.read_bytes()).hexdigest())
     return model_id,path.name,report
 
+def current_runtime_versions():
+    return {
+        "python": f"{sys.version_info.major}.{sys.version_info.minor}",
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "scikit-learn": sklearn.__version__,
+        "scipy": scipy.__version__,
+        "joblib": joblib.__version__,
+    }
+
+def runtime_versions_match(recorded):
+    return isinstance(recorded, dict) and recorded == current_runtime_versions()
+
 _MODEL_CACHE={}
-def load_verified_artifact(artifact, expected_sha):
+def load_verified_artifact(artifact, expected_sha, recorded_runtime):
     """Return the deserialized artifact after checking its SHA-256.
 
     SY-9: hashing is done once per (expected hash, size, mtime) signature
     instead of on every prediction. Rewriting the file changes the
     signature, so a tampered or replaced artifact is re-hashed and refused.
     """
+    if not runtime_versions_match(recorded_runtime):
+        _MODEL_CACHE.pop(artifact,None)
+        raise ValueError("Mô hình được tạo bằng phiên bản Python/thư viện khác hoặc thiếu thông tin tương thích. Chạy `python backend/bootstrap.py` để huấn luyện lại.")
     path=(ARTIFACTS/artifact).resolve()
     if path.parent != ARTIFACTS.resolve() or not path.is_file(): raise ValueError("Không tìm thấy phiên bản mô hình.")
     stat=path.stat()
@@ -173,8 +193,8 @@ def _feature_row(inputs):
         if row[name] is None:row[name]=np.nan
     return row
 
-def predict_artifact(artifact, expected_sha, inputs):
-    stored=load_verified_artifact(artifact, expected_sha)
+def predict_artifact(artifact, expected_sha, inputs, recorded_runtime):
+    stored=load_verified_artifact(artifact, expected_sha, recorded_runtime)
     row=_feature_row(inputs)
     with threadpool_limits(limits=2):
         value=max(1,float(stored["model"].predict(pd.DataFrame([row]))[0]))
@@ -205,7 +225,7 @@ def _numeric_medians(model):
 def _round_baseline(name,value):
     return round(value,1) if name in ("frontage_m","road_width_m","area_m2") else int(round(value))
 
-def explain_artifact(artifact, expected_sha, inputs, value):
+def explain_artifact(artifact, expected_sha, inputs, value, recorded_runtime):
     """One-at-a-time local explanation of a single estimate (GU-4).
 
     For each input the user actually provided, re-run the model with only
@@ -213,7 +233,7 @@ def explain_artifact(artifact, expected_sha, inputs, value):
     this input moved the estimate relative to a typical property. Model
     agnostic, so it works for Ridge, Random Forest and Gradient Boosting.
     """
-    stored=load_verified_artifact(artifact, expected_sha)
+    stored=load_verified_artifact(artifact, expected_sha, recorded_runtime)
     model=stored["model"]
     base=_feature_row(inputs)
     medians=_numeric_medians(model)
