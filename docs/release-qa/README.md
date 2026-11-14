@@ -1,7 +1,8 @@
 # FE-09 release QA (#8)
 
-Build: PR #110 branch (`feat/ui-luxe-architect`), checked 13 November 2026 in Edge (Playwright) against the
-live backend on an isolated copy of the database.
+Build: **`main` at `52fdeeb`** (after #110 and #92) plus the fix in this PR, checked 14 November 2026 in Edge
+(Playwright) against the live backend on an isolated copy of the database. The first pass on 13 November ran on the
+#110 branch (`3f26eba`) and had the same result.
 
 Every page was checked at **1366 px and 390 px** for:
 - **colour contrast** with axe-core 4.10 (`color-contrast`, `link-in-text-block`, WCAG 2 AA),
@@ -41,6 +42,41 @@ and as the admin. This closes the gap noted in the 12 November checklist, which 
 | 404 | khách | ✓ | ✓ |
 | 500 | khách | ✓ | ✓ |
 | list → redirect | khách | ✓ | ✓ |
+
+## No bare price
+Every page that shows an estimate also shows its interval and a disclaimer.
+
+| Page | Price shown | Interval | Disclaimer |
+| --- | :---: | :---: | :---: |
+| Kết quả | ✓ | ✓ | ✓ |
+| Chi tiết | ✓ | ✓ | ✓ |
+| Đã lưu | ✓ | ✓ | ✓ |
+| So sánh | ✓ | ✓ | ✓ |
+
+## Recovery path from failure states (390 px, API forced to fail)
+| Page | Failure | Visible way forward |
+| --- | --- | --- |
+| Đã lưu | 500 | Dự đoán mới, Thử lại |
+| Chi tiết | 500 | Thử lại, Quay lại lịch sử |
+| So sánh | 500 | Quay lại dự đoán đã lưu, Thử lại |
+| Thị trường | 500 | Thử lại, Định giá một tài sản |
+| Định giá | 500 | Trang chủ |
+| Hồ sơ | 500 | (form stays usable, see note) |
+| Đã lưu (mất mạng) | offline | Dự đoán mới, Thử lại |
+| Chi tiết (id sai) | 404 | Về trang chủ, Dự đoán giá nhà |
+| So sánh (khách) | 401 | → login |
+
+Notes:
+- **Prediction detail** showed a blank page with a toast that vanished after 3 s when the API failed. Fixed in this PR:
+  a message with **Thử lại** (reloads in place) and **Quay lại lịch sử**. 401 now goes to login with a return path.
+- **Profile** reads the signed-in user from the session, so a failed API does not blank the page; a failed save keeps
+  the form filled and shows the error, so the user can submit again.
+- **Prediction form**: "Chưa kết nối được dịch vụ định giá… Hãy thử kết nối lại" with a **Thử kết nối lại** button; the
+  typed values are kept.
+
+| Detail, before | Detail, after | Prediction form |
+| --- | --- | --- |
+| ![](detail-error-before.jpg) | ![](detail-error-after.jpg) | ![](predict-error.jpg) |
 
 ## Fixed during this pass
 | Finding | Fix |
