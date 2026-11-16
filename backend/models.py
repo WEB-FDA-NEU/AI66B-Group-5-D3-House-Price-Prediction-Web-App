@@ -108,6 +108,16 @@ class Subscription(Base):
     source: Mapped[str] = mapped_column(String(30), default="sandbox")
 
 
+class Item(Base):
+    """Generic user-owned record used for account cleanup and future extension."""
+    __tablename__ = "items"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(40), default="generic")
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
 class PasswordResetChallenge(Base):
     __tablename__ = "password_reset_challenges"
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
