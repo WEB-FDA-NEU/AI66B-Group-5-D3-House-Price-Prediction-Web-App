@@ -90,7 +90,7 @@ try {
   await page.locator('#history-search button').click();
   await page.locator('.empty').waitFor();
   results.push('Quick estimate → validation → guest result → login → save → history → detail → cancel/delete');
-  for (const name of ['profile', 'about-model', '404', '500', 'register']) {
+  for (const name of ['profile', 'about-model', '404', '500', 'register', 'login', 'forgot-password', 'reset-password']) {
     await page.goto(`${base}/${name}.html`);
     if (name === 'about-model') await page.locator('#dataset-title').waitFor();
     await layout(name);

@@ -1,6 +1,6 @@
 import { el, money } from '../model-catalog.js';
 import { savePrediction, getModels, getEntitlements, getPredictionQuota, createPrediction } from '../api.js';
-import { isLoggedIn, requireLogin } from '../auth.js';
+import { isLoggedIn, requireLogin, expireSession } from '../auth.js';
 import { toast } from '../ui.js';
 import { propertyFacts, isLand } from '../property.js';
 import { renderExplanation } from '../components/estimate-explanation.js';
@@ -16,17 +16,22 @@ const guestQuotaMessage = document.getElementById('guest-result-quota-message');
 const guestQuotaRetry = document.getElementById('retry-guest-result-quota');
 
 async function refreshGuestQuota() {
-  guestQuota.hidden = isLoggedIn();
-  if (guestQuota.hidden) return;
+  guestQuota.hidden = false;
   guestQuota.setAttribute('aria-busy', 'true');
   guestQuotaRetry.hidden = true;
   guestQuota.removeAttribute('data-kind');
   guestQuotaMessage.textContent = 'Đang kiểm tra lượt dự đoán còn lại…';
   try {
     const quota = await getPredictionQuota();
+    document.getElementById('result-quota-title').textContent = quota.is_guest
+      ? 'QUYỀN DÀNH CHO KHÁCH'
+      : 'QUOTA TÀI KHOẢN';
+    document.querySelectorAll('#guest-result-quota .guest-quota__actions a').forEach(link => {
+      link.hidden = !quota.is_guest;
+    });
     guestQuotaMessage.textContent = quota.remaining === 0
-      ? `Bạn đã dùng hết ${quota.limit} lượt trong 24 giờ trượt. Lượt tiếp theo mở lại vào ${new Date(quota.resets_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}. Đăng nhập hoặc tạo tài khoản để tiếp tục.`
-      : `Bạn còn ${quota.remaining}/${quota.limit} lượt dự đoán trong mỗi 24 giờ trượt. Khách xem được kết quả; đăng nhập để lưu lịch sử.`;
+      ? `Bạn đã dùng hết ${quota.limit} lượt trong 24 giờ trượt. Lượt tiếp theo mở lại vào ${new Date(quota.resets_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}.${quota.is_guest ? ' Đăng nhập hoặc tạo tài khoản để tiếp tục.' : ''}`
+      : `Bạn còn ${quota.remaining}/${quota.limit} lượt dự đoán trong mỗi 24 giờ trượt.${quota.is_guest ? ' Đăng nhập để lưu lịch sử.' : ''}`;
   } catch (error) {
     guestQuota.dataset.kind = 'error';
     guestQuotaMessage.textContent = error.detail || 'Không tải được trạng thái lượt dự đoán.';
@@ -89,6 +94,7 @@ saveForm.addEventListener('submit', async event => {
     historyLink.hidden = false;
     toast('Đã lưu dự đoán vào lịch sử.');
   } catch (error) {
+    if (error.status === 401) { expireSession(); requireLogin(); return; }
     toast(error.detail ?? 'Không thể lưu dự đoán.', 'error');
     button.disabled = false;
   }
@@ -101,7 +107,7 @@ if (draft?.warnings) {
   document.querySelector('.result-summary').append(box);
 }
 guestQuotaRetry.addEventListener('click', refreshGuestQuota);
-if (draft?.input && !isLoggedIn()) refreshGuestQuota();
+if (draft?.input) refreshGuestQuota();
 document.getElementById('compare-models').addEventListener('click', async event => {
   if (!isLoggedIn()) { requireLogin(); return; }
   const button = event.currentTarget; button.disabled = true;

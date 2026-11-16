@@ -67,7 +67,11 @@ const MOCK_USER_OVERRIDES_KEY = 'homeval_mock_user_overrides';
 const MOCK_CREDENTIALS_KEY = 'homeval_mock_credentials';
 const MOCK_PREDICTIONS_KEY = 'homeval_mock_predictions';
 const MOCK_GUEST_PREDICTIONS_KEY = 'homeval_mock_guest_prediction_times';
+const MOCK_USER_PREDICTIONS_KEY = 'homeval_mock_user_prediction_times';
+const MOCK_PASSWORD_RESET_KEY = 'homeval_mock_password_resets';
+const MOCK_DELETED_USERS_KEY = 'homeval_mock_deleted_users';
 const GUEST_PREDICTION_WINDOW_MS = 24 * 60 * 60 * 1000;
+const USER_PREDICTION_LIMIT = 100;
 const MOCK_DEFAULT_CREDENTIALS = Object.freeze({
   'anh@example.com': 'password123',
   'admin@homeval.vn': 'admin123',
@@ -149,13 +153,40 @@ function mockGuestQuotaState(limit, times = getMockGuestPredictionTimes()) {
   };
 }
 
+function getMockUserPredictionTimes(user = getUser()) {
+  const all = readMockStorage(MOCK_USER_PREDICTIONS_KEY, {});
+  const stored = all[String(user?.id)] ?? [];
+  const cutoff = Date.now() - GUEST_PREDICTION_WINDOW_MS;
+  const times = Array.isArray(stored)
+    ? stored.filter(timestamp => Number.isFinite(timestamp) && timestamp >= cutoff).sort((a, b) => a - b)
+    : [];
+  all[String(user?.id)] = times;
+  localStorage.setItem(MOCK_USER_PREDICTIONS_KEY, JSON.stringify(all));
+  return times;
+}
+
+function mockUserQuotaState(user = getUser()) {
+  const times = getMockUserPredictionTimes(user);
+  const used = times.length;
+  const resetIndex = Math.max(0, used - USER_PREDICTION_LIMIT);
+  return {
+    is_guest: false,
+    limit: USER_PREDICTION_LIMIT,
+    used,
+    remaining: Math.max(0, USER_PREDICTION_LIMIT - used),
+    window_hours: 24,
+    resets_at: times.length ? new Date(times[resetIndex] + GUEST_PREDICTION_WINDOW_MS).toISOString() : null,
+  };
+}
+
 async function createMockPrediction(input) {
   const fixture = await getMock('guest-quota');
-  const quota = getToken()
-    ? { is_guest: false, limit: null, used: 0, remaining: null, window_hours: 24, resets_at: null }
-    : mockGuestQuotaState(fixture.limit);
-  if (quota.is_guest && quota.remaining === 0) {
-    throw new ApiError(429, 'Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.');
+  const user = getUser();
+  const quota = user ? mockUserQuotaState(user) : mockGuestQuotaState(fixture.limit);
+  if (quota.remaining === 0) {
+    throw new ApiError(429, user
+      ? 'Bạn đã dùng hết 100 lượt dự đoán trong 24 giờ qua.'
+      : 'Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.');
   }
 
   let prediction;
@@ -183,6 +214,10 @@ async function createMockPrediction(input) {
     const times = getMockGuestPredictionTimes();
     times.push(Date.now());
     localStorage.setItem(MOCK_GUEST_PREDICTIONS_KEY, JSON.stringify(times));
+  } else {
+    const all = readMockStorage(MOCK_USER_PREDICTIONS_KEY, {});
+    all[String(user.id)] = [...getMockUserPredictionTimes(user), Date.now()];
+    localStorage.setItem(MOCK_USER_PREDICTIONS_KEY, JSON.stringify(all));
   }
   return prediction;
 }
@@ -191,10 +226,11 @@ function getMockUsers() {
   return getMock('users').then(data => {
     const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
     const registered = readMockStorage(MOCK_USERS_KEY, []);
+    const deleted = new Set(readMockStorage(MOCK_DELETED_USERS_KEY, []));
     const items = [
       ...data.items.map(user => ({ ...user, ...overrides[user.id] })),
       ...registered.map(user => ({ ...user, ...overrides[user.id] })),
-    ];
+    ].filter(user => !deleted.has(String(user.id)));
     return { ...data, items, total: items.length };
   });
 }
@@ -301,8 +337,8 @@ export function getHomeModelStats() {
 export const getLocations = () => USE_MOCK ? Promise.resolve({ locations: LOCATION_SNAPSHOT }) : request(`${API_BASE}/locations`);
 export const getPredictionQuota = () => {
   if (!USE_MOCK) return request(`${API_BASE}/prediction-quota`);
-  return getMock('guest-quota').then(({ limit }) => getToken()
-    ? { is_guest: false, limit: null, used: 0, remaining: null, window_hours: 24, resets_at: null }
+  return getMock('guest-quota').then(({ limit }) => getUser()
+    ? mockUserQuotaState()
     : mockGuestQuotaState(limit));
 };
 export const getEntitlements = () => USE_MOCK
@@ -313,24 +349,135 @@ export const completeCheckout = (id, outcome) => request(`${API_BASE}/billing/ch
 export const startTraining = config => request(`${API_BASE}/admin/training`, { method: 'POST', body: config });
 export const getTrainingJob = id => request(`${API_BASE}/admin/training/${encodeURIComponent(id)}`);
 
-export function getPredictionHistory({ q = '', page = 1, pageSize = 10 } = {}) {
+export function getPredictionHistory({
+  q = '', propertyType = '', district = '', minPrice = '', maxPrice = '',
+  sort = 'newest', page = 1, pageSize = 10,
+} = {}) {
   if (USE_MOCK) {
     return getMock('prediction-history').then(data => {
       const user = requireMockUser();
       const keyword = q.trim().toLowerCase();
-      const items = [...new Map([...data.items, ...getMockPredictionStore()]
+      let items = [...new Map([...data.items, ...getMockPredictionStore()]
         .map(item => [item.id, item])).values()]
         .filter(item => item.owner_id === user.id && !item.deleted_at)
-        .filter(item => !keyword || Object.values(item).some(value =>
-          String(value).toLowerCase().includes(keyword)))
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        .filter(item => !keyword || [item.label, item.district, item.property_type]
+          .some(value => String(value ?? '').toLowerCase().includes(keyword)))
+        .filter(item => !propertyType || item.property_type === propertyType)
+        .filter(item => !district || item.district.toLowerCase().includes(district.trim().toLowerCase()))
+        .filter(item => minPrice === '' || Number(item.estimated_price) >= Number(minPrice))
+        .filter(item => maxPrice === '' || Number(item.estimated_price) <= Number(maxPrice));
+      items.sort((a, b) => {
+        if (sort === 'oldest') return new Date(a.created_at) - new Date(b.created_at);
+        if (sort === 'price_asc') return Number(a.estimated_price) - Number(b.estimated_price);
+        if (sort === 'price_desc') return Number(b.estimated_price) - Number(a.estimated_price);
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
       const paging = normalisePage(page, pageSize, items.length);
       return { ...paging, items: items.slice(paging.start, paging.start + paging.page_size) };
     });
   }
   const qs = new URLSearchParams({ page, page_size: pageSize });
   if (q) qs.set('q', q);
+  if (propertyType) qs.set('property_type', propertyType);
+  if (district) qs.set('district', district);
+  if (minPrice !== '') qs.set('min_price', minPrice);
+  if (maxPrice !== '') qs.set('max_price', maxPrice);
+  if (sort) qs.set('sort', sort);
   return request(`${API_BASE}/me/predictions?${qs}`);
+}
+
+export function rerunPrediction(id) {
+  if (USE_MOCK) {
+    return getPrediction(id).then(previous => createMockPrediction(previous.input).then(result => {
+      const difference = Number(result.estimated_price) - Number(previous.estimated_price);
+      return {
+        ...result,
+        comparison: {
+          previous_estimated_price: previous.estimated_price,
+          change_vnd: difference,
+          change_percent: previous.estimated_price
+            ? Number((difference / previous.estimated_price * 100).toFixed(2))
+            : 0,
+        },
+      };
+    }));
+  }
+  return request(`${API_BASE}/me/predictions/${encodeURIComponent(id)}/rerun`, { method: 'POST' });
+}
+
+export async function getProfileStats() {
+  if (USE_MOCK) {
+    const [history] = await Promise.all([getPredictionHistory({ pageSize: 1 })]);
+    return {
+      saved_predictions: history.total,
+      member_since: getUser()?.created_at ?? new Date().toISOString(),
+    };
+  }
+  return request(`${API_BASE}/me/stats`);
+}
+
+export function deleteAccount(confirmation) {
+  if (!USE_MOCK) {
+    return request(`${API_BASE}/me`, { method: 'DELETE', body: { confirmation } });
+  }
+  const user = requireMockUser();
+  if (user.role === 'admin') return Promise.reject(new ApiError(403, 'Tài khoản quản trị không thể tự xóa.'));
+  if (confirmation !== 'DELETE') return Promise.reject(new ApiError(422, 'Hãy nhập DELETE để xác nhận.'));
+  const deleted = new Set(readMockStorage(MOCK_DELETED_USERS_KEY, []));
+  deleted.add(String(user.id));
+  localStorage.setItem(MOCK_DELETED_USERS_KEY, JSON.stringify([...deleted]));
+  for (const key of [MOCK_PREDICTIONS_KEY]) {
+    const records = readMockStorage(key, []).filter(item => String(item.owner_id) !== String(user.id));
+    localStorage.setItem(key, JSON.stringify(records));
+  }
+  const times = readMockStorage(MOCK_USER_PREDICTIONS_KEY, {});
+  delete times[String(user.id)];
+  localStorage.setItem(MOCK_USER_PREDICTIONS_KEY, JSON.stringify(times));
+  const overrides = readMockStorage(MOCK_USER_OVERRIDES_KEY, {});
+  delete overrides[user.id];
+  localStorage.setItem(MOCK_USER_OVERRIDES_KEY, JSON.stringify(overrides));
+  return Promise.resolve(null);
+}
+
+export function requestPasswordReset(email) {
+  if (!USE_MOCK) {
+    return request(`${API_BASE}/auth/password-reset/request`, { method: 'POST', body: { email } });
+  }
+  return getMockUsers().then(data => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = data.items.find(entry => entry.email.toLowerCase() === normalizedEmail);
+    if (!user) return { message: 'Nếu email đã đăng ký, hướng dẫn đặt lại mật khẩu sẽ được gửi.', demo: true };
+    const code = String(Math.floor(Math.random() * 1_000_000)).padStart(6, '0');
+    const resets = readMockStorage(MOCK_PASSWORD_RESET_KEY, {});
+    resets[normalizedEmail] = { code, expires_at: Date.now() + 15 * 60 * 1000 };
+    localStorage.setItem(MOCK_PASSWORD_RESET_KEY, JSON.stringify(resets));
+    return {
+      message: 'Đây là chế độ demo: không gửi email thật. Dùng mã kiểm thử hiển thị bên dưới.',
+      demo: true,
+      demo_code: code,
+    };
+  });
+}
+
+export function confirmPasswordReset({ email, code, new_password }) {
+  if (!USE_MOCK) {
+    return request(`${API_BASE}/auth/password-reset/confirm`, {
+      method: 'POST',
+      body: { email, code, new_password },
+    });
+  }
+  const normalizedEmail = email.trim().toLowerCase();
+  const resets = readMockStorage(MOCK_PASSWORD_RESET_KEY, {});
+  const challenge = resets[normalizedEmail];
+  if (!challenge || challenge.expires_at <= Date.now() || challenge.code !== code) {
+    return Promise.reject(new ApiError(400, 'Mã không hợp lệ hoặc đã hết hạn.'));
+  }
+  const credentials = readMockStorage(MOCK_CREDENTIALS_KEY, {});
+  credentials[normalizedEmail] = new_password;
+  localStorage.setItem(MOCK_CREDENTIALS_KEY, JSON.stringify(credentials));
+  delete resets[normalizedEmail];
+  localStorage.setItem(MOCK_PASSWORD_RESET_KEY, JSON.stringify(resets));
+  return Promise.resolve({ message: 'Đã đặt lại mật khẩu. Hãy đăng nhập bằng mật khẩu mới.' });
 }
 
 export function getPrediction(id) {

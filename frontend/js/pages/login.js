@@ -3,6 +3,11 @@ import { saveSession, returnAfterLogin } from '../auth.js';
 import { setFieldError, clearFieldErrors, toast } from '../ui.js';
 
 const form = document.getElementById('login-form');
+const expiredNotice = document.getElementById('session-expired-notice');
+if (sessionStorage.getItem('app_session_expired') === '1') {
+  expiredNotice.hidden = false;
+  sessionStorage.removeItem('app_session_expired');
+}
 
 form.addEventListener('submit', async e => {
   e.preventDefault();
@@ -17,6 +22,7 @@ form.addEventListener('submit', async e => {
   // 2. Server mới là thẩm quyền - validate lần hai ở backend
   const btn = form.querySelector('button[type=submit]');
   btn.disabled = true;
+  btn.textContent = 'Đang đăng nhập…';
   try {
     const session = await login(form.email.value, form.password.value);
     saveSession(session);
@@ -27,5 +33,6 @@ form.addEventListener('submit', async e => {
     else
       toast(err.detail ?? 'Đăng nhập thất bại.', 'error');
     btn.disabled = false;
+    btn.textContent = 'Đăng nhập';
   }
 });

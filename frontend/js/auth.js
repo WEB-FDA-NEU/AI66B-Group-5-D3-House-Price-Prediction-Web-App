@@ -28,6 +28,11 @@ export function clearSession() {
   initHeader();
 }
 
+export function expireSession() {
+  sessionStorage.setItem('app_session_expired', '1');
+  clearSession();
+}
+
 export function logout() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);

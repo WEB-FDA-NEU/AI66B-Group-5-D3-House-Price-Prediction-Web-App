@@ -17,7 +17,13 @@
 <site-header active="profile"></site-header>
 
 <main class="container page stack profile-page">
-  <div class="page-heading"><p class="eyebrow">KHÔNG GIAN CỦA BẠN</p><h1>Hồ sơ của tôi</h1><p>Quản lý thông tin cá nhân và bảo mật tài khoản.</p></div><div class="profile-columns">
+  <div class="page-heading"><p class="eyebrow">KHÔNG GIAN CỦA BẠN</p><h1>Hồ sơ của tôi</h1><p>Quản lý thông tin cá nhân và bảo mật tài khoản.</p></div>
+  <section class="panel profile-stats" aria-live="polite">
+    <h2>Thống kê tài khoản</h2>
+    <p><strong id="saved-prediction-count">—</strong> dự đoán đã lưu</p>
+    <p class="field__hint">Thành viên từ <time id="member-since">đang tải…</time></p>
+  </section>
+  <div class="profile-columns">
 
   <!-- ══════════════ Sửa thông tin ══════════════ -->
   <section class="panel stack">
@@ -64,9 +70,29 @@
       <button class="btn btn--primary" type="submit">Đổi mật khẩu</button>
     </form>
   </section>
+  <section class="panel stack" id="delete-account-panel">
+    <h2>Xóa tài khoản</h2>
+    <p class="field__hint">Thao tác này xóa tài khoản, dự đoán đã lưu và dữ liệu liên quan. Không thể hoàn tác.</p>
+    <form id="delete-account-form" class="stack" novalidate>
+      <div class="field">
+        <label class="field__label" for="delete-confirmation">Nhập DELETE để xác nhận</label>
+        <input class="input" id="delete-confirmation" name="confirmation" autocomplete="off" required>
+        <p class="field__error"></p>
+      </div>
+      <button class="btn btn--danger" type="submit">Xóa tài khoản và dữ liệu</button>
+    </form>
+  </section>
 </div></main>
 
 <site-footer></site-footer>
+<dialog id="confirm-dialog">
+  <h2 class="dialog__title"></h2>
+  <p class="dialog__message"></p>
+  <div class="dialog__actions">
+    <button class="btn" data-cancel>Hủy</button>
+    <button class="btn btn--danger" data-confirm>Xóa</button>
+  </div>
+</dialog>
 
 <script type="module" src="js/pages/profile.js"></script>
 </body>

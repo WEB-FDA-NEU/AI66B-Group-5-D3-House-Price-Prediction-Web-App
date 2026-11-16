@@ -1,5 +1,5 @@
 import { deletePrediction, getPredictionHistory } from '../api.js';
-import { isLoggedIn, requireLogin } from '../auth.js';
+import { isLoggedIn, requireLogin, expireSession } from '../auth.js';
 import { confirmAction, showEmpty, showError, toast } from '../ui.js';
 import { intervalText, predictionDisclaimer } from '../prediction-summary.js';
 import { exportPredictions, today } from '../csv.js';
@@ -13,7 +13,13 @@ const compareBar = document.getElementById('compare-bar');
 const compareStatus = document.getElementById('compare-status');
 const compareGo = document.getElementById('compare-go');
 const exportButton = document.getElementById('export-history');
+const pagination = document.getElementById('history-pagination');
+const previousPage = document.getElementById('history-previous');
+const nextPage = document.getElementById('history-next');
+const pageStatus = document.getElementById('history-page-status');
 let selection = readSelection();
+let currentPage = 1;
+const pageSize = 10;
 const price = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 });
 
 function formatDate(value) {
@@ -70,22 +76,53 @@ function createRow(item) {
 
 async function load() {
   list.textContent = 'Đang tải lịch sử...';
+  pagination.hidden = true;
   try {
-    const data = await getPredictionHistory({ q: form.q.value, pageSize: 50 });
+    const data = await getPredictionHistory({
+      q: form.q.value.trim(),
+      propertyType: form.property_type.value,
+      district: form.district.value.trim(),
+      minPrice: form.min_price.value,
+      maxPrice: form.max_price.value,
+      sort: form.sort.value,
+      page: currentPage,
+      pageSize,
+    });
+    const lastPage = Math.max(1, Math.ceil(data.total / pageSize));
+    if (currentPage > lastPage) {
+      currentPage = lastPage;
+      await load();
+      return;
+    }
     if (!data.items.length) {
       showEmpty(list, {
-        title: 'Chưa có dự đoán đã lưu',
-        hint: 'Hãy tạo một dự đoán rồi lưu lại để xem ở đây.',
-        actionText: 'Dự đoán giá nhà',
+        title: data.total ? 'Không có kết quả ở trang này' : 'Chưa có dự đoán phù hợp',
+        hint: data.total ? 'Hãy quay lại trang trước.' : 'Thử thay đổi bộ lọc hoặc tạo một dự đoán mới.',
+        actionText: data.total ? '' : 'Dự đoán giá nhà',
         actionHref: 'predict.html',
       });
+      if (data.total) renderPagination(data.total);
       return;
     }
     list.replaceChildren(...data.items.map(createRow));
     syncCompare();
+    renderPagination(data.total);
   } catch (error) {
+    if (error.status === 401) {
+      expireSession();
+      requireLogin();
+      return;
+    }
     showError(list, error, load);
   }
+}
+
+function renderPagination(total) {
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  pagination.hidden = pageCount <= 1;
+  pageStatus.textContent = `Trang ${currentPage}/${pageCount} · ${total} kết quả`;
+  previousPage.disabled = currentPage <= 1;
+  nextPage.disabled = currentPage >= pageCount;
 }
 
 async function removeItem(item) {
@@ -161,6 +198,23 @@ exportButton.addEventListener('click', async () => {
 
 form.addEventListener('submit', event => {
   event.preventDefault();
+  const min = form.min_price.value;
+  const max = form.max_price.value;
+  if (min && max && Number(min) > Number(max)) {
+    form.max_price.setCustomValidity('Giá tối đa phải lớn hơn hoặc bằng giá tối thiểu.');
+    form.max_price.reportValidity();
+    form.max_price.setCustomValidity('');
+    return;
+  }
+  currentPage = 1;
+  load();
+});
+
+previousPage.addEventListener('click', () => {
+  if (currentPage > 1) { currentPage -= 1; load(); }
+});
+nextPage.addEventListener('click', () => {
+  currentPage += 1;
   load();
 });
 

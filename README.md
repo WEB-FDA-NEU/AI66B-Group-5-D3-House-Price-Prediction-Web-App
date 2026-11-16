@@ -21,6 +21,14 @@ Sau lần thiết lập đầu tiên, chỉ cần chạy lại lệnh cuối đ�
 - [Hướng dẫn kiểm tra, sai số và giới hạn](docs/model-upgrade/README.md).
 - [Bản tối ưu UX: quận/huyện, Premium tại chỗ, chuyển động](docs/ux-polish/README.md).
 
+### Đặt lại mật khẩu và quota
+
+- Local development (`HOMEVAL_ENV=development`): mã reset được ghi trong terminal của backend.
+- Demo (`HOMEVAL_ENV=demo`): không gửi email; mã kiểm thử được hiển thị rõ trên trang.
+- Production (`HOMEVAL_ENV=production`): cấu hình `RESEND_API_KEY` và `RESEND_FROM_EMAIL` để gửi mã qua Resend; có thể đặt `PUBLIC_APP_URL` để liên kết đến trang reset.
+- Quota tài khoản đăng nhập là 100 dự đoán trong cửa sổ trượt 24 giờ; quota khách vẫn là 5 lượt/24 giờ.
+- Tài khoản thường có thể xóa bằng cách nhập `DELETE`; thao tác xóa dữ liệu không thể hoàn tác. Tài khoản admin không thể tự xóa.
+
 ### Kiểm tra trước khi mở PR
 
 GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) chạy trên mọi PR:
@@ -43,6 +51,10 @@ PR chỉ nên merge khi cả hai job xanh.
 | Đặc điểm nào ảnh hưởng đến giá (GU-4) | `predict-result.html`, `detail.html` | [docs/fe-06](docs/fe-06/README.md) |
 | So sánh 2–3 dự đoán đã lưu (US-7) | `compare.html?ids=` | [docs/us-7-8](docs/us-7-8/README.md) |
 | Xuất CSV lịch sử, một dự đoán, bảng so sánh (US-8) | `predictions.html`, `detail.html`, `compare.html` | [docs/us-7-8](docs/us-7-8/README.md) |
+| Tìm kiếm/lọc/sắp xếp/phân trang lịch sử (US-2/US-3) | `predictions.html` | Backend lọc theo từ khóa, loại hình, khu vực và giá; sort theo ngày/giá |
+| Chạy lại dự đoán đã lưu và xem chênh lệch (US-6) | `detail.html` | Dùng phiên bản Active mới nhất cùng thuật toán; kết quả mới có thể lưu riêng |
+| Quota 100 dự đoán/tài khoản/24 giờ (US-14) | `predict.html`, `predict-result.html` | Backend cưỡng chế quota; giao diện hiển thị lượt còn lại và thời điểm mở lại |
+| Reset mật khẩu, chỉnh sửa hồ sơ và xóa tài khoản (US-10/12/13) | `login.html`, `forgot-password.html`, `reset-password.html`, `profile.html` | Mã reset một lần; email production qua Resend; xóa yêu cầu gõ `DELETE` |
 | Giao diện "Bản vẽ" và nguồn ảnh có giấy phép (UI-1) | toàn site, `credits.html` | [docs/ui-atelier](docs/ui-atelier/README.md) |
 | Khoá phiên tài khoản bị vô hiệu hoá, giới hạn đăng nhập sai (SY-8); lỗi API hiển thị dạng chữ (SY-10) | `backend/deps.py`, `routers/auth.py`, `js/ui.js` | [docs/model-upgrade](docs/model-upgrade/README.md) |
 | Kiểm tra file mô hình một lần, thống kê admin nhẹ hơn (SY-9); CI trên mọi PR (SY-11) | `backend/ml.py`, `.github/workflows/ci.yml` | |
