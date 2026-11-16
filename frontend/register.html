@@ -35,11 +35,16 @@
     <div class="field">
       <label class="field__label" for="password">Mật khẩu</label>
       <input class="input" id="password" name="password" type="password" placeholder="Tối thiểu 8 ký tự" required minlength="8" autocomplete="new-password">
+      <p class="field__hint" id="password-strength" aria-live="polite">Độ mạnh mật khẩu: chưa nhập</p>
       <p class="field__error"></p>
     </div>
     <div class="field">
       <label class="field__label" for="confirm">Nhập lại mật khẩu</label>
       <input class="input" id="confirm" name="confirm" type="password" placeholder="Tối thiểu 8 ký tự" required autocomplete="new-password">
+      <p class="field__error"></p>
+    </div>
+    <div class="field">
+      <label class="field__label"><input id="terms" name="terms" type="checkbox" required> Tôi đồng ý với điều khoản sử dụng và chính sách dữ liệu demo.</label>
       <p class="field__error"></p>
     </div>
     <button class="btn btn--primary" type="submit">Đăng ký</button>

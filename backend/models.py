@@ -106,3 +106,27 @@ class Subscription(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     source: Mapped[str] = mapped_column(String(30), default="sandbox")
+
+
+class PasswordResetChallenge(Base):
+    __tablename__ = "password_reset_challenges"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    code_hash: Mapped[str] = mapped_column(String(64))
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    # ─────────────────────────────────────────────────────────────────
+    #  TODO - NHÓM NÀO CÓ "TÀI NGUYÊN TRANH CHẤP" THÌ ĐỌC KỸ:
+    #  ghế · phòng · khung giờ · tồn kho · slot duy nhất
+    #
+    #  Ràng buộc chống trùng PHẢI đặt ở database, không phải câu if trong Python:
+    #
+    #     __table_args__ = (
+    #         UniqueConstraint("concert_id", "seat_no", name="uq_seat"),
+    #     )
+    #
+    #  Vì `if SELECT ... then INSERT` vẫn lọt khi hai request đến cùng một lúc.
+    #  Xem docs/QUY-UOC-CODE.md mục 6.
+    # ─────────────────────────────────────────────────────────────────

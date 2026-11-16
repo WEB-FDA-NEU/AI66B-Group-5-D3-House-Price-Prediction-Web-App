@@ -76,6 +76,11 @@ login_rate_limiter = SlidingWindowRateLimiter(
     window_seconds=_positive_int_from_env("LOGIN_RATE_LIMIT_WINDOW_SECONDS", 300),
 )
 
+password_reset_rate_limiter = SlidingWindowRateLimiter(
+    max_requests=_positive_int_from_env("PASSWORD_RESET_RATE_LIMIT", 5),
+    window_seconds=_positive_int_from_env("PASSWORD_RESET_RATE_LIMIT_WINDOW_SECONDS", 900),
+)
+
 
 def _login_key(request: Request, email: str) -> str:
     # SY-8: keyed by client IP + account, so one noisy client cannot lock
@@ -104,6 +109,16 @@ def record_failed_login(request: Request, email: str) -> None:
 
 def reset_login_failures(request: Request, email: str) -> None:
     login_rate_limiter.forget(_login_key(request, email))
+
+
+def ensure_password_reset_allowed(request: Request, email: str) -> None:
+    retry_after = password_reset_rate_limiter.retry_after(_login_key(request, email))
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=429,
+            detail="Bạn đã yêu cầu đặt lại mật khẩu quá nhiều lần. Vui lòng thử lại sau.",
+            headers={"Retry-After": str(retry_after)},
+        )
 
 
 def limit_prediction_requests(request: Request) -> None:

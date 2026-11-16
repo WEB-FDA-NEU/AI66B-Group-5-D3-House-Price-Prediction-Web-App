@@ -27,11 +27,20 @@
     </div>
   </div>
   <form id="history-search" class="history-search" role="search">
-    <label class="visually-hidden" for="history-q">Tìm dự đoán</label>
-    <input class="input" id="history-q" name="q" placeholder="Tìm theo nhãn, quận hoặc loại hình">
-    <button class="btn" type="submit">Tìm</button>
+    <div class="field"><label class="field__label" for="history-q">Tìm kiếm</label><input class="input" id="history-q" name="q" placeholder="Nhãn, quận/huyện hoặc loại hình"></div>
+    <div class="field"><label class="field__label" for="history-property-type">Loại hình</label><select class="select" id="history-property-type" name="property_type"><option value="">Tất cả</option><option>Nhà phố</option><option>Căn hộ</option><option>Biệt thự</option></select></div>
+    <div class="field"><label class="field__label" for="history-district">Quận/huyện</label><input class="input" id="history-district" name="district" placeholder="Tất cả khu vực"></div>
+    <div class="field"><label class="field__label" for="history-min-price">Giá từ (VND)</label><input class="input" id="history-min-price" name="min_price" type="number" min="0" inputmode="numeric"></div>
+    <div class="field"><label class="field__label" for="history-max-price">Đến (VND)</label><input class="input" id="history-max-price" name="max_price" type="number" min="0" inputmode="numeric"></div>
+    <div class="field"><label class="field__label" for="history-sort">Sắp xếp</label><select class="select" id="history-sort" name="sort"><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option><option value="price_desc">Giá cao nhất</option><option value="price_asc">Giá thấp nhất</option></select></div>
+    <button class="btn btn--primary" type="submit">Áp dụng</button>
   </form>
   <div id="history-list" class="stack" aria-live="polite"></div>
+  <nav class="history-pagination" id="history-pagination" aria-label="Phân trang lịch sử" hidden>
+    <button class="btn" id="history-previous" type="button">Trang trước</button>
+    <span id="history-page-status" aria-live="polite"></span>
+    <button class="btn" id="history-next" type="button">Trang sau</button>
+  </nav>
   <div class="compare-bar" id="compare-bar" hidden>
     <p id="compare-status" aria-live="polite"></p>
     <div class="row__actions">

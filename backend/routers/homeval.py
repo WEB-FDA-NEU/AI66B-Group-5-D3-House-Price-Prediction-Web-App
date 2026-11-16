@@ -31,6 +31,8 @@ training_lock=threading.Lock()
 publication_lock=threading.Lock()
 GUEST_PREDICTION_LIMIT = 5
 GUEST_PREDICTION_WINDOW = timedelta(hours=24)
+USER_PREDICTION_LIMIT = 100
+USER_PREDICTION_WINDOW = timedelta(hours=24)
 
 def premium(user,db):
     if not user:return False
@@ -98,10 +100,30 @@ def guest_quota_state(ip_hash: str, db: Session, now: datetime | None = None):
         remaining=max(0, GUEST_PREDICTION_LIMIT - used), window_hours=24,
         resets_at=reset_at)
 
+def user_quota_state(user_id: int, db: Session, now: datetime | None = None):
+    now = now or utcnow()
+    cutoff = now - USER_PREDICTION_WINDOW
+    recent = select(Prediction.created_at).where(
+        Prediction.owner_id == user_id,
+        Prediction.created_at >= cutoff,
+    ).order_by(Prediction.created_at.asc())
+    used = db.scalar(select(func.count()).select_from(recent.subquery())) or 0
+    reset_at = None
+    if used:
+        release_index = max(0, used - USER_PREDICTION_LIMIT)
+        next_release = db.scalar(recent.offset(release_index).limit(1))
+        if next_release:
+            if next_release.tzinfo is None:
+                next_release = next_release.replace(tzinfo=timezone.utc)
+            reset_at = (next_release + USER_PREDICTION_WINDOW).isoformat()
+    return dict(is_guest=False, limit=USER_PREDICTION_LIMIT, used=used,
+        remaining=max(0, USER_PREDICTION_LIMIT - used), window_hours=24,
+        resets_at=reset_at)
+
 @router.get("/prediction-quota")
 def prediction_quota(request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
     if user:
-        return dict(is_guest=False,limit=None,used=0,remaining=None,window_hours=24,resets_at=None)
+        return user_quota_state(user.id, db)
     return guest_quota_state(guest_ip_hash(request),db)
 
 @router.get("/admin/models")
@@ -378,6 +400,9 @@ def draft_proof(id):
     },
 )
 def predict(payload:PredictIn,request:Request,user:User|None=Depends(optional_user),db:Session=Depends(get_db)):
+    return create_prediction(payload, request, user, db)
+
+def create_prediction(payload: PredictIn, request: Request, user: User | None, db: Session):
     if payload.property_type in ["Đất nền","Thửa đất"]:
         raise HTTPException(422,"Chưa có mô hình đất được kiểm định. Dataset Kaggle không có nhãn đất hoặc ranh thửa. Xem trang nguồn dữ liệu.")
     if payload.model_id:m=db.get(ModelVersion,payload.model_id)
@@ -394,6 +419,10 @@ def predict(payload:PredictIn,request:Request,user:User|None=Depends(optional_us
         quota = guest_quota_state(guest_hash,db)
         if quota["remaining"] == 0:
             raise HTTPException(429,"Bạn đã dùng hết 5 lượt dự đoán trong 24 giờ qua. Đăng ký hoặc đăng nhập để tiếp tục.")
+    else:
+        quota = user_quota_state(user.id, db)
+        if quota["remaining"] == 0:
+            raise HTTPException(429,"Bạn đã dùng hết 100 lượt dự đoán trong 24 giờ qua. Lượt tiếp theo sẽ mở lại sau khi có lượt cũ hết hạn.")
     try:
         value,lower,upper,support=predict_artifact(m.artifact,m.report["artifact_sha256"],inputs)
         explanation=explain_artifact(m.artifact,m.report["artifact_sha256"],inputs,value)
@@ -423,8 +452,10 @@ class SaveIn(BaseModel):
 
 def saved_out(p):
     data=p.payload
-    return dict(**{k:v for k,v in data.items() if k!="draft_token"},label=p.label,owner_id=p.owner_id,
-        district=data["input"]["district"],property_type=data["input"]["property_type"],area_m2=data["input"]["area_m2"],model_version=data["model"]["version"])
+    return {**{k:v for k,v in data.items() if k!="draft_token"},
+        "id":p.id,"label":p.label,"owner_id":p.owner_id,
+        "district":data["input"]["district"],"property_type":data["input"]["property_type"],
+        "area_m2":data["input"]["area_m2"],"model_version":data["model"]["version"]}
 
 @router.post("/me/predictions")
 def save(payload:SaveIn,user:User=Depends(get_current_user),db:Session=Depends(get_db)):
@@ -438,11 +469,90 @@ def save(payload:SaveIn,user:User=Depends(get_current_user),db:Session=Depends(g
     return saved_out(p)
 
 @router.get("/me/predictions")
-def history(q:str="",page:int=Query(1,ge=1),page_size:int=Query(20,ge=1,le=100),user:User=Depends(get_current_user),db:Session=Depends(get_db)):
+def history(
+    q: str = "",
+    property_type: str = Query("", max_length=40),
+    district: str = Query("", max_length=100),
+    min_price: int | None = Query(None, ge=0),
+    max_price: int | None = Query(None, ge=0),
+    sort: Literal["newest", "oldest", "price_asc", "price_desc"] = "newest",
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if min_price is not None and max_price is not None and min_price > max_price:
+        raise HTTPException(422, "Giá tối thiểu không được lớn hơn giá tối đa.")
     records=db.scalars(select(Prediction).where(Prediction.owner_id==user.id,Prediction.saved==True).order_by(Prediction.created_at.desc())).all()
     results=[saved_out(p) for p in records]
-    if q:results=[r for r in results if q.lower() in (r["label"]+" "+r["district"]+" "+r["property_type"]).lower()]
-    return dict(items=results[(page-1)*page_size:page*page_size],total=len(results),page=page,page_size=page_size)
+    if q:
+        keyword = q.strip().casefold()
+        results = [r for r in results if keyword in (
+            r["label"] + " " + r["district"] + " " + r["property_type"]
+        ).casefold()]
+    if property_type:
+        results = [r for r in results if r["property_type"] == property_type]
+    if district:
+        keyword = district.strip().casefold()
+        results = [r for r in results if keyword in r["district"].casefold()]
+    if min_price is not None:
+        results = [r for r in results if r["estimated_price"] >= min_price]
+    if max_price is not None:
+        results = [r for r in results if r["estimated_price"] <= max_price]
+    if sort == "oldest":
+        results.sort(key=lambda r: (r["created_at"], r["id"]))
+    elif sort == "price_asc":
+        results.sort(key=lambda r: (r["estimated_price"], r["created_at"], r["id"]))
+    elif sort == "price_desc":
+        results.sort(key=lambda r: (-r["estimated_price"], r["created_at"], r["id"]))
+    else:
+        results.sort(key=lambda r: (r["created_at"], r["id"]), reverse=True)
+    total = len(results)
+    start = (page - 1) * page_size
+    return dict(items=results[start:start + page_size],total=total,page=page,page_size=page_size)
+
+
+@router.post("/me/predictions/{prediction_id}/rerun", dependencies=[Depends(limit_prediction_requests)])
+def rerun_prediction(
+    prediction_id: str,
+    request: Request,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    prediction = db.get(Prediction, prediction_id)
+    if not prediction or prediction.owner_id != user.id or not prediction.saved:
+        raise HTTPException(404, "Không tìm thấy dự đoán.")
+    previous_price = prediction.payload.get("estimated_price")
+    if not isinstance(previous_price, int) or previous_price <= 0:
+        raise HTTPException(422, "Dự đoán cũ không có giá trị hợp lệ để so sánh.")
+    source_model_id = prediction.payload.get("model", {}).get("id")
+    source_model = db.get(ModelVersion, source_model_id) if source_model_id else None
+    if source_model is None:
+        raise HTTPException(409, "Không xác định được mô hình của dự đoán cũ.")
+    active_model = db.scalar(
+        select(ModelVersion)
+        .where(
+            ModelVersion.algorithm == source_model.algorithm,
+            ModelVersion.state == "Active",
+        )
+        .order_by(ModelVersion.created_at.desc())
+        .limit(1)
+    )
+    if active_model is None:
+        raise HTTPException(404, "Chưa có phiên bản Active thay thế cho mô hình cũ.")
+    try:
+        rerun_input = PredictIn.model_validate(prediction.payload["input"])
+    except (KeyError, ValueError) as error:
+        raise HTTPException(422, "Dự đoán cũ không còn đủ dữ liệu đầu vào để chạy lại.") from error
+    rerun_input = rerun_input.model_copy(update={"model_id": active_model.id})
+    result = create_prediction(rerun_input, request, user, db)
+    difference = result["estimated_price"] - previous_price
+    result["comparison"] = {
+        "previous_estimated_price": previous_price,
+        "change_vnd": difference,
+        "change_percent": round(difference / previous_price * 100, 2),
+    }
+    return result
 
 @router.get("/me/predictions/{prediction_id}")
 def detail(prediction_id:str,user:User=Depends(get_current_user),db:Session=Depends(get_db)):

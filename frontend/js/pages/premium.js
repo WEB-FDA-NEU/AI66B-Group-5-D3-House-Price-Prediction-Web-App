@@ -1,5 +1,5 @@
 ﻿import { getEntitlements, startCheckout, completeCheckout } from '../api.js';
-import { isLoggedIn, requireLogin, clearSession } from '../auth.js';
+import { isLoggedIn, requireLogin, expireSession } from '../auth.js';
 import { loadCatalog } from '../model-catalog.js';
 import { toast } from '../ui.js';
 const button = document.getElementById('checkout-button');
@@ -27,7 +27,7 @@ async function refreshMembership() {
     if (!access.sandbox && access.plan !== 'premium') { button.disabled = true; status.textContent += ' Thanh toán thử nghiệm đang tắt.'; }
   } catch (error) {
     if (error.status === 401) {
-      clearSession();
+      expireSession();
       status.textContent = 'Phiên đăng nhập đã hết hạn. Đăng nhập lại để kiểm tra gói của bạn.';
       button.textContent = 'Đăng nhập để tiếp tục ↗';
       button.disabled = false;

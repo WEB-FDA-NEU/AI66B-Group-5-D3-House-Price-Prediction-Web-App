@@ -3,9 +3,9 @@
 //  Yêu cầu đăng nhập - chưa đăng nhập thì đẩy sang Login,
 //  quay lại đúng trang này sau khi đăng nhập xong (F10, F12).
 // ============================================================
-import { updateProfile, changePassword, ApiError } from '../api.js';
-import { isLoggedIn, requireLogin, getUser, saveSession, getToken } from '../auth.js';
-import { setFieldError, clearFieldErrors, toast } from '../ui.js';
+import { updateProfile, changePassword, getProfileStats, deleteAccount, ApiError } from '../api.js';
+import { isLoggedIn, requireLogin, getUser, saveSession, getToken, clearSession, expireSession } from '../auth.js';
+import { setFieldError, clearFieldErrors, confirmAction, toast } from '../ui.js';
 import '../components/site-header.js';
 import '../components/site-footer.js';
 
@@ -13,6 +13,9 @@ if (!isLoggedIn()) requireLogin();
 
 const profileForm  = document.getElementById('profile-form');
 const passwordForm = document.getElementById('password-form');
+const deleteForm = document.getElementById('delete-account-form');
+const deletePanel = document.getElementById('delete-account-panel');
+if (getUser()?.role === 'admin') deletePanel.hidden = true;
 
 // Đổ dữ liệu hiện tại lên form
 const me = getUser();
@@ -21,6 +24,18 @@ if (me) {
   profileForm.email.value = me.email ?? '';
   profileForm.phone.value = me.phone ?? '';
 }
+
+getProfileStats().then(stats => {
+  document.getElementById('saved-prediction-count').textContent =
+    new Intl.NumberFormat('vi-VN').format(stats.saved_predictions);
+  const memberSince = new Date(stats.member_since);
+  document.getElementById('member-since').dateTime = memberSince.toISOString();
+  document.getElementById('member-since').textContent =
+    new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium' }).format(memberSince);
+}).catch(error => {
+  if (error.status === 401) { expireSession(); requireLogin(); return; }
+  toast(error.detail ?? 'Không tải được thống kê tài khoản.', 'error');
+});
 
 // ---------- Sửa thông tin ----------
 profileForm.addEventListener('submit', async e => {
@@ -48,6 +63,7 @@ profileForm.addEventListener('submit', async e => {
     saveSession({ access_token: getToken(), user });
     toast('Đã lưu thông tin.');
   } catch (err) {
+    if (err.status === 401) { expireSession(); requireLogin(); return; }
     toast(err.detail ?? 'Không lưu được thông tin.', 'error');
   } finally {
     btn.disabled = false;
@@ -75,11 +91,40 @@ passwordForm.addEventListener('submit', async e => {
       current_password: passwordForm.current_password.value,
       new_password: passwordForm.new_password.value,
     });
+
+    deleteForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      clearFieldErrors(deleteForm);
+      if (deleteForm.confirmation.value.trim() !== 'DELETE') {
+        setFieldError(deleteForm.confirmation, 'Hãy nhập chính xác DELETE để tiếp tục.');
+        return;
+      }
+      const approved = await confirmAction({
+        title: 'Xóa tài khoản và dữ liệu?',
+        message: 'Tài khoản cùng toàn bộ dự đoán đã lưu và dữ liệu liên quan sẽ bị xóa vĩnh viễn.',
+        confirmText: 'Xóa tài khoản',
+      });
+      if (!approved) return;
+
+      const button = deleteForm.querySelector('button[type=submit]');
+      button.disabled = true;
+      try {
+        await deleteAccount('DELETE');
+        clearSession();
+        toast('Tài khoản và dữ liệu đã được xóa.');
+        location.href = 'index.html';
+      } catch (error) {
+        if (error.status === 401) { expireSession(); requireLogin(); return; }
+        button.disabled = false;
+        toast(error.detail ?? 'Không thể xóa tài khoản.', 'error');
+      }
+    });
     toast('Đã đổi mật khẩu. Vui lòng đăng nhập lại lần sau bằng mật khẩu mới.');
     passwordForm.reset();
   } catch (err) {
-    if (err instanceof ApiError && err.status === 401)
+    if (err instanceof ApiError && err.status === 401 && err.detail === 'Mật khẩu hiện tại không đúng.')
       setFieldError(passwordForm.current_password, err.detail);
+    else if (err.status === 401) { expireSession(); requireLogin(); }
     else
       toast(err.detail ?? 'Không đổi được mật khẩu.', 'error');
   } finally {

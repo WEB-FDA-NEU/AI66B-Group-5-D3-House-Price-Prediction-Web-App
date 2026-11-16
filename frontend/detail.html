@@ -10,9 +10,15 @@
   <article id="detail" hidden class="stack">
     <div><a class="field__hint" href="predictions.html">Quay lại lịch sử</a><h1 id="title"></h1></div>
     <section class="result-summary"><p class="result-summary__price" id="estimated-price"></p><p id="confidence-interval"></p><p class="field__hint" id="model-version"></p><p class="field__hint" id="prediction-disclaimer"></p></section>
+    <section class="panel stack" id="rerun-comparison" aria-live="polite" hidden>
+      <h2>Kết quả khi chạy lại</h2>
+      <p id="rerun-price-comparison"></p>
+      <p class="field__hint" id="rerun-model-version"></p>
+      <button class="btn btn--primary" id="save-rerun" type="button" hidden>Lưu kết quả chạy lại</button>
+    </section>
     <section><h2>Thông tin bất động sản</h2><dl class="facts" id="input-summary"></dl></section>
     <div id="explanation-slot"></div>
-    <div class="row__actions"><a class="btn" href="predict.html">Dự đoán mới</a><button class="btn" id="export-prediction" type="button">Xuất CSV</button><button class="btn btn--danger" id="delete-prediction" type="button">Xóa dự đoán</button></div>
+    <div class="row__actions"><a class="btn" href="predict.html">Dự đoán mới</a><button class="btn" id="rerun-prediction" type="button">Chạy lại với mô hình hiện tại</button><button class="btn" id="export-prediction" type="button">Xuất CSV</button><button class="btn btn--danger" id="delete-prediction" type="button">Xóa dự đoán</button></div>
   </article>
 </main>
 <site-footer></site-footer>

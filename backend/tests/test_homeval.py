@@ -24,10 +24,14 @@ os.environ['PREDICTION_RATE_LIMIT'] = '1000'
 from fastapi.testclient import TestClient
 from main import app
 from database import SessionLocal, engine
-from models import ModelVersion, Prediction, Subscription, TrainingJob, utcnow
+from models import (
+    Checkout, EstimateReport, ModelVersion, PasswordResetChallenge, Prediction,
+    Subscription, TrainingJob, User, utcnow,
+)
 from bootstrap import seed_accounts
 from ml import load_dataset, NUMERIC, ARTIFACTS
 from rate_limit import prediction_rate_limiter, login_rate_limiter
+from rate_limit import password_reset_rate_limiter
 
 @pytest.fixture(scope='module')
 def client():
@@ -534,3 +538,214 @@ def test_property_type_usage_counts_homeval_predictions(client,users):
     other=client.get('/api/insights/property-types',params={'city':'Không có tỉnh này'}).json()
     assert other['total']==0 and all(i['predictions']==0 for i in other['items'])
     assert client.get('/api/insights/property-types',params={'city':'x'*81}).status_code==422
+
+
+def test_registered_prediction_quota_is_enforced_and_reported(client,users):
+    user=users[0]
+    user_id=client.get('/api/me',headers=user).json()['id']
+    with SessionLocal() as db:
+        db.add_all([
+            Prediction(
+                id=f"quota-{user_id}-{index}",
+                owner_id=user_id,
+                payload={},
+                saved=False,
+                created_at=utcnow()-timedelta(minutes=index),
+            )
+            for index in range(100)
+        ])
+        db.commit()
+    quota=client.get('/api/prediction-quota',headers=user).json()
+    assert quota['is_guest'] is False
+    assert quota['limit']==100 and quota['used']==100 and quota['remaining']==0
+    assert quota['resets_at']
+    limited=client.post('/api/predictions',json=INPUT,headers=user)
+    assert limited.status_code==429
+    assert '100 lượt' in limited.json()['detail']
+
+
+def test_prediction_history_filters_sorts_and_paginates(client,users):
+    user=users[0]
+    user_id=client.get('/api/me',headers=user).json()['id']
+    with SessionLocal() as db:
+        for index in range(25):
+            kind='Nhà phố' if index % 2 == 0 else 'Căn hộ'
+            district='Thủ Đức' if index % 2 == 0 else 'Bình Thạnh'
+            payload={
+                'estimated_price':1_000_000_000+index*100_000_000,
+                'model':{'version':'active-v1'},
+                'input':{'district':district,'property_type':kind,'area_m2':70},
+                'created_at':(utcnow()-timedelta(minutes=index)).isoformat(),
+            }
+            db.add(Prediction(
+                id=f"history-{user_id}-{index}",
+                owner_id=user_id,
+                payload=payload,
+                label=f"Home {index}",
+                saved=True,
+                created_at=utcnow()-timedelta(minutes=index),
+            ))
+        db.commit()
+
+    params={
+        'property_type':'Nhà phố',
+        'district':'thủ',
+        'min_price':1_500_000_000,
+        'max_price':3_500_000_000,
+        'sort':'price_desc',
+        'page_size':3,
+    }
+    first=client.get('/api/me/predictions',params=params,headers=user)
+    assert first.status_code==200,first.text
+    data=first.json()
+    assert data['total']==10 and data['page']==1 and data['page_size']==3
+    prices=[item['estimated_price'] for item in data['items']]
+    assert prices==sorted(prices,reverse=True)
+    second=client.get('/api/me/predictions',params={**params,'page':2},headers=user).json()
+    assert second['items'][0]['estimated_price']<prices[-1]
+    invalid=client.get('/api/me/predictions',params={'min_price':100,'max_price':1},headers=user)
+    assert invalid.status_code==422
+
+
+def test_saved_prediction_can_be_rerun_against_active_model(client,users,monkeypatch):
+    user,other,_=users
+    import routers.homeval as homeval_router
+    prices=iter([4_000_000_000,5_000_000_000])
+    monkeypatch.setattr(homeval_router,'predict_artifact',lambda *args:(
+        next(prices),4_000_000_000,5_500_000_000,{'area_min':15,'area_max':1000}))
+    monkeypatch.setattr(homeval_router,'explain_artifact',lambda *args:{'items':[],'not_provided':[],'method':'test'})
+    draft=client.post('/api/predictions',json=INPUT).json()
+    saved=client.post('/api/me/predictions',json={'prediction':draft,'label':'Nhà cần định giá'},headers=user).json()
+    endpoint=f"/api/me/predictions/{saved['id']}/rerun"
+    assert client.post(endpoint,headers=other).status_code==404
+    rerun=client.post(endpoint,headers=user)
+    assert rerun.status_code==200,rerun.text
+    assert rerun.json()['estimated_price']==5_000_000_000
+    assert rerun.json()['comparison']=={
+        'previous_estimated_price':4_000_000_000,
+        'change_vnd':1_000_000_000,
+        'change_percent':25,
+    }
+    assert rerun.json()['model']['version']
+
+
+def test_password_reset_code_is_one_time_and_changes_password(client,monkeypatch):
+    password_reset_rate_limiter.clear()
+    monkeypatch.setenv('HOMEVAL_ENV','demo')
+    import uuid
+    email=f"{uuid.uuid4().hex}@example.com"
+    assert client.post('/api/auth/register',json={
+        'email':email,'password':'original-pass','display_name':'Reset Test',
+    }).status_code==201
+    requested=client.post('/api/auth/password-reset/request',json={'email':email})
+    assert requested.status_code==200,requested.text
+    result=requested.json()
+    assert result['demo'] is True and len(result['demo_code'])==6
+    assert result['demo_code'].isdigit()
+    user_id=client.post('/api/auth/login',json={
+        'email':email,'password':'original-pass',
+    }).json()['user']['id']
+    with SessionLocal() as db:
+        challenge=db.query(PasswordResetChallenge).filter(
+            PasswordResetChallenge.user_id==user_id
+        ).one()
+        assert challenge.code_hash != result['demo_code']
+    wrong_code='000000' if result['demo_code']!='000000' else '000001'
+    invalid=client.post('/api/auth/password-reset/confirm',json={
+        'email':email,'code':wrong_code,'new_password':'new-password',
+    })
+    assert invalid.status_code==400
+    changed=client.post('/api/auth/password-reset/confirm',json={
+        'email':email,'code':result['demo_code'],'new_password':'new-password',
+    })
+    assert changed.status_code==200,changed.text
+    assert client.post('/api/auth/password-reset/confirm',json={
+        'email':email,'code':result['demo_code'],'new_password':'third-password',
+    }).status_code==400
+    assert client.post('/api/auth/login',json={'email':email,'password':'original-pass'}).status_code==401
+    assert client.post('/api/auth/login',json={'email':email,'password':'new-password'}).status_code==200
+
+
+def test_production_password_reset_uses_resend_without_exposing_code(client,monkeypatch):
+    import password_reset_delivery
+    monkeypatch.setenv('HOMEVAL_ENV','production')
+    monkeypatch.setenv('RESEND_API_KEY','test-resend-key')
+    monkeypatch.setenv('RESEND_FROM_EMAIL','HomeVal <noreply@example.com>')
+    password_reset_rate_limiter.clear()
+    import uuid
+    email=f"{uuid.uuid4().hex}@example.com"
+    client.post('/api/auth/register',json={
+        'email':email,'password':'original-pass','display_name':'Resend Test',
+    })
+    calls=[]
+
+    class Response:
+        def raise_for_status(self):
+            return None
+
+    def fake_post(url,**kwargs):
+        calls.append((url,kwargs))
+        return Response()
+
+    monkeypatch.setattr(password_reset_delivery.httpx,'post',fake_post)
+    response=client.post('/api/auth/password-reset/request',json={'email':email})
+    assert response.status_code==200,response.text
+    assert response.json()['demo'] is False
+    assert 'demo_code' not in response.json()
+    assert calls[0][0]==password_reset_delivery.RESEND_URL
+    assert calls[0][1]['headers']['Authorization']=='Bearer test-resend-key'
+    assert calls[0][1]['json']['to']==[email]
+
+
+def test_profile_email_can_be_updated_and_remains_unique(client,users):
+    user,other,_=users
+    current=client.get('/api/me',headers=user).json()
+    changed=client.patch('/api/me',headers=user,json={
+        'display_name':current['display_name'],
+        'email':'updated-'+current['email'],
+        'phone':current['phone'],
+    })
+    assert changed.status_code==200,changed.text
+    assert changed.json()['email']=='updated-'+current['email']
+    other_email=client.get('/api/me',headers=other).json()['email']
+    duplicate=client.patch('/api/me',headers=user,json={
+        'display_name':current['display_name'],
+        'email':other_email,
+        'phone':current['phone'],
+    })
+    assert duplicate.status_code==409
+
+
+def test_account_deletion_removes_owned_data_and_rejects_admin(client,users):
+    user,_,admin=users
+    user_id=client.get('/api/me',headers=user).json()['id']
+    with SessionLocal() as db:
+        db.add(Prediction(
+            id=f"delete-pred-{user_id}",
+            owner_id=user_id,
+            payload={'estimated_price':1_000_000,'input':{'district':'Thủ Đức','property_type':'Nhà phố'}},
+            saved=True,
+        ))
+        db.add(Checkout(id=f"delete-checkout-{user_id}",owner_id=user_id,amount=199000,status='pending'))
+        db.commit()
+        db.add(EstimateReport(
+            id=f"delete-report-{user_id}",
+            owner_id=user_id,
+            prediction_id=f"delete-pred-{user_id}",
+            estimated_price=1_000_000,
+            expected_price=1_200_000,
+            comment='Testing account removal',
+            property_snapshot={},
+        ))
+        db.commit()
+
+    response=client.request('DELETE','/api/me',json={'confirmation':'DELETE'},headers=user)
+    assert response.status_code==204,response.text
+    assert client.get('/api/me',headers=user).status_code==401
+    with SessionLocal() as db:
+        assert db.get(User,user_id) is None
+        assert db.get(Prediction,f"delete-pred-{user_id}") is None
+        assert db.get(Checkout,f"delete-checkout-{user_id}") is None
+        assert db.get(EstimateReport,f"delete-report-{user_id}") is None
+    denied=client.request('DELETE','/api/me',json={'confirmation':'DELETE'},headers=admin)
+    assert denied.status_code==403
